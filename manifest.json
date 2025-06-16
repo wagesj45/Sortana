@@ -1,0 +1,32 @@
+{
+  "manifest_version": 2,
+  "name": "AI Filter",
+  "version": "0.1",
+  "default_locale": "en-US",
+  "applications": { "gecko": { "id": "ai-filter@example" } },
+  "background": { "scripts": [ "background.js" ] },
+  "experiment_apis": {
+    "aiFilter": {
+      "schema": "experiment/schema.json",
+      "parent": {
+        "scopes": [ "addon_parent" ],
+        "paths": [ [ "aiFilter" ] ],
+        "script": "experiment/api.js",
+        "events": [ "startup" ]
+      }
+    },
+    "DomContentScript": {
+      "schema": "experiment/DomContentScript/schema.json",
+      "parent": {
+        "scopes": [ "addon_parent" ],
+        "paths": [ [ "DomContentScript" ] ],
+        "script": "experiment/DomContentScript/implementation.js"
+      }
+    }
+  },
+  "options_ui": {
+    "page": "options/options.html",
+    "open_in_tab": false
+  },
+  "permissions": [ "storage" ]
+}

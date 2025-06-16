@@ -1,0 +1,8 @@
+{
+  "classification": { "message": "AI classification" },
+  "matches": { "message": "matches" },
+  "doesntMatch": { "message": "doesn't match" },
+  "options.title": { "message": "AI Filter Options" },
+  "options.endpoint": { "message": "Endpoint" },
+  "options.save": { "message": "Save" }
+}

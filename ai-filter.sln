@@ -1,0 +1,64 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35707.178
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{BCC6E6D2-343B-4C48-854D-5FE3BBC3CB70}"
+	ProjectSection(SolutionItems) = preProject
+		background.js = background.js
+		build-xpi.ps1 = build-xpi.ps1
+		manifest.json = manifest.json
+	EndProjectSection
+	ProjectSection(FolderGlobals) = preProject
+		Q_5_4Users_4Jordan_4Documents_4Gitea_4thunderbird-ai-filter_4src_4manifest_1json__JsonSchema = 
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "experiment", "experiment", "{F2C8C786-FA23-4B63-934C-8CAA39D9BF95}"
+	ProjectSection(SolutionItems) = preProject
+		experiment\api.js = experiment\api.js
+		experiment\schema.json = experiment\schema.json
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "options", "options", "{7372FCA6-B0BC-4968-A748-7ABB17A7929A}"
+	ProjectSection(SolutionItems) = preProject
+		options\options.html = options\options.html
+		options\options.js = options\options.js
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "modules", "modules", "{75ED3C1E-D3C7-4546-9F2E-AC85859DDF4B}"
+	ProjectSection(SolutionItems) = preProject
+		modules\ExpressionSearchFilter.jsm = modules\ExpressionSearchFilter.jsm
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_locales", "_locales", "{D446E5C6-BDDE-4091-BD1A-EC57170003CF}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "en-US", "en-US", "{8BEA7793-3336-40ED-AB96-7FFB09FEB0F6}"
+	ProjectSection(SolutionItems) = preProject
+		_locales\en-US\messages.json = _locales\en-US\messages.json
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DomContentScript", "DomContentScript", "{B334FFB0-4BD2-496E-BDC4-786620E019DA}"
+	ProjectSection(SolutionItems) = preProject
+		experiment\DomContentScript\implementation.js = experiment\DomContentScript\implementation.js
+		experiment\DomContentScript\schema.json = experiment\DomContentScript\schema.json
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "content", "content", "{028FDA4B-AC3E-4A0E-9291-978E213F9B78}"
+	ProjectSection(SolutionItems) = preProject
+		content\filterEditor.js = content\filterEditor.js
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{F2C8C786-FA23-4B63-934C-8CAA39D9BF95} = {BCC6E6D2-343B-4C48-854D-5FE3BBC3CB70}
+		{7372FCA6-B0BC-4968-A748-7ABB17A7929A} = {BCC6E6D2-343B-4C48-854D-5FE3BBC3CB70}
+		{75ED3C1E-D3C7-4546-9F2E-AC85859DDF4B} = {BCC6E6D2-343B-4C48-854D-5FE3BBC3CB70}
+		{D446E5C6-BDDE-4091-BD1A-EC57170003CF} = {BCC6E6D2-343B-4C48-854D-5FE3BBC3CB70}
+		{8BEA7793-3336-40ED-AB96-7FFB09FEB0F6} = {D446E5C6-BDDE-4091-BD1A-EC57170003CF}
+		{B334FFB0-4BD2-496E-BDC4-786620E019DA} = {F2C8C786-FA23-4B63-934C-8CAA39D9BF95}
+		{028FDA4B-AC3E-4A0E-9291-978E213F9B78} = {BCC6E6D2-343B-4C48-854D-5FE3BBC3CB70}
+	EndGlobalSection
+EndGlobal
