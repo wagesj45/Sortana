@@ -4,6 +4,7 @@ var { MailServices }    = ChromeUtils.importESModule("resource:///modules/MailSe
 var { Services }        = globalThis || ChromeUtils.importESModule("resource://gre/modules/Services.sys.mjs");
 var { NetUtil }         = ChromeUtils.importESModule("resource://gre/modules/NetUtil.sys.mjs");
 var { MimeParser }      = ChromeUtils.importESModule("resource:///modules/mimeParser.sys.mjs");
+var { FileUtils }       = ChromeUtils.importESModule("resource://gre/modules/FileUtils.sys.mjs");
 
 var EXPORTED_SYMBOLS = ["AIFilter", "ClassificationTerm"];
 
@@ -14,8 +15,45 @@ class CustomerTermBase {
     this.name = this.extension.localeData.localizeMessage(nameId);
     this.operators = operators;
     this.cache = new Map();
+    this._cacheFile = Services.dirsvc.get("ProfD", Ci.nsIFile);
+    this._cacheFile.append("aifilter_cache.json");
+    this._loadCache();
 
     console.log(`[ai-filter][ExpressionSearchFilter] Initialized term base "${this.id}"`);
+  }
+
+  _loadCache() {
+    try {
+      if (this._cacheFile.exists()) {
+        let stream = Cc["@mozilla.org/network/file-input-stream;1"].createInstance(Ci.nsIFileInputStream);
+        stream.init(this._cacheFile, -1, 0, 0);
+        let data = NetUtil.readInputStreamToString(stream, stream.available());
+        stream.close();
+        let obj = JSON.parse(data);
+        for (let [k, v] of Object.entries(obj)) {
+          this.cache.set(k, v);
+        }
+        console.log(`[ai-filter][ExpressionSearchFilter] Loaded ${this.cache.size} cache entries`);
+      }
+    } catch (e) {
+      console.error(`[ai-filter][ExpressionSearchFilter] Failed to load cache`, e);
+    }
+  }
+
+  _saveCache() {
+    try {
+      let obj = Object.fromEntries(this.cache);
+      let data = JSON.stringify(obj);
+      let stream = Cc["@mozilla.org/network/file-output-stream;1"].createInstance(Ci.nsIFileOutputStream);
+      stream.init(this._cacheFile,
+                  FileUtils.MODE_WRONLY | FileUtils.MODE_CREATE | FileUtils.MODE_TRUNCATE,
+                  FileUtils.PERMS_FILE,
+                  0);
+      stream.write(data, data.length);
+      stream.close();
+    } catch (e) {
+      console.error(`[ai-filter][ExpressionSearchFilter] Failed to save cache`, e);
+    }
   }
 
   getEnabled() {
@@ -146,6 +184,7 @@ class ClassificationTerm extends CustomerTermBase {
 
         console.log(`[ai-filter][ExpressionSearchFilter] Caching:`, key);
         this.cache.set(key, matched);
+        this._saveCache();
       }
     } catch (e) {
       console.error(`[ai-filter][ExpressionSearchFilter] HTTP request failed:`, e);
