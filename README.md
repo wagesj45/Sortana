@@ -10,6 +10,7 @@ message meets a specified criterion.
 - **AI classification rule** – adds the "AI classification" term with
   `matches` and `doesn't match` operators.
 - **Configurable endpoint** – set the classification service URL on the options page.
+- **Prompt templates** – choose between several model formats or provide your own custom template.
 - **Filter editor integration** – patches Thunderbird's filter editor to accept
   text criteria for AI classification.
 - **Result caching** – avoids duplicate requests for already-evaluated messages.

@@ -1,0 +1,7 @@
+[INST] {{system}}
+
+Email:
+{{email}}
+
+Criterion ({{operator}}): {{query}}
+[/INST]

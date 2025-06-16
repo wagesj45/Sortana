@@ -6,6 +6,17 @@
 </head>
 <body>
     <label>Endpoint: <input id="endpoint" type="text"></label><br>
+    <label>Prompt template:
+        <select id="template"></select>
+    </label><br>
+    <div id="custom-template-container" style="display:none">
+        <label>Custom template</label><br>
+        <textarea id="custom-template" rows="6" cols="60"></textarea>
+        <p>Placeholders: {{system}}, {{email}}, {{operator}}, {{query}}</p>
+    </div>
+    <label>System instructions:</label><br>
+    <textarea id="system-instructions" rows="4" cols="60"></textarea>
+    <button id="reset-system">Reset to default</button><br>
     <button id="save">Save</button>
     <script src="options.js"></script>
 </body>
