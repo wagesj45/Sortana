@@ -123,6 +123,7 @@ function loadTemplate(name) {
     let url = `resource://aifilter/prompt_templates/${name}.txt`;
     let xhr = new XMLHttpRequest();
     xhr.open("GET", url, false);
+    xhr.overrideMimeType("text/plain");
     xhr.send();
     if (xhr.status === 0 || xhr.status === 200) {
       return xhr.responseText;
