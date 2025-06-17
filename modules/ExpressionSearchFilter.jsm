@@ -217,10 +217,12 @@ class ClassificationTerm extends CustomerTermBase {
       } else {
         const result = JSON.parse(xhr.responseText);
         const rawText = result.choices?.[0]?.text || "";
+        const thinkText = rawText.match(/<think>[\s\S]*?<\/think>/gi)?.join('') || '';
         const cleanedText = rawText.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
         const obj = JSON.parse(cleanedText);
         matched = obj.matched === true || obj.match === true;
         console.log(`[ai-filter][ExpressionSearchFilter] Received response:`, result);
+        console.log('[ai-filter][ExpressionSearchFilter] ⮡ Reasoning: ', thinkText);
 
         console.log(`[ai-filter][ExpressionSearchFilter] Caching:`, key);
         this.cache.set(key, matched);
