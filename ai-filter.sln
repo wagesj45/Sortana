@@ -48,6 +48,21 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "content", "content", "{028F
 		content\filterEditor.js = content\filterEditor.js
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "prompt_templates", "prompt_templates", "{86516D53-50D4-4FE2-9D8A-977A8F5EBDBD}"
+	ProjectSection(SolutionItems) = preProject
+		prompt_templates\mistral.txt = prompt_templates\mistral.txt
+		prompt_templates\openai.txt = prompt_templates\openai.txt
+		prompt_templates\qwen.txt = prompt_templates\qwen.txt
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "resources", "resources", "{68A87938-5C2B-49F5-8AAA-8A34FBBFD854}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "img", "img", "{F266602F-1755-4A95-A11B-6C90C701C5BF}"
+	ProjectSection(SolutionItems) = preProject
+		resources\img\full-logo.png = resources\img\full-logo.png
+		resources\img\logo.png = resources\img\logo.png
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -60,5 +75,8 @@ Global
 		{8BEA7793-3336-40ED-AB96-7FFB09FEB0F6} = {D446E5C6-BDDE-4091-BD1A-EC57170003CF}
 		{B334FFB0-4BD2-496E-BDC4-786620E019DA} = {F2C8C786-FA23-4B63-934C-8CAA39D9BF95}
 		{028FDA4B-AC3E-4A0E-9291-978E213F9B78} = {BCC6E6D2-343B-4C48-854D-5FE3BBC3CB70}
+		{86516D53-50D4-4FE2-9D8A-977A8F5EBDBD} = {BCC6E6D2-343B-4C48-854D-5FE3BBC3CB70}
+		{68A87938-5C2B-49F5-8AAA-8A34FBBFD854} = {BCC6E6D2-343B-4C48-854D-5FE3BBC3CB70}
+		{F266602F-1755-4A95-A11B-6C90C701C5BF} = {68A87938-5C2B-49F5-8AAA-8A34FBBFD854}
 	EndGlobalSection
 EndGlobal

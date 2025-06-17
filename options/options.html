@@ -1,23 +1,151 @@
 ﻿<!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="utf-8">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>AI Filter Options</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+
+        header {
+            background-color: #ffffff;
+            padding: 20px 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+            header img {
+                max-height: 40px;
+            }
+
+        main {
+            max-width: 700px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #222;
+        }
+
+        input[type="text"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+            background-color: #fff;
+            transition: border-color 0.3s;
+        }
+
+            input[type="text"]:focus,
+            select:focus,
+            textarea:focus {
+                border-color: #007acc;
+                outline: none;
+            }
+
+        textarea {
+            resize: vertical;
+        }
+
+        .placeholder-text {
+            color: #888;
+            font-style: italic;
+        }
+
+        .button-group {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+            button#save {
+                background-color: #007acc;
+                color: white;
+            }
+
+                button#save:hover {
+                    background-color: #005fa3;
+                }
+
+            button#reset-system {
+                background-color: #f44336;
+                color: white;
+            }
+
+                button#reset-system:hover {
+                    background-color: #d32f2f;
+                }
+
+        @media (max-width: 600px) {
+            main {
+                margin: 20px 15px;
+            }
+        }
+    </style>
 </head>
 <body>
-    <label>Endpoint: <input id="endpoint" type="text"></label><br>
-    <label>Prompt template:
-        <select id="template"></select>
-    </label><br>
-    <div id="custom-template-container" style="display:none">
-        <label>Custom template</label><br>
-        <textarea id="custom-template" rows="6" cols="60"></textarea>
-        <p>Placeholders: {{system}}, {{email}}, {{operator}}, {{query}}</p>
-    </div>
-    <label>System instructions:</label><br>
-    <textarea id="system-instructions" rows="4" cols="60"></textarea>
-    <button id="reset-system">Reset to default</button><br>
-    <button id="save">Save</button>
+    <header>
+        <img src="../resources/img/full-logo.png" alt="AI Filter Logo">
+    </header>
+
+    <main>
+        <div class="form-group">
+            <label for="endpoint">Endpoint:</label>
+            <input type="text" id="endpoint" placeholder="https://api.example.com">
+        </div>
+
+        <div class="form-group">
+            <label for="template">Prompt template:</label>
+            <select id="template">
+            </select>
+        </div>
+
+        <div id="custom-template-container" class="form-group" style="display:none">
+            <label>Custom template</label>
+            <textarea id="custom-template" rows="6" cols="60" placeholder="Enter your custom template here..."></textarea>
+            <p class="placeholder-text">Placeholders: {{system}}, {{email}}, {{operator}}, {{query}}</p>
+        </div>
+
+        <div class="form-group">
+            <label for="system-instructions">System instructions:</label>
+            <textarea id="system-instructions" rows="4" cols="60" placeholder="Enter system instructions..."></textarea>
+        </div>
+
+        <div class="button-group">
+            <button id="reset-system">Reset to default</button>
+            <button id="save">Save</button>
+        </div>
+    </main>
+
     <script src="options.js"></script>
 </body>
 </html>
