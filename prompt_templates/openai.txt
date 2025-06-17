@@ -1,0 +1,9 @@
+<|im_start|>system
+{{system}}<|im_end|>
+<|im_start|>user
+**Email Contents**
+```
+{{email}}
+```
+Classification Criterion ({{operator}}): {{query}}<|im_end|>
+<|im_start|>assistant

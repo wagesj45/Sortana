@@ -8,6 +8,19 @@ var { FileUtils }       = ChromeUtils.importESModule("resource://gre/modules/Fil
 
 var EXPORTED_SYMBOLS = ["AIFilter", "ClassificationTerm"];
 
+const SYSTEM_PREFIX = `You are an email-classification assistant.
+Read the email below and the classification criterion provided by the user.
+`;
+
+const DEFAULT_CUSTOM_SYSTEM_PROMPT = "Determine whether the email satisfies the user's criterion.";
+
+const SYSTEM_SUFFIX = `
+Return ONLY a JSON object on a single line of the form:
+{"match": true} - if the email satisfies the criterion
+{"match": false} - otherwise
+
+Do not add any other keys, text, or formatting.`;
+
 class CustomerTermBase {
   constructor(nameId, operators) {
     this.extension = ExtensionParent.GlobalManager.getExtension("ai-filter@example");
@@ -100,31 +113,58 @@ function getPlainText(msgHdr) {
 }
 
 let gEndpoint = "http://127.0.0.1:5000/v1/classify";
+let gTemplateName = "openai";
+let gCustomTemplate = "";
+let gCustomSystemPrompt = DEFAULT_CUSTOM_SYSTEM_PROMPT;
+let gTemplateText = "";
+
+function loadTemplate(name) {
+  try {
+    let url = `resource://aifilter/prompt_templates/${name}.txt`;
+    let xhr = new XMLHttpRequest();
+    xhr.open("GET", url, false);
+    xhr.send();
+    if (xhr.status === 0 || xhr.status === 200) {
+      return xhr.responseText;
+    }
+  } catch (e) {
+    console.error(`[ai-filter][ExpressionSearchFilter] Failed to load template '${name}':`, e);
+  }
+  return "";
+}
+
 function setConfig(config = {}) {
     if (config.endpoint) {
         gEndpoint = config.endpoint;
     }
+    if (config.templateName) {
+        gTemplateName = config.templateName;
+    }
+    if (typeof config.customTemplate === "string") {
+        gCustomTemplate = config.customTemplate;
+    }
+    if (typeof config.customSystemPrompt === "string") {
+        gCustomSystemPrompt = config.customSystemPrompt;
+    }
+    gTemplateText = gTemplateName === "custom" ? gCustomTemplate : loadTemplate(gTemplateName);
     console.log(`[ai-filter][ExpressionSearchFilter] Endpoint set to ${gEndpoint}`);
+    console.log(`[ai-filter][ExpressionSearchFilter] Template set to ${gTemplateName}`);
 }
 
-function buildPrompt(body, criterion) {
+function buildSystemPrompt() {
+  return SYSTEM_PREFIX + (gCustomSystemPrompt || DEFAULT_CUSTOM_SYSTEM_PROMPT) + SYSTEM_SUFFIX;
+}
+
+function buildPrompt(body, criterion, opName) {
   console.log(`[ai-filter][ExpressionSearchFilter] Building prompt with criterion: "${criterion}"`);
-  return `<|im_start|>system
-You are an email-classification assistant.
-Read the email below and the classification criterion provided by the user.
-
-Return ONLY a JSON object on a single line of the form:
-{"match": true} - if the email satisfies the criterion
-{"match": false} - otherwise
-
-Do not add any other keys, text, or formatting.<|im_end|>
-<|im_start|>user
-**Email Contents**
-\`\`\`
-${body}
-\`\`\`
-Classification Criteria: ${criterion}<|im_end|>
-<|im_start|>assistant`;
+  const data = {
+    system: buildSystemPrompt(),
+    email: body,
+    operator: opName,
+    query: criterion,
+  };
+  let template = gTemplateText || loadTemplate(gTemplateName);
+  return template.replace(/{{\s*(\w+)\s*}}/g, (m, key) => data[key] || "");
 }
 
 class ClassificationTerm extends CustomerTermBase {
@@ -148,7 +188,7 @@ class ClassificationTerm extends CustomerTermBase {
 
     let body = getPlainText(msgHdr);
     let payload = JSON.stringify({
-      prompt: buildPrompt(body, value),
+      prompt: buildPrompt(body, value, opName),
       max_tokens: 4096,
       temperature: 1.31,
       top_p: 1,

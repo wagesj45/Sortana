@@ -4,5 +4,14 @@
   "doesntMatch": { "message": "doesn't match" },
   "options.title": { "message": "AI Filter Options" },
   "options.endpoint": { "message": "Endpoint" },
+  "options.template": { "message": "Prompt template" },
+  "options.customTemplate": { "message": "Custom template" },
+  "options.systemInstructions": { "message": "System instructions" },
+  "options.reset": { "message": "Reset to default" },
+  "options.placeholders": { "message": "Placeholders: {{system}}, {{email}}, {{operator}}, {{query}}" },
+  "template.openai": { "message": "OpenAI / ChatML" },
+  "template.qwen": { "message": "Qwen" },
+  "template.mistral": { "message": "Mistral" },
+  "template.custom": { "message": "Custom" },
   "options.save": { "message": "Save" }
 }
