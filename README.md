@@ -1,3 +1,5 @@
+![logo](/resources/img/full-logo-white.png)
+
 # Sortana
 
 Sortana is an experimental Thunderbird add-on that integrates an AI-powered filter rule. 
