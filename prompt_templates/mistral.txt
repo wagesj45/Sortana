@@ -3,5 +3,6 @@
 Email:
 {{email}}
 
-Criterion ({{operator}}): {{query}}
+Criterion: {{query}}
+Remember to ONLY return the JSON object described in the system instructions.
 [/INST]

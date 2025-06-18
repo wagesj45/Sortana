@@ -156,12 +156,11 @@ function buildSystemPrompt() {
   return SYSTEM_PREFIX + (gCustomSystemPrompt || DEFAULT_CUSTOM_SYSTEM_PROMPT) + SYSTEM_SUFFIX;
 }
 
-function buildPrompt(body, criterion, opName) {
+function buildPrompt(body, criterion) {
   console.log(`[ai-filter][ExpressionSearchFilter] Building prompt with criterion: "${criterion}"`);
   const data = {
     system: buildSystemPrompt(),
     email: body,
-    operator: opName,
     query: criterion,
   };
   let template = gTemplateText || loadTemplate(gTemplateName);
@@ -189,7 +188,7 @@ class ClassificationTerm extends CustomerTermBase {
 
     let body = getPlainText(msgHdr);
     let payload = JSON.stringify({
-      prompt: buildPrompt(body, value, opName),
+      prompt: buildPrompt(body, value),
       max_tokens: 4096,
       temperature: 0.6,
       top_p: 0.95,
