@@ -4,5 +4,9 @@ Email:
 {{email}}
 
 Criterion: {{query}}
-Remember to ONLY return the JSON object described in the system instructions.
+Remember, return ONLY a JSON object on a single line of the form:
+{"match": true} - if the email satisfies the criterion
+{"match": false} - otherwise
+
+Do not add any other keys, text, or formatting.
 [/INST]

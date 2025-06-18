@@ -6,5 +6,9 @@
 {{email}}
 ```
 Classification Criterion: {{query}}
-Remember to ONLY return the JSON object described in the system instructions.<|im_end|>
+Remember, return ONLY a JSON object on a single line of the form:
+{"match": true} - if the email satisfies the criterion
+{"match": false} - otherwise
+
+Do not add any other keys, text, or formatting.<|im_end|>
 <|im_start|>assistant
