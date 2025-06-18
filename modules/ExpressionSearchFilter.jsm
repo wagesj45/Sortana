@@ -217,13 +217,14 @@ class ClassificationTerm extends CustomerTermBase {
         console.warn(`[ai-filter][ExpressionSearchFilter] HTTP status ${xhr.status}`);
       } else {
         const result = JSON.parse(xhr.responseText);
+        console.log(`[ai-filter][ExpressionSearchFilter] Received response:`, result);
         const rawText = result.choices?.[0]?.text || "";
         const thinkText = rawText.match(/<think>[\s\S]*?<\/think>/gi)?.join('') || '';
+        console.log('[ai-filter][ExpressionSearchFilter] ⮡ Reasoning: ', thinkText);
         const cleanedText = rawText.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
+        console.log('[ai-filter][ExpressionSearchFilter] ⮡ Cleaned Response Text: ', cleanedText);
         const obj = JSON.parse(cleanedText);
         matched = obj.matched === true || obj.match === true;
-        console.log(`[ai-filter][ExpressionSearchFilter] Received response:`, result);
-        console.log('[ai-filter][ExpressionSearchFilter] ⮡ Reasoning: ', thinkText);
 
         console.log(`[ai-filter][ExpressionSearchFilter] Caching:`, key);
         this.cache.set(key, matched);
