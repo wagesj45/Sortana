@@ -142,7 +142,55 @@
 
         <div class="button-group">
             <button id="reset-system">Reset to default</button>
+            <button id="toggle-advanced" type="button">Advanced</button>
             <button id="save">Save</button>
+        </div>
+
+        <div id="advanced-options" style="display:none">
+            <div class="form-group">
+                <label for="max_tokens">Max tokens:</label>
+                <input type="number" id="max_tokens">
+            </div>
+            <div class="form-group">
+                <label for="temperature">Temperature:</label>
+                <input type="number" step="0.01" id="temperature">
+            </div>
+            <div class="form-group">
+                <label for="top_p">Top P:</label>
+                <input type="number" step="0.01" id="top_p">
+            </div>
+            <div class="form-group">
+                <label for="seed">Seed:</label>
+                <input type="number" id="seed">
+            </div>
+            <div class="form-group">
+                <label for="repetition_penalty">Repetition penalty:</label>
+                <input type="number" step="0.01" id="repetition_penalty">
+            </div>
+            <div class="form-group">
+                <label for="top_k">Top K:</label>
+                <input type="number" id="top_k">
+            </div>
+            <div class="form-group">
+                <label for="min_p">Min P:</label>
+                <input type="number" step="0.01" id="min_p">
+            </div>
+            <div class="form-group">
+                <label for="presence_penalty">Presence penalty:</label>
+                <input type="number" step="0.01" id="presence_penalty">
+            </div>
+            <div class="form-group">
+                <label for="frequency_penalty">Frequency penalty:</label>
+                <input type="number" step="0.01" id="frequency_penalty">
+            </div>
+            <div class="form-group">
+                <label for="typical_p">Typical P:</label>
+                <input type="number" step="0.01" id="typical_p">
+            </div>
+            <div class="form-group">
+                <label for="tfs">TFS:</label>
+                <input type="number" step="0.01" id="tfs">
+            </div>
         </div>
     </main>
 

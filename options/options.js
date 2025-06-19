@@ -3,8 +3,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         'endpoint',
         'templateName',
         'customTemplate',
-        'customSystemPrompt'
+        'customSystemPrompt',
+        'aiParams'
     ]);
+    const DEFAULT_AI_PARAMS = {
+        max_tokens: 4096,
+        temperature: 0.6,
+        top_p: 0.95,
+        seed: -1,
+        repetition_penalty: 1.0,
+        top_k: 20,
+        min_p: 0,
+        presence_penalty: 0,
+        frequency_penalty: 0,
+        typical_p: 1,
+        tfs: 1
+    };
     document.getElementById('endpoint').value = defaults.endpoint || 'http://127.0.0.1:5000/v1/classify';
 
     const templates = {
@@ -32,6 +46,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     templateSelect.addEventListener('change', updateVisibility);
     updateVisibility();
 
+    const advancedBox = document.getElementById('advanced-options');
+    const advancedBtn = document.getElementById('toggle-advanced');
+    advancedBtn.addEventListener('click', () => {
+        advancedBox.style.display = advancedBox.style.display === 'none' ? 'block' : 'none';
+    });
+
+    const aiParams = Object.assign({}, DEFAULT_AI_PARAMS, defaults.aiParams || {});
+    for (const [key, val] of Object.entries(aiParams)) {
+        const el = document.getElementById(key);
+        if (el) el.value = val;
+    }
+
     const DEFAULT_SYSTEM = 'Determine whether the email satisfies the user\'s criterion.';
     const systemBox = document.getElementById('system-instructions');
     systemBox.value = defaults.customSystemPrompt || DEFAULT_SYSTEM;
@@ -44,9 +70,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         const templateName = templateSelect.value;
         const customTemplateText = customTemplate.value;
         const customSystemPrompt = systemBox.value;
-        await browser.storage.local.set({ endpoint, templateName, customTemplate: customTemplateText, customSystemPrompt });
+        const aiParamsSave = {};
+        for (const key of Object.keys(DEFAULT_AI_PARAMS)) {
+            const el = document.getElementById(key);
+            if (el) {
+                const num = parseFloat(el.value);
+                aiParamsSave[key] = isNaN(num) ? DEFAULT_AI_PARAMS[key] : num;
+            }
+        }
+        await browser.storage.local.set({ endpoint, templateName, customTemplate: customTemplateText, customSystemPrompt, aiParams: aiParamsSave });
         try {
-            await browser.aiFilter.initConfig({ endpoint, templateName, customTemplate: customTemplateText, customSystemPrompt });
+            await browser.aiFilter.initConfig({ endpoint, templateName, customTemplate: customTemplateText, customSystemPrompt, aiParams: aiParamsSave });
         } catch (e) {
             console.error('[ai-filter][options] failed to apply config', e);
         }
