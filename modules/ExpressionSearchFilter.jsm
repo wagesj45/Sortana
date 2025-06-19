@@ -118,6 +118,20 @@ let gCustomTemplate = "";
 let gCustomSystemPrompt = DEFAULT_CUSTOM_SYSTEM_PROMPT;
 let gTemplateText = "";
 
+let gAiParams = {
+  max_tokens: 4096,
+  temperature: 0.6,
+  top_p: 0.95,
+  seed: -1,
+  repetition_penalty: 1.0,
+  top_k: 20,
+  min_p: 0,
+  presence_penalty: 0,
+  frequency_penalty: 0,
+  typical_p: 1,
+  tfs: 1,
+};
+
 function loadTemplate(name) {
   try {
     let url = `resource://aifilter/prompt_templates/${name}.txt`;
@@ -146,6 +160,13 @@ function setConfig(config = {}) {
     }
     if (typeof config.customSystemPrompt === "string") {
         gCustomSystemPrompt = config.customSystemPrompt;
+    }
+    if (config.aiParams && typeof config.aiParams === "object") {
+        for (let [k, v] of Object.entries(config.aiParams)) {
+            if (k in gAiParams && typeof v !== "undefined") {
+                gAiParams[k] = v;
+            }
+        }
     }
     gTemplateText = gTemplateName === "custom" ? gCustomTemplate : loadTemplate(gTemplateName);
     console.log(`[ai-filter][ExpressionSearchFilter] Endpoint set to ${gEndpoint}`);
@@ -187,20 +208,10 @@ class ClassificationTerm extends CustomerTermBase {
     }
 
     let body = getPlainText(msgHdr);
-    let payload = JSON.stringify({
-      prompt: buildPrompt(body, value),
-      max_tokens: 4096,
-      temperature: 0.6,
-      top_p: 0.95,
-      seed: -1,
-      repetition_penalty: 1.0,
-      top_k: 20,
-      min_p: 0,
-      presence_penalty: 0,
-      frequency_penalty: 0,
-      typical_p: 1,
-      tfs: 1
-    });
+    let payloadObj = Object.assign({
+      prompt: buildPrompt(body, value)
+    }, gAiParams);
+    let payload = JSON.stringify(payloadObj);
 
 
     console.log(`[ai-filter][ExpressionSearchFilter] Sending classification request to ${gEndpoint}`);

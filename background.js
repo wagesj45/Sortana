@@ -14,7 +14,7 @@
 console.log("[ai-filter] background.js loaded – ready to classify");
 (async () => {
     try {
-        const store = await browser.storage.local.get(["endpoint", "templateName", "customTemplate", "customSystemPrompt"]);
+        const store = await browser.storage.local.get(["endpoint", "templateName", "customTemplate", "customSystemPrompt", "aiParams"]);
         await browser.aiFilter.initConfig(store);
         console.log("[ai-filter] configuration loaded", store);
         try {
