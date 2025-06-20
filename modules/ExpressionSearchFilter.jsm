@@ -36,17 +36,22 @@ class CustomerTermBase {
   }
 
   _loadCache() {
+    console.log(`[ai-filter][ExpressionSearchFilter] Loading cache from ${this._cacheFile.path}`);
     try {
       if (this._cacheFile.exists()) {
         let stream = Cc["@mozilla.org/network/file-input-stream;1"].createInstance(Ci.nsIFileInputStream);
         stream.init(this._cacheFile, -1, 0, 0);
         let data = NetUtil.readInputStreamToString(stream, stream.available());
         stream.close();
+        console.log(`[ai-filter][ExpressionSearchFilter] Cache file contents: ${data}`);
         let obj = JSON.parse(data);
         for (let [k, v] of Object.entries(obj)) {
+          console.log(`[ai-filter][ExpressionSearchFilter] ⮡ Loaded entry '${k}' → ${v}`);
           this.cache.set(k, v);
         }
         console.log(`[ai-filter][ExpressionSearchFilter] Loaded ${this.cache.size} cache entries`);
+      } else {
+        console.log(`[ai-filter][ExpressionSearchFilter] Cache file does not exist`);
       }
     } catch (e) {
       console.error(`[ai-filter][ExpressionSearchFilter] Failed to load cache`, e);
@@ -54,9 +59,11 @@ class CustomerTermBase {
   }
 
   _saveCache() {
+    console.log(`[ai-filter][ExpressionSearchFilter] Saving cache to ${this._cacheFile.path}`);
     try {
       let obj = Object.fromEntries(this.cache);
       let data = JSON.stringify(obj);
+      console.log(`[ai-filter][ExpressionSearchFilter] Cache data to write: ${data}`);
       let stream = Cc["@mozilla.org/network/file-output-stream;1"].createInstance(Ci.nsIFileOutputStream);
       stream.init(this._cacheFile,
                   FileUtils.MODE_WRONLY | FileUtils.MODE_CREATE | FileUtils.MODE_TRUNCATE,
@@ -236,7 +243,7 @@ class ClassificationTerm extends CustomerTermBase {
         const obj = JSON.parse(cleanedText);
         matched = obj.matched === true || obj.match === true;
 
-        console.log(`[ai-filter][ExpressionSearchFilter] Caching:`, key);
+        console.log(`[ai-filter][ExpressionSearchFilter] Caching entry '${key}' → ${matched}`);
         this.cache.set(key, matched);
         this._saveCache();
       }
