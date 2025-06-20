@@ -6,6 +6,15 @@ var { NetUtil }         = ChromeUtils.importESModule("resource://gre/modules/Net
 var { MimeParser }      = ChromeUtils.importESModule("resource:///modules/mimeParser.sys.mjs");
 var { FileUtils }       = ChromeUtils.importESModule("resource://gre/modules/FileUtils.sys.mjs");
 
+function sha256Hex(str) {
+  const hasher = Cc["@mozilla.org/security/hash;1"].createInstance(Ci.nsICryptoHash);
+  hasher.init(Ci.nsICryptoHash.SHA256);
+  const data = new TextEncoder().encode(str);
+  hasher.update(data, data.length);
+  const binary = hasher.finish(false);
+  return Array.from(binary, c => ("0" + c.charCodeAt(0).toString(16)).slice(-2)).join("");
+}
+
 var EXPORTED_SYMBOLS = ["AIFilter", "ClassificationTerm"];
 
 const SYSTEM_PREFIX = `You are an email-classification assistant.
@@ -208,7 +217,7 @@ class ClassificationTerm extends CustomerTermBase {
                    op === Ci.nsMsgSearchOp.DoesntMatch ? "doesn't match" : `unknown (${op})`;
     console.log(`[ai-filter][ExpressionSearchFilter] Matching message ${msgHdr.messageId} using op "${opName}" and value "${value}"`);
 
-    let key = msgHdr.messageId + "|" + op + "|" + value;
+    let key = [msgHdr.messageId, op, value].map(sha256Hex).join("|");
     if (this.cache.has(key)) {
       console.log(`[ai-filter][ExpressionSearchFilter] Cache hit for key: ${key}`);
       return this.cache.get(key);
