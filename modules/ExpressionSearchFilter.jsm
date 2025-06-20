@@ -67,12 +67,14 @@ class CustomerTermBase {
     }
   }
 
-  _saveCache() {
+  _saveCache(updatedKey, updatedValue) {
     console.log(`[ai-filter][ExpressionSearchFilter] Saving cache to ${this._cacheFile.path}`);
+    if (typeof updatedKey !== "undefined") {
+      console.log(`[ai-filter][ExpressionSearchFilter] ⮡ Persisting entry '${updatedKey}' → ${updatedValue}`);
+    }
     try {
       let obj = Object.fromEntries(this.cache);
       let data = JSON.stringify(obj);
-      console.log(`[ai-filter][ExpressionSearchFilter] Cache data to write: ${data}`);
       let stream = Cc["@mozilla.org/network/file-output-stream;1"].createInstance(Ci.nsIFileOutputStream);
       stream.init(this._cacheFile,
                   FileUtils.MODE_WRONLY | FileUtils.MODE_CREATE | FileUtils.MODE_TRUNCATE,
@@ -254,7 +256,7 @@ class ClassificationTerm extends CustomerTermBase {
 
         console.log(`[ai-filter][ExpressionSearchFilter] Caching entry '${key}' → ${matched}`);
         this.cache.set(key, matched);
-        this._saveCache();
+        this._saveCache(key, matched);
       }
     } catch (e) {
       console.error(`[ai-filter][ExpressionSearchFilter] HTTP request failed:`, e);
