@@ -13,9 +13,12 @@ message meets a specified criterion.
   `matches` and `doesn't match` operators.
 - **Configurable endpoint** – set the classification service URL on the options page.
 - **Prompt templates** – choose between several model formats or provide your own custom template.
+- **Custom system prompts** – tailor the instructions sent to the model for more precise results.
 - **Filter editor integration** – patches Thunderbird's filter editor to accept
   text criteria for AI classification.
-- **Result caching** – avoids duplicate requests for already-evaluated messages.
+- **Persistent result caching** – classification results are saved to disk so messages aren't re-evaluated across restarts.
+- **Advanced parameters** – tune generation settings like temperature, top‑p and more from the options page.
+- **Debug logging** – optional colorized logs help troubleshoot interactions with the AI service.
 - **Packaging script** – `build-xpi.ps1` builds an XPI ready for installation.
 
 ## Architecture Overview
@@ -43,6 +46,7 @@ APIs:
 | `experiment/api.js`                     | Bridges WebExtension code with privileged APIs.|
 | `content/filterEditor.js`               | Patches the filter editor interface.           |
 | `options/options.html` and `options.js` | Endpoint configuration UI.                     |
+| `logger.js` and `modules/logger.jsm`    | Colorized logging with optional debug mode.    |
 
 ## Building
 
