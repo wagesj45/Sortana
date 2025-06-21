@@ -13,5 +13,6 @@
   "template.qwen": { "message": "Qwen" },
   "template.mistral": { "message": "Mistral" },
   "template.custom": { "message": "Custom" },
-  "options.save": { "message": "Save" }
+  "options.save": { "message": "Save" },
+  "options.debugLogging": { "message": "Enable debug logging" }
 }

@@ -1,11 +1,14 @@
 document.addEventListener('DOMContentLoaded', async () => {
+    const logger = await import(browser.runtime.getURL('logger.js'));
     const defaults = await browser.storage.local.get([
         'endpoint',
         'templateName',
         'customTemplate',
         'customSystemPrompt',
-        'aiParams'
+        'aiParams',
+        'debugLogging'
     ]);
+    logger.setDebug(defaults.debugLogging === true);
     const DEFAULT_AI_PARAMS = {
         max_tokens: 4096,
         temperature: 0.6,
@@ -52,6 +55,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         advancedBox.style.display = advancedBox.style.display === 'none' ? 'block' : 'none';
     });
 
+    const debugToggle = document.getElementById('debug-logging');
+    debugToggle.checked = defaults.debugLogging === true;
+
     const aiParams = Object.assign({}, DEFAULT_AI_PARAMS, defaults.aiParams || {});
     for (const [key, val] of Object.entries(aiParams)) {
         const el = document.getElementById(key);
@@ -78,11 +84,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 aiParamsSave[key] = isNaN(num) ? DEFAULT_AI_PARAMS[key] : num;
             }
         }
-        await browser.storage.local.set({ endpoint, templateName, customTemplate: customTemplateText, customSystemPrompt, aiParams: aiParamsSave });
+        const debugLogging = debugToggle.checked;
+        await browser.storage.local.set({ endpoint, templateName, customTemplate: customTemplateText, customSystemPrompt, aiParams: aiParamsSave, debugLogging });
         try {
-            await browser.aiFilter.initConfig({ endpoint, templateName, customTemplate: customTemplateText, customSystemPrompt, aiParams: aiParamsSave });
+            await browser.aiFilter.initConfig({ endpoint, templateName, customTemplate: customTemplateText, customSystemPrompt, aiParams: aiParamsSave, debugLogging });
+            logger.setDebug(debugLogging);
         } catch (e) {
-            console.error('[ai-filter][options] failed to apply config', e);
+            logger.aiLog('[options] failed to apply config', {level: 'error'}, e);
         }
     });
 });

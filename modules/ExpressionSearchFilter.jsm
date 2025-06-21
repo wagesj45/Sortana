@@ -5,6 +5,7 @@ var { Services }        = globalThis || ChromeUtils.importESModule("resource://g
 var { NetUtil }         = ChromeUtils.importESModule("resource://gre/modules/NetUtil.sys.mjs");
 var { MimeParser }      = ChromeUtils.importESModule("resource:///modules/mimeParser.sys.mjs");
 var { FileUtils }       = ChromeUtils.importESModule("resource://gre/modules/FileUtils.sys.mjs");
+var { aiLog, setDebug } = ChromeUtils.import("resource://aifilter/modules/logger.jsm");
 
 function sha256Hex(str) {
   const hasher = Cc["@mozilla.org/security/hash;1"].createInstance(Ci.nsICryptoHash);
@@ -41,36 +42,36 @@ class CustomerTermBase {
     this._cacheFile.append("aifilter_cache.json");
     this._loadCache();
 
-    console.log(`[ai-filter][ExpressionSearchFilter] Initialized term base "${this.id}"`);
+    aiLog(`[ExpressionSearchFilter] Initialized term base "${this.id}"`, {debug: true});
   }
 
   _loadCache() {
-    console.log(`[ai-filter][ExpressionSearchFilter] Loading cache from ${this._cacheFile.path}`);
+    aiLog(`[ExpressionSearchFilter] Loading cache from ${this._cacheFile.path}` , {debug: true});
     try {
       if (this._cacheFile.exists()) {
         let stream = Cc["@mozilla.org/network/file-input-stream;1"].createInstance(Ci.nsIFileInputStream);
         stream.init(this._cacheFile, -1, 0, 0);
         let data = NetUtil.readInputStreamToString(stream, stream.available());
         stream.close();
-        console.log(`[ai-filter][ExpressionSearchFilter] Cache file contents: ${data}`);
+        aiLog(`[ExpressionSearchFilter] Cache file contents: ${data}`, {debug: true});
         let obj = JSON.parse(data);
         for (let [k, v] of Object.entries(obj)) {
-          console.log(`[ai-filter][ExpressionSearchFilter] ⮡ Loaded entry '${k}' → ${v}`);
+          aiLog(`[ExpressionSearchFilter] ⮡ Loaded entry '${k}' → ${v}`, {debug: true});
           this.cache.set(k, v);
         }
-        console.log(`[ai-filter][ExpressionSearchFilter] Loaded ${this.cache.size} cache entries`);
+        aiLog(`[ExpressionSearchFilter] Loaded ${this.cache.size} cache entries`, {debug: true});
       } else {
-        console.log(`[ai-filter][ExpressionSearchFilter] Cache file does not exist`);
+        aiLog(`[ExpressionSearchFilter] Cache file does not exist`, {debug: true});
       }
     } catch (e) {
-      console.error(`[ai-filter][ExpressionSearchFilter] Failed to load cache`, e);
+      aiLog(`Failed to load cache`, {level: 'error'}, e);
     }
   }
 
   _saveCache(updatedKey, updatedValue) {
-    console.log(`[ai-filter][ExpressionSearchFilter] Saving cache to ${this._cacheFile.path}`);
+    aiLog(`[ExpressionSearchFilter] Saving cache to ${this._cacheFile.path}`, {debug: true});
     if (typeof updatedKey !== "undefined") {
-      console.log(`[ai-filter][ExpressionSearchFilter] ⮡ Persisting entry '${updatedKey}' → ${updatedValue}`);
+      aiLog(`[ExpressionSearchFilter] ⮡ Persisting entry '${updatedKey}' → ${updatedValue}`, {debug: true});
     }
     try {
       let obj = Object.fromEntries(this.cache);
@@ -83,39 +84,39 @@ class CustomerTermBase {
       stream.write(data, data.length);
       stream.close();
     } catch (e) {
-      console.error(`[ai-filter][ExpressionSearchFilter] Failed to save cache`, e);
+      aiLog(`Failed to save cache`, {level: 'error'}, e);
     }
   }
 
   getEnabled() {
-    console.log(`[ai-filter][ExpressionSearchFilter] getEnabled() called on "${this.id}"`);
+    aiLog(`[ExpressionSearchFilter] getEnabled() called on "${this.id}"`, {debug: true});
     return true;
   }
 
   getAvailable() {
-    console.log(`[ai-filter][ExpressionSearchFilter] getAvailable() called on "${this.id}"`);
+    aiLog(`[ExpressionSearchFilter] getAvailable() called on "${this.id}"`, {debug: true});
     return true;
   }
 
   getAvailableOperators() {
-    console.log(`[ai-filter][ExpressionSearchFilter] getAvailableOperators() called on "${this.id}"`);
+    aiLog(`[ExpressionSearchFilter] getAvailableOperators() called on "${this.id}"`, {debug: true});
     return this.operators;
   }
 
   getAvailableValues() {
-    console.log(`[ai-filter][ExpressionSearchFilter] getAvailableValues() called on "${this.id}"`);
+    aiLog(`[ExpressionSearchFilter] getAvailableValues() called on "${this.id}"`, {debug: true});
     return null;
   }
 
   get attrib() {
-    console.log(`[ai-filter][ExpressionSearchFilter] attrib getter called for "${this.id}"`);
+    aiLog(`[ExpressionSearchFilter] attrib getter called for "${this.id}"`, {debug: true});
 
     //return Ci.nsMsgSearchAttrib.Custom;
   }
 }
 
 function getPlainText(msgHdr) {
-  console.log(`[ai-filter][ExpressionSearchFilter] Extracting plain text for message ID ${msgHdr.messageId}`);
+  aiLog(`[ExpressionSearchFilter] Extracting plain text for message ID ${msgHdr.messageId}`, {debug: true});
   let folder = msgHdr.folder;
   if (!folder.getMsgInputStream) return "";
   let reusable = {};
@@ -161,7 +162,7 @@ function loadTemplate(name) {
       return xhr.responseText;
     }
   } catch (e) {
-    console.error(`[ai-filter][ExpressionSearchFilter] Failed to load template '${name}':`, e);
+    aiLog(`Failed to load template '${name}':`, {level: 'error'}, e);
   }
   return "";
 }
@@ -186,9 +187,12 @@ function setConfig(config = {}) {
             }
         }
     }
+    if (typeof config.debugLogging === "boolean") {
+        setDebug(config.debugLogging);
+    }
     gTemplateText = gTemplateName === "custom" ? gCustomTemplate : loadTemplate(gTemplateName);
-    console.log(`[ai-filter][ExpressionSearchFilter] Endpoint set to ${gEndpoint}`);
-    console.log(`[ai-filter][ExpressionSearchFilter] Template set to ${gTemplateName}`);
+    aiLog(`[ExpressionSearchFilter] Endpoint set to ${gEndpoint}`, {debug: true});
+    aiLog(`[ExpressionSearchFilter] Template set to ${gTemplateName}`, {debug: true});
 }
 
 function buildSystemPrompt() {
@@ -196,7 +200,7 @@ function buildSystemPrompt() {
 }
 
 function buildPrompt(body, criterion) {
-  console.log(`[ai-filter][ExpressionSearchFilter] Building prompt with criterion: "${criterion}"`);
+  aiLog(`[ExpressionSearchFilter] Building prompt with criterion: "${criterion}"`, {debug: true});
   const data = {
     system: buildSystemPrompt(),
     email: body,
@@ -209,7 +213,7 @@ function buildPrompt(body, criterion) {
 class ClassificationTerm extends CustomerTermBase {
   constructor() {
     super("classification", [Ci.nsMsgSearchOp.Matches, Ci.nsMsgSearchOp.DoesntMatch]);
-    console.log(`[ai-filter][ExpressionSearchFilter] ClassificationTerm constructed`);
+    aiLog(`[ExpressionSearchFilter] ClassificationTerm constructed`, {debug: true});
   }
 
   needsBody() { return true; }
@@ -217,11 +221,11 @@ class ClassificationTerm extends CustomerTermBase {
   match(msgHdr, value, op) {
     const opName = op === Ci.nsMsgSearchOp.Matches ? "matches" :
                    op === Ci.nsMsgSearchOp.DoesntMatch ? "doesn't match" : `unknown (${op})`;
-    console.log(`[ai-filter][ExpressionSearchFilter] Matching message ${msgHdr.messageId} using op "${opName}" and value "${value}"`);
+    aiLog(`[ExpressionSearchFilter] Matching message ${msgHdr.messageId} using op "${opName}" and value "${value}"`, {debug: true});
 
     let key = [msgHdr.messageId, op, value].map(sha256Hex).join("|");
     if (this.cache.has(key)) {
-      console.log(`[ai-filter][ExpressionSearchFilter] Cache hit for key: ${key}`);
+      aiLog(`[ExpressionSearchFilter] Cache hit for key: ${key}`, {debug: true});
       return this.cache.get(key);
     }
 
@@ -232,7 +236,7 @@ class ClassificationTerm extends CustomerTermBase {
     let payload = JSON.stringify(payloadObj);
 
 
-    console.log(`[ai-filter][ExpressionSearchFilter] Sending classification request to ${gEndpoint}`);
+    aiLog(`[ExpressionSearchFilter] Sending classification request to ${gEndpoint}`, {debug: true});
 
     let matched = false;
     try {
@@ -242,44 +246,44 @@ class ClassificationTerm extends CustomerTermBase {
       xhr.send(payload);
 
       if (xhr.status < 200 || xhr.status >= 300) {
-        console.warn(`[ai-filter][ExpressionSearchFilter] HTTP status ${xhr.status}`);
+        aiLog(`HTTP status ${xhr.status}`, {level: 'warn'});
       } else {
         const result = JSON.parse(xhr.responseText);
-        console.log(`[ai-filter][ExpressionSearchFilter] Received response:`, result);
+        aiLog(`[ExpressionSearchFilter] Received response:`, {debug: true}, result);
         const rawText = result.choices?.[0]?.text || "";
         const thinkText = rawText.match(/<think>[\s\S]*?<\/think>/gi)?.join('') || '';
-        console.log('[ai-filter][ExpressionSearchFilter] ⮡ Reasoning: ', thinkText);
+        aiLog('[ExpressionSearchFilter] ⮡ Reasoning:', {debug: true}, thinkText);
         const cleanedText = rawText.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
-        console.log('[ai-filter][ExpressionSearchFilter] ⮡ Cleaned Response Text: ', cleanedText);
+        aiLog('[ExpressionSearchFilter] ⮡ Cleaned Response Text:', {debug: true}, cleanedText);
         const obj = JSON.parse(cleanedText);
         matched = obj.matched === true || obj.match === true;
 
-        console.log(`[ai-filter][ExpressionSearchFilter] Caching entry '${key}' → ${matched}`);
+        aiLog(`[ExpressionSearchFilter] Caching entry '${key}' → ${matched}`, {debug: true});
         this.cache.set(key, matched);
         this._saveCache(key, matched);
       }
     } catch (e) {
-      console.error(`[ai-filter][ExpressionSearchFilter] HTTP request failed:`, e);
+      aiLog(`HTTP request failed`, {level: 'error'}, e);
     }
 
     if (op === Ci.nsMsgSearchOp.DoesntMatch) {
       matched = !matched;
-      console.log(`[ai-filter][ExpressionSearchFilter] Operator is "doesn't match" → inverting to ${matched}`);
+      aiLog(`[ExpressionSearchFilter] Operator is "doesn't match" → inverting to ${matched}`, {debug: true});
     }
 
-    console.log(`[ai-filter][ExpressionSearchFilter] Final match result: ${matched}`);
+    aiLog(`[ExpressionSearchFilter] Final match result: ${matched}`, {debug: true});
     return matched;
   }
 }
 
 (function register() {
-  console.log(`[ai-filter][ExpressionSearchFilter] Registering custom filter term...`);
+  aiLog(`[ExpressionSearchFilter] Registering custom filter term...`, {debug: true});
   let term = new ClassificationTerm();
   if (!MailServices.filters.getCustomTerm(term.id)) {
     MailServices.filters.addCustomTerm(term);
-    console.log(`[ai-filter][ExpressionSearchFilter] Registered term: ${term.id}`);
+    aiLog(`[ExpressionSearchFilter] Registered term: ${term.id}`, {debug: true});
   } else {
-    console.log(`[ai-filter][ExpressionSearchFilter] Term already registered: ${term.id}`);
+    aiLog(`[ExpressionSearchFilter] Term already registered: ${term.id}`, {debug: true});
   }
 })();
 
