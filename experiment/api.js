@@ -1,20 +1,22 @@
 ﻿var { ExtensionCommon } = ChromeUtils.importESModule("resource://gre/modules/ExtensionCommon.sys.mjs");
 var { Services } = globalThis || ChromeUtils.importESModule("resource://gre/modules/Services.sys.mjs");
 var { MailServices } = ChromeUtils.importESModule("resource:///modules/MailServices.sys.mjs");
+var aiLog = (...args) => console.log("[ai-filter][api]", ...args);
+var setDebug = () => {};
 
-console.log("[ai-filter][api] Experiment API module loaded");
+console.log("[ai-filter][api] Experiment API module loading");
 
 var resProto = Cc["@mozilla.org/network/protocol;1?name=resource"]
     .getService(Ci.nsISubstitutingProtocolHandler);
 
 function registerResourceUrl(extension, namespace) {
-    console.log(`[ai-filter][api] registerResourceUrl called for namespace="${namespace}"`);
+    aiLog(`[api] registerResourceUrl called for namespace="${namespace}"`, {debug: true});
     if (resProto.hasSubstitution(namespace)) {
-        console.log(`[ai-filter][api] namespace="${namespace}" already registered, skipping`);
+        aiLog(`[api] namespace="${namespace}" already registered, skipping`, {debug: true});
         return;
     }
     let uri = Services.io.newURI(".", null, extension.rootURI);
-    console.log(`[ai-filter][api] setting substitution for "${namespace}" → ${uri.spec}`);
+    aiLog(`[api] setting substitution for "${namespace}" → ${uri.spec}`, {debug: true});
     resProto.setSubstitutionWithFlags(namespace, uri, resProto.ALLOW_CONTENT_ACCESS);
 }
 
@@ -23,63 +25,71 @@ var AIFilterMod;
 
 var aiFilter = class extends ExtensionCommon.ExtensionAPI {
     async onStartup() {
-        console.log("[ai-filter][api] onStartup()");
         let { extension } = this;
+
+        // Import logger after we have access to the extension root
+        let loggerMod = ChromeUtils.import(extension.rootURI.resolve("modules/logger.jsm"));
+        aiLog = loggerMod.aiLog;
+        setDebug = loggerMod.setDebug;
+        aiLog("[api] onStartup()", {debug: true});
 
         registerResourceUrl(extension, "aifilter");
 
 
         try {
-            console.log("[ai-filter][api] importing ExpressionSearchFilter.jsm");
+            aiLog("[api] importing ExpressionSearchFilter.jsm", {debug: true});
             AIFilterMod = ChromeUtils.import("resource://aifilter/modules/ExpressionSearchFilter.jsm");
-            console.log("[ai-filter][api] ExpressionSearchFilter.jsm import succeeded");
+            aiLog("[api] ExpressionSearchFilter.jsm import succeeded", {debug: true});
         }
         catch (err) {
-            console.error("[ai-filter][api] failed to import ExpressionSearchFilter.jsm:", err);
+            aiLog("[api] failed to import ExpressionSearchFilter.jsm", {level: 'error'}, err);
         }
     }
 
     onShutdown(isAppShutdown) {
-        console.log("[ai-filter][api] onShutdown(), isAppShutdown =", isAppShutdown);
+        aiLog("[api] onShutdown()", {debug: true}, isAppShutdown);
         if (!isAppShutdown && resProto.hasSubstitution("aifilter")) {
-            console.log("[ai-filter][api] removing substitution for namespace='aifilter'");
+            aiLog("[api] removing substitution for namespace='aifilter'", {debug: true});
             resProto.setSubstitution("aifilter", null);
         }
     }
 
     getAPI(context) {
-        console.log("[ai-filter][api] getAPI()");
+        aiLog("[api] getAPI()", {debug: true});
         return {
             aiFilter: {
                 initConfig: async (config) => {
                     try {
                         if (AIFilterMod?.AIFilter?.setConfig) {
                             AIFilterMod.AIFilter.setConfig(config);
-                            console.log("[ai-filter][api] configuration applied", config);
+                            if (typeof config.debugLogging === "boolean") {
+                                setDebug(config.debugLogging);
+                            }
+                            aiLog("[api] configuration applied", {debug: true}, config);
                         }
                     } catch (err) {
-                        console.error("[ai-filter][api] failed to apply config:", err);
+                        aiLog("[api] failed to apply config", {level: 'error'}, err);
                     }
                 },
                 classify: (msg) => {
-                    console.log("[ai-filter][api] classify() called with msg:", msg);
+                    aiLog("[api] classify() called with msg", {debug: true}, msg);
                     try {
                         if (!gTerm) {
-                            console.log("[ai-filter][api] instantiating new ClassificationTerm");
+                            aiLog("[api] instantiating new ClassificationTerm", {debug: true});
                             let mod = AIFilterMod || ChromeUtils.import("resource://aifilter/modules/ExpressionSearchFilter.jsm");
                             gTerm = new mod.ClassificationTerm();
                         }
-                        console.log("[ai-filter][api] calling gTerm.match()");
+                        aiLog("[api] calling gTerm.match()", {debug: true});
                         let matchResult = gTerm.match(
                             msg.msgHdr,
                             msg.value,
                             Ci.nsMsgSearchOp.Contains
                         );
-                        console.log("[ai-filter][api] gTerm.match() returned:", matchResult);
+                        aiLog("[api] gTerm.match() returned", {debug: true}, matchResult);
                         return matchResult;
                     }
                     catch (err) {
-                        console.error("[ai-filter][api] error in classify():", err);
+                        aiLog("[api] error in classify()", {level: 'error'}, err);
                         throw err;
                     }
                 }
