@@ -1,9 +1,11 @@
 ﻿var { ExtensionCommon } = ChromeUtils.importESModule("resource://gre/modules/ExtensionCommon.sys.mjs");
 var { Services } = globalThis || ChromeUtils.importESModule("resource://gre/modules/Services.sys.mjs");
 var { MailServices } = ChromeUtils.importESModule("resource:///modules/MailServices.sys.mjs");
-var { aiLog, setDebug } = ChromeUtils.import("resource://aifilter/modules/logger.jsm");
 
-aiLog("[api] Experiment API module loaded", {debug: true});
+var aiLog = (...args) => console.log("[ai-filter][api]", ...args);
+var setDebug = () => {};
+
+console.log("[ai-filter][api] Experiment API module loading");
 
 var resProto = Cc["@mozilla.org/network/protocol;1?name=resource"]
     .getService(Ci.nsISubstitutingProtocolHandler);
@@ -24,8 +26,13 @@ var AIFilterMod;
 
 var aiFilter = class extends ExtensionCommon.ExtensionAPI {
     async onStartup() {
-        aiLog("[api] onStartup()", {debug: true});
         let { extension } = this;
+
+        // Import logger after we have access to the extension root
+        let loggerMod = ChromeUtils.import(extension.rootURI.resolve("modules/logger.jsm"));
+        aiLog = loggerMod.aiLog;
+        setDebug = loggerMod.setDebug;
+        aiLog("[api] onStartup()", {debug: true});
 
         registerResourceUrl(extension, "aifilter");
 
