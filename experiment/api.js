@@ -28,13 +28,13 @@ var aiFilter = class extends ExtensionCommon.ExtensionAPI {
     async onStartup() {
         let { extension } = this;
 
-        // Import logger after we have access to the extension root
-        let loggerMod = ChromeUtils.import(extension.rootURI.resolve("modules/logger.jsm"));
+        registerResourceUrl(extension, "aifilter");
+
+        // Import logger using the resource URL we just registered
+        let loggerMod = ChromeUtils.import("resource://aifilter/modules/logger.jsm");
         aiLog = loggerMod.aiLog;
         setDebug = loggerMod.setDebug;
         aiLog("[api] onStartup()", {debug: true});
-
-        registerResourceUrl(extension, "aifilter");
 
 
         try {
