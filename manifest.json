@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "AI Filter",
-  "version": "1.0",
+  "version": "1.1",
   "default_locale": "en-US",
   "applications": { "gecko": { "id": "ai-filter@example" } },
   "background": { "scripts": [ "background.js" ] },
