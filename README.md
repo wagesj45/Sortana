@@ -66,6 +66,33 @@ the version from `manifest.json` and creates an XPI in the `release` folder.
 3. When the filter runs, the add-on sends the message text to the service and
    checks the JSON response for a match.
 
+### Example Filters
+
+Here are some useful and fun example criteria you can use in your filters. Filters should be able to be answered as either `true` or `false`.
+
+- **"Does this message require my attention, response, or decision soon?"**  
+  Identify emails with deadlines, requests, or actionable items.
+
+- **"Is this message spam, phishing, or irrelevant bulk mail?"**  
+  Catch low-value or deceptive messages and sweep them into the junk folder.
+
+- **"Is this email promotional, advertising a product or service, or part of a mass mailing?"**  
+  Great for filtering out newsletters, deals, and marketing campaigns.
+
+- **"Is this a personal message from a friend or family member?"**  
+  Keep emotionally meaningful or social emails from getting lost.
+
+- **"Is this message a receipt, invoice, or shipping notification?"**  
+  Automatically tag or file transactional messages for easy lookup.
+
+- **"Does this message relate to one of my current work projects?"**  
+  Focus your inbox around what matters right now.
+
+- **"Would I roll my eyes reading this email?"**  
+  For when you're ready to filter based on vibes.
+
+You can define as many filters as you'd like, each using a different prompt and triggering tags, moves, or actions based on the model's classification.
+
 ## License
 
 This project is licensed under the terms of the GNU General Public License
