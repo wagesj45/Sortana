@@ -33,7 +33,9 @@ Do not add any other keys, text, or formatting.`;
 
 class CustomerTermBase {
   constructor(nameId, operators) {
-    this.extension = ExtensionParent.GlobalManager.getExtension("ai-filter@example");
+    // Lookup our extension instance using the ID from manifest.json
+    // so locale strings are resolved correctly.
+    this.extension = ExtensionParent.GlobalManager.getExtension("ai-filter@jordanwages");
     this.id = "aifilter#" + nameId;
     this.name = this.extension.localeData.localizeMessage(nameId);
     this.operators = operators;
