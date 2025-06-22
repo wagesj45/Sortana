@@ -1,16 +1,22 @@
 {
   "manifest_version": 2,
-  "name": "AI Filter",
-  "version": "1.1",
+  "name": "Sortana",
+  "version": "1.2.1",
   "default_locale": "en-US",
-  "applications": { "gecko": { "id": "ai-filter@example" } },
+  "applications": {
+    "gecko": {
+      "id": "ai-filter@jordanwages",
+      "strict_min_version": "128.0",
+      "strict_max_version": "128.*"
+    }
+  },
   "icons": {
-    "16": "resources/img/logo.png",
-    "32": "resources/img/logo.png",
-    "48": "resources/img/logo.png",
-    "64": "resources/img/logo.png",
-    "96": "resources/img/logo.png",
-    "128": "resources/img/logo.png"
+    "16": "resources/img/logo16.png",
+    "32": "resources/img/logo32.png",
+    "48": "resources/img/logo48.png",
+    "64": "resources/img/logo64.png",
+    "96": "resources/img/logo96.png",
+    "128": "resources/img/logo128.png"
   },
   "background": { "scripts": [ "background.js" ] },
   "experiment_apis": {
@@ -34,7 +40,7 @@
   },
   "options_ui": {
     "page": "options/options.html",
-    "open_in_tab": false
+    "open_in_tab": true
   },
   "permissions": [ "storage" ]
 }
