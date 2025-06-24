@@ -11,10 +11,17 @@
 "use strict";
 
 let logger;
+let AiClassifier;
 // Startup
 (async () => {
     logger = await import(browser.runtime.getURL("logger.js"));
     logger.aiLog("background.js loaded – ready to classify", {debug: true});
+    try {
+        ({ AiClassifier } = ChromeUtils.import("resource://aifilter/modules/AiClassifier.jsm"));
+        logger.aiLog("AiClassifier imported", {debug: true});
+    } catch (e) {
+        logger.aiLog("failed to import AiClassifier", {level: 'error'}, e);
+    }
     try {
         const store = await browser.storage.local.get(["endpoint", "templateName", "customTemplate", "customSystemPrompt", "aiParams", "debugLogging"]);
         logger.setDebug(store.debugLogging);
@@ -57,6 +64,25 @@ browser.runtime.onMessage.addListener(async (msg) => {
     }
     else {
         logger.aiLog("Unknown message type, ignoring", {level: 'warn'}, msg?.type);
+    }
+});
+
+// Automatically classify new messages
+browser.messages.onNewMailReceived.addListener(async (folder, messages) => {
+    logger.aiLog("onNewMailReceived", {debug: true}, messages);
+    for (const msg of (messages?.messages || messages || [])) {
+        const id = msg.id ?? msg;
+        try {
+            const full = await browser.messages.getFull(id);
+            const text = full?.parts?.[0]?.body || "";
+            const criterion = (await browser.storage.local.get("autoCriterion")).autoCriterion || "";
+            const matched = await AiClassifier.classifyText(text, criterion);
+            if (matched) {
+                await browser.messages.update(id, {tags: ["$label1"]});
+            }
+        } catch (e) {
+            logger.aiLog("failed to classify new mail", {level: 'error'}, e);
+        }
     }
 });
 
