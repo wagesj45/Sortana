@@ -70,10 +70,10 @@ var aiFilter = class extends ExtensionCommon.ExtensionAPI {
                         aiLog("[api] failed to apply config", {level: 'error'}, err);
                     }
                 },
-                classify: (text, criterion) => {
+                classify: async (text, criterion) => {
                     aiLog("[api] classify() called", {debug: true}, text, criterion);
                     try {
-                        return AiClassifier.classifyTextSync(text, criterion);
+                        return await AiClassifier.classifyText(text, criterion);
                     }
                     catch (err) {
                         aiLog("[api] error in classify()", {level: 'error'}, err);

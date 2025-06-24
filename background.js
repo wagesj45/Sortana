@@ -35,7 +35,7 @@ let logger;
 })();
 
 // Listen for messages from UI/devtools
-browser.runtime.onMessage.addListener((msg) => {
+browser.runtime.onMessage.addListener(async (msg) => {
     logger.aiLog("onMessage received", {debug: true}, msg);
 
     if (msg?.type === "aiFilter:test") {
@@ -45,7 +45,7 @@ browser.runtime.onMessage.addListener((msg) => {
 
         try {
             logger.aiLog("Calling browser.aiFilter.classify()", {debug: true});
-            const result = browser.aiFilter.classify(text, criterion);
+            const result = await browser.aiFilter.classify(text, criterion);
             logger.aiLog("classify() returned", {debug: true}, result);
             return { match: result };
         }
