@@ -158,17 +158,47 @@ function buildPrompt(body, criterion) {
   return template.replace(/{{\s*(\w+)\s*}}/g, (m, key) => data[key] || "");
 }
 
-function classifyTextSync(text, criterion, cacheKey = null) {
+function getCachedResult(cacheKey) {
   loadCache();
   if (cacheKey && gCache.has(cacheKey)) {
     aiLog(`[AiClassifier] Cache hit for key: ${cacheKey}`, {debug: true});
     return gCache.get(cacheKey);
   }
+  return null;
+}
 
+function buildPayload(text, criterion) {
   let payloadObj = Object.assign({
     prompt: buildPrompt(text, criterion)
   }, gAiParams);
-  let payload = JSON.stringify(payloadObj);
+  return JSON.stringify(payloadObj);
+}
+
+function parseMatch(result) {
+  const rawText = result.choices?.[0]?.text || "";
+  const thinkText = rawText.match(/<think>[\s\S]*?<\/think>/gi)?.join('') || '';
+  aiLog('[AiClassifier] ⮡ Reasoning:', {debug: true}, thinkText);
+  const cleanedText = rawText.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
+  aiLog('[AiClassifier] ⮡ Cleaned Response Text:', {debug: true}, cleanedText);
+  const obj = JSON.parse(cleanedText);
+  return obj.matched === true || obj.match === true;
+}
+
+function cacheResult(cacheKey, matched) {
+  if (cacheKey) {
+    aiLog(`[AiClassifier] Caching entry '${cacheKey}' → ${matched}`, {debug: true});
+    gCache.set(cacheKey, matched);
+    saveCache(cacheKey, matched);
+  }
+}
+
+function classifyTextSync(text, criterion, cacheKey = null) {
+  const cached = getCachedResult(cacheKey);
+  if (cached !== null) {
+    return cached;
+  }
+
+  const payload = buildPayload(text, criterion);
 
   aiLog(`[AiClassifier] Sending classification request to ${gEndpoint}`, {debug: true});
 
@@ -179,23 +209,13 @@ function classifyTextSync(text, criterion, cacheKey = null) {
     xhr.setRequestHeader("Content-Type", "application/json");
     xhr.send(payload);
 
-    if (xhr.status < 200 || xhr.status >= 300) {
-      aiLog(`HTTP status ${xhr.status}`, {level: 'warn'});
-    } else {
+    if (xhr.status >= 200 && xhr.status < 300) {
       const result = JSON.parse(xhr.responseText);
       aiLog(`[AiClassifier] Received response:`, {debug: true}, result);
-      const rawText = result.choices?.[0]?.text || "";
-      const thinkText = rawText.match(/<think>[\s\S]*?<\/think>/gi)?.join('') || '';
-      aiLog('[AiClassifier] ⮡ Reasoning:', {debug: true}, thinkText);
-      const cleanedText = rawText.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
-      aiLog('[AiClassifier] ⮡ Cleaned Response Text:', {debug: true}, cleanedText);
-      const obj = JSON.parse(cleanedText);
-      matched = obj.matched === true || obj.match === true;
-      if (cacheKey) {
-        aiLog(`[AiClassifier] Caching entry '${cacheKey}' → ${matched}`, {debug: true});
-        gCache.set(cacheKey, matched);
-        saveCache(cacheKey, matched);
-      }
+      matched = parseMatch(result);
+      cacheResult(cacheKey, matched);
+    } else {
+      aiLog(`HTTP status ${xhr.status}`, {level: 'warn'});
     }
   } catch (e) {
     aiLog(`HTTP request failed`, {level: 'error'}, e);
@@ -205,7 +225,36 @@ function classifyTextSync(text, criterion, cacheKey = null) {
 }
 
 async function classifyText(text, criterion, cacheKey = null) {
-  return classifyTextSync(text, criterion, cacheKey);
+  const cached = getCachedResult(cacheKey);
+  if (cached !== null) {
+    return cached;
+  }
+
+  const payload = buildPayload(text, criterion);
+
+  aiLog(`[AiClassifier] Sending classification request to ${gEndpoint}`, {debug: true});
+
+  try {
+    const response = await fetch(gEndpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: payload,
+    });
+
+    if (!response.ok) {
+      aiLog(`HTTP status ${response.status}`, {level: 'warn'});
+      return false;
+    }
+
+    const result = await response.json();
+    aiLog(`[AiClassifier] Received response:`, {debug: true}, result);
+    const matched = parseMatch(result);
+    cacheResult(cacheKey, matched);
+    return matched;
+  } catch (e) {
+    aiLog(`HTTP request failed`, {level: 'error'}, e);
+    return false;
+  }
 }
 
 var AiClassifier = { classifyText, classifyTextSync, setConfig };
