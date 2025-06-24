@@ -1,6 +1,7 @@
 ﻿var { ExtensionCommon } = ChromeUtils.importESModule("resource://gre/modules/ExtensionCommon.sys.mjs");
 var { Services } = globalThis || ChromeUtils.importESModule("resource://gre/modules/Services.sys.mjs");
 var { MailServices } = ChromeUtils.importESModule("resource:///modules/MailServices.sys.mjs");
+var { AiClassifier } = ChromeUtils.import("resource://aifilter/modules/AiClassifier.jsm");
 
 var aiLog = (...args) => console.log("[ai-filter][api]", ...args);
 var setDebug = () => {};
@@ -21,7 +22,6 @@ function registerResourceUrl(extension, namespace) {
     resProto.setSubstitutionWithFlags(namespace, uri, resProto.ALLOW_CONTENT_ACCESS);
 }
 
-var gTerm;
 var AIFilterMod;
 
 var aiFilter = class extends ExtensionCommon.ExtensionAPI {
@@ -61,33 +61,19 @@ var aiFilter = class extends ExtensionCommon.ExtensionAPI {
             aiFilter: {
                 initConfig: async (config) => {
                     try {
-                        if (AIFilterMod?.AIFilter?.setConfig) {
-                            AIFilterMod.AIFilter.setConfig(config);
-                            if (typeof config.debugLogging === "boolean") {
-                                setDebug(config.debugLogging);
-                            }
-                            aiLog("[api] configuration applied", {debug: true}, config);
+                        AiClassifier.setConfig(config);
+                        if (typeof config.debugLogging === "boolean") {
+                            setDebug(config.debugLogging);
                         }
+                        aiLog("[api] configuration applied", {debug: true}, config);
                     } catch (err) {
                         aiLog("[api] failed to apply config", {level: 'error'}, err);
                     }
                 },
-                classify: (msg) => {
-                    aiLog("[api] classify() called with msg", {debug: true}, msg);
+                classify: (text, criterion) => {
+                    aiLog("[api] classify() called", {debug: true}, text, criterion);
                     try {
-                        if (!gTerm) {
-                            aiLog("[api] instantiating new ClassificationTerm", {debug: true});
-                            let mod = AIFilterMod || ChromeUtils.import("resource://aifilter/modules/ExpressionSearchFilter.jsm");
-                            gTerm = new mod.ClassificationTerm();
-                        }
-                        aiLog("[api] calling gTerm.match()", {debug: true});
-                        let matchResult = gTerm.match(
-                            msg.msgHdr,
-                            msg.value,
-                            Ci.nsMsgSearchOp.Contains
-                        );
-                        aiLog("[api] gTerm.match() returned", {debug: true}, matchResult);
-                        return matchResult;
+                        return AiClassifier.classifyTextSync(text, criterion);
                     }
                     catch (err) {
                         aiLog("[api] error in classify()", {level: 'error'}, err);
