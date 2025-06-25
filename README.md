@@ -24,17 +24,13 @@ message meets a specified criterion.
 
 ## Architecture Overview
 
-The extension relies on both WebExtension scripts and Thunderbird's experiment
-APIs:
+Sortana is implemented entirely with WebExtension scripts:
 
-- `background.js` loads the saved endpoint, registers the UI patching script,
-  and listens for test messages.
-- `experiment/api.js` exposes the `aiFilter` namespace. It loads
-  `modules/ExpressionSearchFilter.jsm` which implements the custom filter term
-  and performs the HTTP request.
-- `experiment/DomContentScript/` registers content scripts for Thunderbird
-  windows; `content/filterEditor.js` modifies the filter editor UI.
-- `options/` contains the HTML and JavaScript for the options page.
+- `background.js` loads saved settings and listens for new messages.
+- `modules/ExpressionSearchFilter.jsm` implements the AI filter and performs the
+  HTTP request.
+- `options/` contains the HTML and JavaScript for configuring the endpoint and
+  rules.
 - `_locales/` holds localized strings used throughout the UI.
 
 ### Key Files
@@ -61,11 +57,10 @@ the version from `manifest.json` and creates an XPI in the `release` folder.
 ## Usage
 
 1. Open the add-on's options and set the URL of your classification service.
-2. Create or edit a filter in Thunderbird and choose the **AI classification**
-   term. Enter the desired criterion (for example, a short description of the
-   messages you want to match).
-3. When the filter runs, the add-on sends the message text to the service and
-   checks the JSON response for a match.
+2. Use the **Classification Rules** section to add a criterion and optional
+   actions such as tagging or moving a message when it matches.
+3. Save your settings. New mail will be evaluated automatically using the
+   configured rules.
 
 ### Example Filters
 
@@ -92,7 +87,16 @@ Here are some useful and fun example criteria you can use in your filters. Filte
 - **"Would I roll my eyes reading this email?"**  
   For when you're ready to filter based on vibes.
 
-You can define as many filters as you'd like, each using a different prompt and triggering tags, moves, or actions based on the model's classification.
+You can define as many filters as you'd like, each using a different prompt and
+triggering tags, moves, or actions based on the model's classification.
+
+## Required Permissions
+
+Sortana requests the following Thunderbird permissions:
+
+- `storage` – store configuration and cached classification results.
+- `messagesRead` – read message contents for classification.
+- `messagesMove` – move messages when a rule specifies a target folder.
 
 ## License
 
