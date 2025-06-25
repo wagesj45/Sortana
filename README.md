@@ -19,6 +19,7 @@ message meets a specified criterion.
 - **Persistent result caching** – classification results are saved to disk so messages aren't re-evaluated across restarts.
 - **Advanced parameters** – tune generation settings like temperature, top‑p and more from the options page.
 - **Debug logging** – optional colorized logs help troubleshoot interactions with the AI service.
+- **Automatic rules** – create rules that tag or move new messages based on AI classification.
 - **Packaging script** – `build-xpi.ps1` builds an XPI ready for installation.
 
 ## Architecture Overview
@@ -45,7 +46,7 @@ APIs:
 | `modules/ExpressionSearchFilter.jsm`    | Custom filter term and AI request logic.       |
 | `experiment/api.js`                     | Bridges WebExtension code with privileged APIs.|
 | `content/filterEditor.js`               | Patches the filter editor interface.           |
-| `options/options.html` and `options.js` | Endpoint configuration UI.                     |
+| `options/options.html` and `options.js` | Endpoint and rule configuration UI. |
 | `logger.js` and `modules/logger.jsm`    | Colorized logging with optional debug mode.    |
 
 ## Building
