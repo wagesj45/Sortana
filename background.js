@@ -12,6 +12,12 @@
 
 let logger;
 let AiClassifier;
+let aiRules = [];
+
+async function sha256Hex(str) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf), b => b.toString(16).padStart(2, '0')).join('');
+}
 // Startup
 (async () => {
     logger = await import(browser.runtime.getURL("logger.js"));
@@ -23,9 +29,10 @@ let AiClassifier;
         logger.aiLog("failed to import AiClassifier", {level: 'error'}, e);
     }
     try {
-        const store = await browser.storage.local.get(["endpoint", "templateName", "customTemplate", "customSystemPrompt", "aiParams", "debugLogging"]);
+        const store = await browser.storage.local.get(["endpoint", "templateName", "customTemplate", "customSystemPrompt", "aiParams", "debugLogging", "aiRules"]);
         logger.setDebug(store.debugLogging);
         AiClassifier.setConfig(store);
+        aiRules = Array.isArray(store.aiRules) ? store.aiRules : [];
         logger.aiLog("configuration loaded", {debug: true}, store);
     } catch (err) {
         logger.aiLog("failed to load config", {level: 'error'}, err);
@@ -62,15 +69,26 @@ browser.runtime.onMessage.addListener(async (msg) => {
 if (typeof messenger !== "undefined" && messenger.messages?.onNewMailReceived) {
     messenger.messages.onNewMailReceived.addListener(async (folder, messages) => {
         logger.aiLog("onNewMailReceived", {debug: true}, messages);
+        if (!aiRules.length) {
+            const { aiRules: stored } = await browser.storage.local.get("aiRules");
+            aiRules = Array.isArray(stored) ? stored : [];
+        }
         for (const msg of (messages?.messages || messages || [])) {
             const id = msg.id ?? msg;
             try {
                 const full = await messenger.messages.getFull(id);
                 const text = full?.parts?.[0]?.body || "";
-                const criterion = (await browser.storage.local.get("autoCriterion")).autoCriterion || "";
-                const matched = await AiClassifier.classifyText(text, criterion);
-                if (matched) {
-                    await messenger.messages.update(id, {tags: ["$label1"]});
+                for (const rule of aiRules) {
+                    const cacheKey = await sha256Hex(`${id}|${rule.criterion}`);
+                    const matched = await AiClassifier.classifyText(text, rule.criterion, cacheKey);
+                    if (matched) {
+                        if (rule.tag) {
+                            await messenger.messages.update(id, {tags: [rule.tag]});
+                        }
+                        if (rule.moveTo) {
+                            await messenger.messages.move([id], rule.moveTo);
+                        }
+                    }
                 }
             } catch (e) {
                 logger.aiLog("failed to classify new mail", {level: 'error'}, e);

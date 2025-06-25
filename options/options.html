@@ -78,6 +78,21 @@
             flex-wrap: wrap;
         }
 
+        #rules-container {
+            margin-top: 10px;
+        }
+
+        .rule {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+
+        .rule-actions {
+            margin-top: 10px;
+        }
+
         button {
             padding: 10px 20px;
             border: none;
@@ -197,6 +212,11 @@
                 <input type="number" step="0.01" id="tfs">
             </div>
         </div>
+
+        <hr>
+        <h2>Classification Rules</h2>
+        <div id="rules-container"></div>
+        <button id="add-rule" type="button">Add Rule</button>
     </main>
 
     <script src="options.js"></script>

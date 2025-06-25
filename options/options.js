@@ -7,7 +7,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         'customTemplate',
         'customSystemPrompt',
         'aiParams',
-        'debugLogging'
+        'debugLogging',
+        'aiRules'
     ]);
     logger.setDebug(defaults.debugLogging === true);
     const DEFAULT_AI_PARAMS = {
@@ -72,6 +73,59 @@ document.addEventListener('DOMContentLoaded', async () => {
         systemBox.value = DEFAULT_SYSTEM;
     });
 
+    const rulesContainer = document.getElementById('rules-container');
+    const addRuleBtn = document.getElementById('add-rule');
+
+    function renderRules(rules = []) {
+        rulesContainer.innerHTML = '';
+        for (const rule of rules) {
+            const div = document.createElement('div');
+            div.className = 'rule';
+
+            const critInput = document.createElement('input');
+            critInput.type = 'text';
+            critInput.placeholder = 'Criterion';
+            critInput.value = rule.criterion || '';
+
+            const tagInput = document.createElement('input');
+            tagInput.type = 'text';
+            tagInput.placeholder = 'Tag (e.g. $label1)';
+            tagInput.value = rule.tag || '';
+
+            const moveInput = document.createElement('input');
+            moveInput.type = 'text';
+            moveInput.placeholder = 'Folder URL';
+            moveInput.value = rule.moveTo || '';
+
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'rule-actions';
+
+            const delBtn = document.createElement('button');
+            delBtn.textContent = 'Delete';
+            delBtn.type = 'button';
+            delBtn.addEventListener('click', () => div.remove());
+
+            actionsDiv.appendChild(delBtn);
+
+            div.appendChild(critInput);
+            div.appendChild(tagInput);
+            div.appendChild(moveInput);
+            div.appendChild(actionsDiv);
+
+            rulesContainer.appendChild(div);
+        }
+    }
+
+    addRuleBtn.addEventListener('click', () => {
+        renderRules([...rulesContainer.querySelectorAll('.rule')].map(el => ({
+            criterion: el.children[0].value,
+            tag: el.children[1].value,
+            moveTo: el.children[2].value
+        })).concat([{ criterion: '', tag: '', moveTo: '' }]));
+    });
+
+    renderRules(defaults.aiRules || []);
+
     document.getElementById('save').addEventListener('click', async () => {
         const endpoint = document.getElementById('endpoint').value;
         const templateName = templateSelect.value;
@@ -86,7 +140,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }
         const debugLogging = debugToggle.checked;
-        await browser.storage.local.set({ endpoint, templateName, customTemplate: customTemplateText, customSystemPrompt, aiParams: aiParamsSave, debugLogging });
+        const rules = [...rulesContainer.querySelectorAll('.rule')].map(el => ({
+            criterion: el.children[0].value,
+            tag: el.children[1].value,
+            moveTo: el.children[2].value
+        })).filter(r => r.criterion);
+        await browser.storage.local.set({ endpoint, templateName, customTemplate: customTemplateText, customSystemPrompt, aiParams: aiParamsSave, debugLogging, aiRules: rules });
         try {
             AiClassifier.setConfig({ endpoint, templateName, customTemplate: customTemplateText, customSystemPrompt, aiParams: aiParamsSave, debugLogging });
             logger.setDebug(debugLogging);
