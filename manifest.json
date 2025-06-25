@@ -18,6 +18,12 @@
     "96": "resources/img/logo96.png",
     "128": "resources/img/logo128.png"
   },
+  "browser_action": {
+    "default_icon": "resources/img/logo32.png"
+  },
+  "message_display_action": {
+    "default_icon": "resources/img/logo32.png"
+  },
   "background": { "scripts": [ "background.js" ] },
   "options_ui": {
     "page": "options/options.html",
