@@ -29,6 +29,7 @@
     "messagesMove",
     "messagesUpdate",
     "messagesTagsList",
-    "accountsRead"
+    "accountsRead",
+    "menus"
   ]
 }
