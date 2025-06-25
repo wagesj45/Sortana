@@ -78,6 +78,19 @@
             flex-wrap: wrap;
         }
 
+        .tab-button {
+            background: #e0e0e0;
+        }
+
+        .tab-button.active {
+            background: #007acc;
+            color: #fff;
+        }
+
+        .tab {
+            margin-top: 20px;
+        }
+
         #rules-container {
             margin-top: 10px;
         }
@@ -91,6 +104,10 @@
 
         .rule-actions {
             margin-top: 10px;
+        }
+
+        .action-row {
+            margin-bottom: 5px;
         }
 
         button {
@@ -132,7 +149,13 @@
         <img src="../resources/img/full-logo.png" alt="AI Filter Logo">
     </header>
 
+    <nav style="display:flex; gap:10px; justify-content:center; margin-top:10px;">
+        <button type="button" data-tab="settings" class="tab-button">Settings</button>
+        <button type="button" data-tab="rules" class="tab-button">Rules</button>
+    </nav>
+
     <main>
+    <div id="settings-tab" class="tab">
         <div class="form-group">
             <label for="endpoint">Endpoint:</label>
             <input type="text" id="endpoint" placeholder="https://api.example.com">
@@ -213,10 +236,14 @@
             </div>
         </div>
 
-        <hr>
+    </div>
+
+    <div id="rules-tab" class="tab" style="display:none">
         <h2>Classification Rules</h2>
         <div id="rules-container"></div>
         <button id="add-rule" type="button">Add Rule</button>
+    </div>
+
     </main>
 
     <script src="options.js"></script>

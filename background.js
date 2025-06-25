@@ -33,7 +33,13 @@ async function sha256Hex(str) {
         const store = await browser.storage.local.get(["endpoint", "templateName", "customTemplate", "customSystemPrompt", "aiParams", "debugLogging", "aiRules"]);
         logger.setDebug(store.debugLogging);
         await AiClassifier.setConfig(store);
-        aiRules = Array.isArray(store.aiRules) ? store.aiRules : [];
+        aiRules = Array.isArray(store.aiRules) ? store.aiRules.map(r => {
+            if (r.actions) return r;
+            const actions = [];
+            if (r.tag) actions.push({ type: 'tag', tagKey: r.tag });
+            if (r.moveTo) actions.push({ type: 'move', folder: r.moveTo });
+            return { criterion: r.criterion, actions };
+        }) : [];
         logger.aiLog("configuration loaded", {debug: true}, store);
     } catch (err) {
         logger.aiLog("failed to load config", {level: 'error'}, err);
@@ -73,7 +79,13 @@ if (typeof messenger !== "undefined" && messenger.messages?.onNewMailReceived) {
         logger.aiLog("onNewMailReceived", {debug: true}, messages);
         if (!aiRules.length) {
             const { aiRules: stored } = await browser.storage.local.get("aiRules");
-            aiRules = Array.isArray(stored) ? stored : [];
+            aiRules = Array.isArray(stored) ? stored.map(r => {
+                if (r.actions) return r;
+                const actions = [];
+                if (r.tag) actions.push({ type: 'tag', tagKey: r.tag });
+                if (r.moveTo) actions.push({ type: 'move', folder: r.moveTo });
+                return { criterion: r.criterion, actions };
+            }) : [];
         }
         for (const msg of (messages?.messages || messages || [])) {
             const id = msg.id ?? msg;
@@ -84,11 +96,14 @@ if (typeof messenger !== "undefined" && messenger.messages?.onNewMailReceived) {
                     const cacheKey = await sha256Hex(`${id}|${rule.criterion}`);
                     const matched = await AiClassifier.classifyText(text, rule.criterion, cacheKey);
                     if (matched) {
-                        if (rule.tag) {
-                            await messenger.messages.update(id, {tags: [rule.tag]});
-                        }
-                        if (rule.moveTo) {
-                            await messenger.messages.move([id], rule.moveTo);
+                        for (const act of (rule.actions || [])) {
+                            if (act.type === 'tag' && act.tagKey) {
+                                await messenger.messages.update(id, {tags: [act.tagKey]});
+                            } else if (act.type === 'move' && act.folder) {
+                                await messenger.messages.move([id], act.folder);
+                            } else if (act.type === 'junk') {
+                                await messenger.messages.update(id, {junk: !!act.junk});
+                            }
                         }
                     }
                 }

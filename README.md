@@ -97,6 +97,9 @@ Sortana requests the following Thunderbird permissions:
 - `storage` – store configuration and cached classification results.
 - `messagesRead` – read message contents for classification.
 - `messagesMove` – move messages when a rule specifies a target folder.
+- `messagesUpdate` – change message properties such as tags and junk status.
+- `messagesTagsList` – retrieve existing message tags for rule actions.
+- `accountsRead` – list accounts and folders for move actions.
 
 ## License
 

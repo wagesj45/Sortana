@@ -23,5 +23,12 @@
     "page": "options/options.html",
     "open_in_tab": true
   },
-  "permissions": [ "storage", "messagesRead", "accountsRead" ]
+  "permissions": [
+    "storage",
+    "messagesRead",
+    "messagesMove",
+    "messagesUpdate",
+    "messagesTagsList",
+    "accountsRead"
+  ]
 }

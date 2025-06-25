@@ -10,6 +10,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         'debugLogging',
         'aiRules'
     ]);
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabs = document.querySelectorAll('.tab');
+    tabButtons.forEach(btn => btn.addEventListener('click', () => {
+        tabButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        tabs.forEach(tab => {
+            tab.style.display = tab.id === `${btn.dataset.tab}-tab` ? 'block' : 'none';
+        });
+    }));
+    tabButtons[0]?.click();
     logger.setDebug(defaults.debugLogging === true);
     const DEFAULT_AI_PARAMS = {
         max_tokens: 4096,
@@ -66,6 +76,26 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (el) el.value = val;
     }
 
+    let tagList = [];
+    let folderList = [];
+    try {
+        tagList = await messenger.messages.tags.list();
+    } catch (e) {
+        logger.aiLog('failed to list tags', {level:'error'}, e);
+    }
+    try {
+        const accounts = await messenger.accounts.list(true);
+        const collect = (f, prefix='') => {
+            folderList.push({ id: f.id ?? f.path, name: prefix + f.name });
+            (f.subFolders || []).forEach(sf => collect(sf, prefix + f.name + '/'));
+        };
+        for (const acct of accounts) {
+            (acct.folders || []).forEach(f => collect(f, `${acct.name}/`));
+        }
+    } catch (e) {
+        logger.aiLog('failed to list folders', {level:'error'}, e);
+    }
+
     const DEFAULT_SYSTEM = 'Determine whether the email satisfies the user\'s criterion.';
     const systemBox = document.getElementById('system-instructions');
     systemBox.value = defaults.customSystemPrompt || DEFAULT_SYSTEM;
@@ -75,6 +105,70 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const rulesContainer = document.getElementById('rules-container');
     const addRuleBtn = document.getElementById('add-rule');
+
+    function createActionRow(action = {type: 'tag'}) {
+        const row = document.createElement('div');
+        row.className = 'action-row';
+
+        const typeSelect = document.createElement('select');
+        ['tag','move','junk'].forEach(t => {
+            const opt = document.createElement('option');
+            opt.value = t;
+            opt.textContent = t;
+            typeSelect.appendChild(opt);
+        });
+        typeSelect.value = action.type;
+
+        const paramSpan = document.createElement('span');
+
+        function updateParams() {
+            paramSpan.innerHTML = '';
+            if (typeSelect.value === 'tag') {
+                const sel = document.createElement('select');
+                sel.className = 'tag-select';
+                for (const t of tagList) {
+                    const opt = document.createElement('option');
+                    opt.value = t.key;
+                    opt.textContent = t.tag;
+                    sel.appendChild(opt);
+                }
+                sel.value = action.tagKey || '';
+                paramSpan.appendChild(sel);
+            } else if (typeSelect.value === 'move') {
+                const sel = document.createElement('select');
+                sel.className = 'folder-select';
+                for (const f of folderList) {
+                    const opt = document.createElement('option');
+                    opt.value = f.id;
+                    opt.textContent = f.name;
+                    sel.appendChild(opt);
+                }
+                sel.value = action.folder || '';
+                paramSpan.appendChild(sel);
+            } else if (typeSelect.value === 'junk') {
+                const sel = document.createElement('select');
+                sel.className = 'junk-select';
+                sel.appendChild(new Option('mark junk','true'));
+                sel.appendChild(new Option('mark not junk','false'));
+                sel.value = String(action.junk ?? true);
+                paramSpan.appendChild(sel);
+            }
+        }
+
+        typeSelect.addEventListener('change', updateParams);
+        updateParams();
+
+        const removeBtn = document.createElement('button');
+        removeBtn.textContent = 'Remove';
+        removeBtn.type = 'button';
+        removeBtn.addEventListener('click', () => row.remove());
+
+        row.appendChild(typeSelect);
+        row.appendChild(paramSpan);
+        row.appendChild(removeBtn);
+
+        return row;
+    }
 
     function renderRules(rules = []) {
         rulesContainer.innerHTML = '';
@@ -86,45 +180,63 @@ document.addEventListener('DOMContentLoaded', async () => {
             critInput.type = 'text';
             critInput.placeholder = 'Criterion';
             critInput.value = rule.criterion || '';
+            critInput.className = 'criterion';
 
-            const tagInput = document.createElement('input');
-            tagInput.type = 'text';
-            tagInput.placeholder = 'Tag (e.g. $label1)';
-            tagInput.value = rule.tag || '';
+            const actionsContainer = document.createElement('div');
+            actionsContainer.className = 'rule-actions';
 
-            const moveInput = document.createElement('input');
-            moveInput.type = 'text';
-            moveInput.placeholder = 'Folder URL';
-            moveInput.value = rule.moveTo || '';
+            for (const act of (rule.actions || [])) {
+                actionsContainer.appendChild(createActionRow(act));
+            }
 
-            const actionsDiv = document.createElement('div');
-            actionsDiv.className = 'rule-actions';
+            const addAction = document.createElement('button');
+            addAction.textContent = 'Add Action';
+            addAction.type = 'button';
+            addAction.addEventListener('click', () => actionsContainer.appendChild(createActionRow()));
 
             const delBtn = document.createElement('button');
-            delBtn.textContent = 'Delete';
+            delBtn.textContent = 'Delete Rule';
             delBtn.type = 'button';
             delBtn.addEventListener('click', () => div.remove());
 
-            actionsDiv.appendChild(delBtn);
-
             div.appendChild(critInput);
-            div.appendChild(tagInput);
-            div.appendChild(moveInput);
-            div.appendChild(actionsDiv);
+            div.appendChild(actionsContainer);
+            div.appendChild(addAction);
+            div.appendChild(delBtn);
 
             rulesContainer.appendChild(div);
         }
     }
 
     addRuleBtn.addEventListener('click', () => {
-        renderRules([...rulesContainer.querySelectorAll('.rule')].map(el => ({
-            criterion: el.children[0].value,
-            tag: el.children[1].value,
-            moveTo: el.children[2].value
-        })).concat([{ criterion: '', tag: '', moveTo: '' }]));
+        const data = [...rulesContainer.querySelectorAll('.rule')].map(ruleEl => {
+            const criterion = ruleEl.querySelector('.criterion').value;
+            const actions = [...ruleEl.querySelectorAll('.action-row')].map(row => {
+                const type = row.querySelector('select').value;
+                if (type === 'tag') {
+                    return { type, tagKey: row.querySelector('.tag-select').value };
+                }
+                if (type === 'move') {
+                    return { type, folder: row.querySelector('.folder-select').value };
+                }
+                if (type === 'junk') {
+                    return { type, junk: row.querySelector('.junk-select').value === 'true' };
+                }
+                return { type };
+            });
+            return { criterion, actions };
+        });
+        data.push({ criterion: '', actions: [] });
+        renderRules(data);
     });
 
-    renderRules(defaults.aiRules || []);
+    renderRules((defaults.aiRules || []).map(r => {
+        if (r.actions) return r;
+        const actions = [];
+        if (r.tag) actions.push({ type: 'tag', tagKey: r.tag });
+        if (r.moveTo) actions.push({ type: 'move', folder: r.moveTo });
+        return { criterion: r.criterion, actions };
+    }));
 
     document.getElementById('save').addEventListener('click', async () => {
         const endpoint = document.getElementById('endpoint').value;
@@ -140,11 +252,23 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }
         const debugLogging = debugToggle.checked;
-        const rules = [...rulesContainer.querySelectorAll('.rule')].map(el => ({
-            criterion: el.children[0].value,
-            tag: el.children[1].value,
-            moveTo: el.children[2].value
-        })).filter(r => r.criterion);
+        const rules = [...rulesContainer.querySelectorAll('.rule')].map(ruleEl => {
+            const criterion = ruleEl.querySelector('.criterion').value;
+            const actions = [...ruleEl.querySelectorAll('.action-row')].map(row => {
+                const type = row.querySelector('select').value;
+                if (type === 'tag') {
+                    return { type, tagKey: row.querySelector('.tag-select').value };
+                }
+                if (type === 'move') {
+                    return { type, folder: row.querySelector('.folder-select').value };
+                }
+                if (type === 'junk') {
+                    return { type, junk: row.querySelector('.junk-select').value === 'true' };
+                }
+                return { type };
+            });
+            return { criterion, actions };
+        }).filter(r => r.criterion);
         await browser.storage.local.set({ endpoint, templateName, customTemplate: customTemplateText, customSystemPrompt, aiParams: aiParamsSave, debugLogging, aiRules: rules });
         try {
             await AiClassifier.setConfig({ endpoint, templateName, customTemplate: customTemplateText, customSystemPrompt, aiParams: aiParamsSave, debugLogging });
