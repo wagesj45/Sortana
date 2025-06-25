@@ -126,8 +126,20 @@ async function applyAiRules(idsInput) {
     browser.menus.create({
         id: "apply-ai-rules-display",
         title: "Apply AI Rules",
-        contexts: ["message_display"],
+        contexts: ["message_display_action"],
     });
+
+    if (browser.messageDisplayAction) {
+        browser.messageDisplayAction.onClicked.addListener(async (tab) => {
+            try {
+                const msgs = await browser.messageDisplay.getDisplayedMessages(tab.id);
+                const ids = msgs.map(m => m.id);
+                await applyAiRules(ids);
+            } catch (e) {
+                logger.aiLog("failed to apply AI rules from action", { level: 'error' }, e);
+            }
+        });
+    }
 
     browser.menus.onClicked.addListener(async info => {
         if (info.menuItemId === "apply-ai-rules-list" || info.menuItemId === "apply-ai-rules-display") {
