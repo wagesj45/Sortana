@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', async () => {
     const logger = await import(browser.runtime.getURL('logger.js'));
+    const AiClassifier = await import(browser.runtime.getURL('modules/AiClassifier.js'));
     const defaults = await browser.storage.local.get([
         'endpoint',
         'templateName',
@@ -88,6 +89,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         await browser.storage.local.set({ endpoint, templateName, customTemplate: customTemplateText, customSystemPrompt, aiParams: aiParamsSave, debugLogging });
         try {
             await browser.aiFilter.initConfig({ endpoint, templateName, customTemplate: customTemplateText, customSystemPrompt, aiParams: aiParamsSave, debugLogging });
+            AiClassifier.setConfig({ endpoint, templateName, customTemplate: customTemplateText, customSystemPrompt, aiParams: aiParamsSave, debugLogging });
             logger.setDebug(debugLogging);
         } catch (e) {
             logger.aiLog('[options] failed to apply config', {level: 'error'}, e);

@@ -36,7 +36,7 @@ var aiFilter = class extends ExtensionCommon.ExtensionAPI {
         setDebug = loggerMod.setDebug;
 
         // Now that the resource URL is registered, import the classifier
-        ({ AiClassifier } = ChromeUtils.import("resource://aifilter/modules/AiClassifier.jsm"));
+        AiClassifier = ChromeUtils.importESModule("resource://aifilter/modules/AiClassifier.js");
         aiLog("[api] onStartup()", {debug: true});
 
 

@@ -3,7 +3,7 @@ var { ExtensionParent } = ChromeUtils.importESModule("resource://gre/modules/Ext
 var { MailServices }    = ChromeUtils.importESModule("resource:///modules/MailServices.sys.mjs");
 var { Services }        = globalThis || ChromeUtils.importESModule("resource://gre/modules/Services.sys.mjs");
 var { aiLog } = ChromeUtils.import("resource://aifilter/modules/logger.jsm");
-var { AiClassifier }    = ChromeUtils.import("resource://aifilter/modules/AiClassifier.jsm");
+var AiClassifier    = ChromeUtils.importESModule("resource://aifilter/modules/AiClassifier.js");
 var { getPlainText }    = ChromeUtils.import("resource://aifilter/modules/messageUtils.jsm");
 
 function sha256Hex(str) {

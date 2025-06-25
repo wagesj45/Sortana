@@ -17,12 +17,8 @@ let AiClassifier;
     logger = await import(browser.runtime.getURL("logger.js"));
     logger.aiLog("background.js loaded – ready to classify", {debug: true});
     try {
-        if (typeof ChromeUtils !== "undefined") {
-            ({ AiClassifier } = ChromeUtils.import("resource://aifilter/modules/AiClassifier.jsm"));
-            logger.aiLog("AiClassifier imported", {debug: true});
-        } else {
-            logger.aiLog("ChromeUtils is undefined, skipping AiClassifier import", {level: 'warn'});
-        }
+        AiClassifier = await import(browser.runtime.getURL('modules/AiClassifier.js'));
+        logger.aiLog("AiClassifier imported", {debug: true});
     } catch (e) {
         logger.aiLog("failed to import AiClassifier", {level: 'error'}, e);
     }

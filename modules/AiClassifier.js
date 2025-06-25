@@ -1,10 +1,6 @@
 "use strict";
-var { Services } = globalThis || ChromeUtils.importESModule("resource://gre/modules/Services.sys.mjs");
-var { NetUtil }  = ChromeUtils.importESModule("resource://gre/modules/NetUtil.sys.mjs");
-var { FileUtils } = ChromeUtils.importESModule("resource://gre/modules/FileUtils.sys.mjs");
-var { aiLog, setDebug } = ChromeUtils.import("resource://aifilter/modules/logger.jsm");
-
-var EXPORTED_SYMBOLS = ["AiClassifier"];
+import { aiLog, setDebug } from "../logger.js";
+const { Services } = globalThis || ChromeUtils.importESModule("resource://gre/modules/Services.sys.mjs");
 
 const SYSTEM_PREFIX = `You are an email-classification assistant.
 Read the email below and the classification criterion provided by the user.
@@ -41,36 +37,22 @@ let gAiParams = {
 
 let gCache = new Map();
 let gCacheLoaded = false;
-let gCacheFile;
 
-function ensureCacheFile() {
-  if (!gCacheFile) {
-    gCacheFile = Services.dirsvc.get("ProfD", Ci.nsIFile);
-    gCacheFile.append("aifilter_cache.json");
-  }
-}
-
-function loadCache() {
+async function loadCache() {
   if (gCacheLoaded) {
     return;
   }
-  ensureCacheFile();
-  aiLog(`[AiClassifier] Loading cache from ${gCacheFile.path}`, {debug: true});
+  aiLog(`[AiClassifier] Loading cache`, {debug: true});
   try {
-    if (gCacheFile.exists()) {
-      let stream = Cc["@mozilla.org/network/file-input-stream;1"].createInstance(Ci.nsIFileInputStream);
-      stream.init(gCacheFile, -1, 0, 0);
-      let data = NetUtil.readInputStreamToString(stream, stream.available());
-      stream.close();
-      aiLog(`[AiClassifier] Cache file contents: ${data}`, {debug: true});
-      let obj = JSON.parse(data);
-      for (let [k, v] of Object.entries(obj)) {
+    const { aiCache } = await browser.storage.local.get("aiCache");
+    if (aiCache) {
+      for (let [k, v] of Object.entries(aiCache)) {
         aiLog(`[AiClassifier] ⮡ Loaded entry '${k}' → ${v}`, {debug: true});
         gCache.set(k, v);
       }
       aiLog(`[AiClassifier] Loaded ${gCache.size} cache entries`, {debug: true});
     } else {
-      aiLog(`[AiClassifier] Cache file does not exist`, {debug: true});
+      aiLog(`[AiClassifier] Cache is empty`, {debug: true});
     }
   } catch (e) {
     aiLog(`Failed to load cache`, {level: 'error'}, e);
@@ -78,41 +60,46 @@ function loadCache() {
   gCacheLoaded = true;
 }
 
-function saveCache(updatedKey, updatedValue) {
-  ensureCacheFile();
-  aiLog(`[AiClassifier] Saving cache to ${gCacheFile.path}`, {debug: true});
+function loadCacheSync() {
+  if (!gCacheLoaded) {
+    let done = false;
+    loadCache().finally(() => { done = true; });
+    Services.tm.spinEventLoopUntil(() => done);
+  }
+}
+
+async function saveCache(updatedKey, updatedValue) {
   if (typeof updatedKey !== "undefined") {
     aiLog(`[AiClassifier] ⮡ Persisting entry '${updatedKey}' → ${updatedValue}`, {debug: true});
   }
   try {
-    let obj = Object.fromEntries(gCache);
-    let data = JSON.stringify(obj);
-    let stream = Cc["@mozilla.org/network/file-output-stream;1"].createInstance(Ci.nsIFileOutputStream);
-    stream.init(gCacheFile,
-                FileUtils.MODE_WRONLY | FileUtils.MODE_CREATE | FileUtils.MODE_TRUNCATE,
-                FileUtils.PERMS_FILE,
-                0);
-    stream.write(data, data.length);
-    stream.close();
+    await browser.storage.local.set({ aiCache: Object.fromEntries(gCache) });
   } catch (e) {
     aiLog(`Failed to save cache`, {level: 'error'}, e);
   }
 }
 
-function loadTemplate(name) {
+async function loadTemplate(name) {
   try {
-    let url = `resource://aifilter/prompt_templates/${name}.txt`;
-    let xhr = new XMLHttpRequest();
-    xhr.open("GET", url, false);
-    xhr.overrideMimeType("text/plain");
-    xhr.send();
-    if (xhr.status === 0 || xhr.status === 200) {
-      return xhr.responseText;
+    const url = typeof browser !== "undefined" && browser.runtime?.getURL
+      ? browser.runtime.getURL(`prompt_templates/${name}.txt`)
+      : `resource://aifilter/prompt_templates/${name}.txt`;
+    const res = await fetch(url);
+    if (res.ok) {
+      return await res.text();
     }
   } catch (e) {
     aiLog(`Failed to load template '${name}':`, {level: 'error'}, e);
   }
   return "";
+}
+
+function loadTemplateSync(name) {
+  let text = "";
+  let done = false;
+  loadTemplate(name).then(t => { text = t; }).catch(() => {}).finally(() => { done = true; });
+  Services.tm.spinEventLoopUntil(() => done);
+  return text;
 }
 
 function setConfig(config = {}) {
@@ -138,7 +125,7 @@ function setConfig(config = {}) {
   if (typeof config.debugLogging === "boolean") {
     setDebug(config.debugLogging);
   }
-  gTemplateText = gTemplateName === "custom" ? gCustomTemplate : loadTemplate(gTemplateName);
+  gTemplateText = gTemplateName === "custom" ? gCustomTemplate : loadTemplateSync(gTemplateName);
   aiLog(`[AiClassifier] Endpoint set to ${gEndpoint}`, {debug: true});
   aiLog(`[AiClassifier] Template set to ${gTemplateName}`, {debug: true});
 }
@@ -154,12 +141,12 @@ function buildPrompt(body, criterion) {
     email: body,
     query: criterion,
   };
-  let template = gTemplateText || loadTemplate(gTemplateName);
+  let template = gTemplateText || loadTemplateSync(gTemplateName);
   return template.replace(/{{\s*(\w+)\s*}}/g, (m, key) => data[key] || "");
 }
 
 function getCachedResult(cacheKey) {
-  loadCache();
+  loadCacheSync();
   if (cacheKey && gCache.has(cacheKey)) {
     aiLog(`[AiClassifier] Cache hit for key: ${cacheKey}`, {debug: true});
     return gCache.get(cacheKey);
@@ -202,26 +189,33 @@ function classifyTextSync(text, criterion, cacheKey = null) {
 
   aiLog(`[AiClassifier] Sending classification request to ${gEndpoint}`, {debug: true});
 
-  let matched = false;
-  try {
-    let xhr = new XMLHttpRequest();
-    xhr.open("POST", gEndpoint, false);
-    xhr.setRequestHeader("Content-Type", "application/json");
-    xhr.send(payload);
-
-    if (xhr.status >= 200 && xhr.status < 300) {
-      const result = JSON.parse(xhr.responseText);
-      aiLog(`[AiClassifier] Received response:`, {debug: true}, result);
-      matched = parseMatch(result);
-      cacheResult(cacheKey, matched);
-    } else {
-      aiLog(`HTTP status ${xhr.status}`, {level: 'warn'});
+  let result;
+  let done = false;
+  (async () => {
+    try {
+      const response = await fetch(gEndpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: payload,
+      });
+      if (response.ok) {
+        const json = await response.json();
+        aiLog(`[AiClassifier] Received response:`, {debug: true}, json);
+        result = parseMatch(json);
+        cacheResult(cacheKey, result);
+      } else {
+        aiLog(`HTTP status ${response.status}`, {level: 'warn'});
+        result = false;
+      }
+    } catch (e) {
+      aiLog(`HTTP request failed`, {level: 'error'}, e);
+      result = false;
+    } finally {
+      done = true;
     }
-  } catch (e) {
-    aiLog(`HTTP request failed`, {level: 'error'}, e);
-  }
-
-  return matched;
+  })();
+  Services.tm.spinEventLoopUntil(() => done);
+  return result;
 }
 
 async function classifyText(text, criterion, cacheKey = null) {
@@ -257,4 +251,4 @@ async function classifyText(text, criterion, cacheKey = null) {
   }
 }
 
-var AiClassifier = { classifyText, classifyTextSync, setConfig };
+export { classifyText, classifyTextSync, setConfig };
