@@ -1,6 +1,16 @@
 "use strict";
 import { aiLog, setDebug } from "../logger.js";
-const { Services } = globalThis || ChromeUtils.importESModule("resource://gre/modules/Services.sys.mjs");
+
+let Services;
+try {
+  if (typeof globalThis !== "undefined" && globalThis.Services) {
+    Services = globalThis.Services;
+  } else if (typeof ChromeUtils !== "undefined" && ChromeUtils.importESModule) {
+    ({ Services } = ChromeUtils.importESModule("resource://gre/modules/Services.sys.mjs"));
+  }
+} catch (e) {
+  Services = undefined;
+}
 
 const SYSTEM_PREFIX = `You are an email-classification assistant.
 Read the email below and the classification criterion provided by the user.
@@ -62,6 +72,9 @@ async function loadCache() {
 
 function loadCacheSync() {
   if (!gCacheLoaded) {
+    if (!Services?.tm?.spinEventLoopUntil) {
+      throw new Error("loadCacheSync requires Services");
+    }
     let done = false;
     loadCache().finally(() => { done = true; });
     Services.tm.spinEventLoopUntil(() => done);
@@ -95,6 +108,9 @@ async function loadTemplate(name) {
 }
 
 function loadTemplateSync(name) {
+  if (!Services?.tm?.spinEventLoopUntil) {
+    throw new Error("loadTemplateSync requires Services");
+  }
   let text = "";
   let done = false;
   loadTemplate(name).then(t => { text = t; }).catch(() => {}).finally(() => { done = true; });
@@ -102,7 +118,7 @@ function loadTemplateSync(name) {
   return text;
 }
 
-function setConfig(config = {}) {
+async function setConfig(config = {}) {
   if (config.endpoint) {
     gEndpoint = config.endpoint;
   }
@@ -125,7 +141,13 @@ function setConfig(config = {}) {
   if (typeof config.debugLogging === "boolean") {
     setDebug(config.debugLogging);
   }
-  gTemplateText = gTemplateName === "custom" ? gCustomTemplate : loadTemplateSync(gTemplateName);
+  if (gTemplateName === "custom") {
+    gTemplateText = gCustomTemplate;
+  } else if (Services?.tm?.spinEventLoopUntil) {
+    gTemplateText = loadTemplateSync(gTemplateName);
+  } else {
+    gTemplateText = await loadTemplate(gTemplateName);
+  }
   aiLog(`[AiClassifier] Endpoint set to ${gEndpoint}`, {debug: true});
   aiLog(`[AiClassifier] Template set to ${gTemplateName}`, {debug: true});
 }
@@ -180,6 +202,9 @@ function cacheResult(cacheKey, matched) {
 }
 
 function classifyTextSync(text, criterion, cacheKey = null) {
+  if (!Services?.tm?.spinEventLoopUntil) {
+    throw new Error("classifyTextSync requires Services");
+  }
   const cached = getCachedResult(cacheKey);
   if (cached !== null) {
     return cached;
