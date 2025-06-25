@@ -25,7 +25,7 @@ message meets a specified criterion.
 
 ## Architecture Overview
 
-Sortana is implemented entirely with WebExtension scripts:
+Sortana is implemented entirely with standard WebExtension scripts—no custom experiment code is required:
 
 - `background.js` loads saved settings and listens for new messages.
 - `modules/ExpressionSearchFilter.jsm` implements the AI filter and performs the
@@ -41,8 +41,6 @@ Sortana is implemented entirely with WebExtension scripts:
 | `manifest.json`                         | Extension manifest and entry points.           |
 | `background.js`                         | Startup tasks and message handling.            |
 | `modules/ExpressionSearchFilter.jsm`    | Custom filter term and AI request logic.       |
-| `experiment/api.js`                     | Bridges WebExtension code with privileged APIs.|
-| `content/filterEditor.js`               | Patches the filter editor interface.           |
 | `options/options.html` and `options.js` | Endpoint and rule configuration UI. |
 | `logger.js` and `modules/logger.jsm`    | Colorized logging with optional debug mode.    |
 
