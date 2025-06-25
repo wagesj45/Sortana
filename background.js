@@ -13,6 +13,24 @@
 let logger;
 let AiClassifier;
 let aiRules = [];
+let queue = Promise.resolve();
+let queuedCount = 0;
+let processing = false;
+
+function updateActionIcon() {
+    let path = "resources/img/logo32.png";
+    if (processing) {
+        path = "resources/img/status-classifying.png";
+    } else if (queuedCount > 0) {
+        path = "resources/img/status-queued.png";
+    }
+    if (browser.browserAction) {
+        browser.browserAction.setIcon({ path });
+    }
+    if (browser.messageDisplayAction) {
+        browser.messageDisplayAction.setIcon({ path });
+    }
+}
 
 async function sha256Hex(str) {
     const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
@@ -21,7 +39,7 @@ async function sha256Hex(str) {
 
 async function applyAiRules(idsInput) {
     const ids = Array.isArray(idsInput) ? idsInput : [idsInput];
-    if (!ids.length) return;
+    if (!ids.length) return queue;
 
     if (!aiRules.length) {
         const { aiRules: stored } = await browser.storage.local.get("aiRules");
@@ -36,28 +54,40 @@ async function applyAiRules(idsInput) {
 
     for (const msg of ids) {
         const id = msg?.id ?? msg;
-        try {
-            const full = await messenger.messages.getFull(id);
-            const text = full?.parts?.[0]?.body || "";
-            for (const rule of aiRules) {
-                const cacheKey = await sha256Hex(`${id}|${rule.criterion}`);
-                const matched = await AiClassifier.classifyText(text, rule.criterion, cacheKey);
-                if (matched) {
-                    for (const act of (rule.actions || [])) {
-                        if (act.type === 'tag' && act.tagKey) {
-                            await messenger.messages.update(id, { tags: [act.tagKey] });
-                        } else if (act.type === 'move' && act.folder) {
-                            await messenger.messages.move([id], act.folder);
-                        } else if (act.type === 'junk') {
-                            await messenger.messages.update(id, { junk: !!act.junk });
+        queuedCount++;
+        updateActionIcon();
+        queue = queue.then(async () => {
+            processing = true;
+            queuedCount--;
+            updateActionIcon();
+            try {
+                const full = await messenger.messages.getFull(id);
+                const text = full?.parts?.[0]?.body || "";
+                for (const rule of aiRules) {
+                    const cacheKey = await sha256Hex(`${id}|${rule.criterion}`);
+                    const matched = await AiClassifier.classifyText(text, rule.criterion, cacheKey);
+                    if (matched) {
+                        for (const act of (rule.actions || [])) {
+                            if (act.type === 'tag' && act.tagKey) {
+                                await messenger.messages.update(id, { tags: [act.tagKey] });
+                            } else if (act.type === 'move' && act.folder) {
+                                await messenger.messages.move([id], act.folder);
+                            } else if (act.type === 'junk') {
+                                await messenger.messages.update(id, { junk: !!act.junk });
+                            }
                         }
                     }
                 }
+            } catch (e) {
+                logger.aiLog("failed to apply AI rules", { level: 'error' }, e);
+            } finally {
+                processing = false;
+                updateActionIcon();
             }
-        } catch (e) {
-            logger.aiLog("failed to apply AI rules", { level: 'error' }, e);
-        }
+        });
     }
+
+    return queue;
 }
 
 (async () => {

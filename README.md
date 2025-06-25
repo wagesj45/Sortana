@@ -21,6 +21,7 @@ message meets a specified criterion.
 - **Debug logging** – optional colorized logs help troubleshoot interactions with the AI service.
 - **Automatic rules** – create rules that tag or move new messages based on AI classification.
 - **Context menu** – apply AI rules to selected messages from the message list or display.
+- **Status icons** – toolbar icons indicate when messages are queued or being classified.
 - **Packaging script** – `build-xpi.ps1` builds an XPI ready for installation.
 
 ## Architecture Overview
