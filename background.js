@@ -17,8 +17,12 @@ let AiClassifier;
     logger = await import(browser.runtime.getURL("logger.js"));
     logger.aiLog("background.js loaded – ready to classify", {debug: true});
     try {
-        ({ AiClassifier } = ChromeUtils.import("resource://aifilter/modules/AiClassifier.jsm"));
-        logger.aiLog("AiClassifier imported", {debug: true});
+        if (typeof ChromeUtils !== "undefined") {
+            ({ AiClassifier } = ChromeUtils.import("resource://aifilter/modules/AiClassifier.jsm"));
+            logger.aiLog("AiClassifier imported", {debug: true});
+        } else {
+            logger.aiLog("ChromeUtils is undefined, skipping AiClassifier import", {level: 'warn'});
+        }
     } catch (e) {
         logger.aiLog("failed to import AiClassifier", {level: 'error'}, e);
     }
@@ -68,23 +72,27 @@ browser.runtime.onMessage.addListener(async (msg) => {
 });
 
 // Automatically classify new messages
-browser.messages.onNewMailReceived.addListener(async (folder, messages) => {
-    logger.aiLog("onNewMailReceived", {debug: true}, messages);
-    for (const msg of (messages?.messages || messages || [])) {
-        const id = msg.id ?? msg;
-        try {
-            const full = await browser.messages.getFull(id);
-            const text = full?.parts?.[0]?.body || "";
-            const criterion = (await browser.storage.local.get("autoCriterion")).autoCriterion || "";
-            const matched = await AiClassifier.classifyText(text, criterion);
-            if (matched) {
-                await browser.messages.update(id, {tags: ["$label1"]});
+if (typeof messenger !== "undefined" && messenger.messages?.onNewMailReceived) {
+    messenger.messages.onNewMailReceived.addListener(async (folder, messages) => {
+        logger.aiLog("onNewMailReceived", {debug: true}, messages);
+        for (const msg of (messages?.messages || messages || [])) {
+            const id = msg.id ?? msg;
+            try {
+                const full = await messenger.messages.getFull(id);
+                const text = full?.parts?.[0]?.body || "";
+                const criterion = (await browser.storage.local.get("autoCriterion")).autoCriterion || "";
+                const matched = await AiClassifier.classifyText(text, criterion);
+                if (matched) {
+                    await messenger.messages.update(id, {tags: ["$label1"]});
+                }
+            } catch (e) {
+                logger.aiLog("failed to classify new mail", {level: 'error'}, e);
             }
-        } catch (e) {
-            logger.aiLog("failed to classify new mail", {level: 'error'}, e);
         }
-    }
-});
+    });
+} else {
+    logger.aiLog("messenger.messages API unavailable, skipping new mail listener", {level: 'warn'});
+}
 
 // Catch any unhandled rejections
 window.addEventListener("unhandledrejection", ev => {
