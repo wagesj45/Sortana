@@ -88,7 +88,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         const debugLogging = debugToggle.checked;
         await browser.storage.local.set({ endpoint, templateName, customTemplate: customTemplateText, customSystemPrompt, aiParams: aiParamsSave, debugLogging });
         try {
-            await browser.aiFilter.initConfig({ endpoint, templateName, customTemplate: customTemplateText, customSystemPrompt, aiParams: aiParamsSave, debugLogging });
             AiClassifier.setConfig({ endpoint, templateName, customTemplate: customTemplateText, customSystemPrompt, aiParams: aiParamsSave, debugLogging });
             logger.setDebug(debugLogging);
         } catch (e) {

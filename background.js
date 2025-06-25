@@ -25,17 +25,8 @@ let AiClassifier;
     try {
         const store = await browser.storage.local.get(["endpoint", "templateName", "customTemplate", "customSystemPrompt", "aiParams", "debugLogging"]);
         logger.setDebug(store.debugLogging);
-        await browser.aiFilter.initConfig(store);
+        AiClassifier.setConfig(store);
         logger.aiLog("configuration loaded", {debug: true}, store);
-        try {
-            await browser.DomContentScript.registerWindow(
-                "chrome://messenger/content/FilterEditor.xhtml",
-                "resource://aifilter/content/filterEditor.js"
-            );
-            logger.aiLog("registered FilterEditor content script", {debug: true});
-        } catch (e) {
-            logger.aiLog("failed to register content script", {level: 'error'}, e);
-        }
     } catch (err) {
         logger.aiLog("failed to load config", {level: 'error'}, err);
     }
@@ -51,8 +42,8 @@ browser.runtime.onMessage.addListener(async (msg) => {
         logger.aiLog("aiFilter:test – criterion", {debug: true}, criterion);
 
         try {
-            logger.aiLog("Calling browser.aiFilter.classify()", {debug: true});
-            const result = await browser.aiFilter.classify(text, criterion);
+            logger.aiLog("Calling AiClassifier.classifyText()", {debug: true});
+            const result = await AiClassifier.classifyText(text, criterion);
             logger.aiLog("classify() returned", {debug: true}, result);
             return { match: result };
         }
