@@ -19,6 +19,47 @@ async function sha256Hex(str) {
     return Array.from(new Uint8Array(buf), b => b.toString(16).padStart(2, '0')).join('');
 }
 
+async function applyAiRules(idsInput) {
+    const ids = Array.isArray(idsInput) ? idsInput : [idsInput];
+    if (!ids.length) return;
+
+    if (!aiRules.length) {
+        const { aiRules: stored } = await browser.storage.local.get("aiRules");
+        aiRules = Array.isArray(stored) ? stored.map(r => {
+            if (r.actions) return r;
+            const actions = [];
+            if (r.tag) actions.push({ type: 'tag', tagKey: r.tag });
+            if (r.moveTo) actions.push({ type: 'move', folder: r.moveTo });
+            return { criterion: r.criterion, actions };
+        }) : [];
+    }
+
+    for (const msg of ids) {
+        const id = msg?.id ?? msg;
+        try {
+            const full = await messenger.messages.getFull(id);
+            const text = full?.parts?.[0]?.body || "";
+            for (const rule of aiRules) {
+                const cacheKey = await sha256Hex(`${id}|${rule.criterion}`);
+                const matched = await AiClassifier.classifyText(text, rule.criterion, cacheKey);
+                if (matched) {
+                    for (const act of (rule.actions || [])) {
+                        if (act.type === 'tag' && act.tagKey) {
+                            await messenger.messages.update(id, { tags: [act.tagKey] });
+                        } else if (act.type === 'move' && act.folder) {
+                            await messenger.messages.move([id], act.folder);
+                        } else if (act.type === 'junk') {
+                            await messenger.messages.update(id, { junk: !!act.junk });
+                        }
+                    }
+                }
+            }
+        } catch (e) {
+            logger.aiLog("failed to apply AI rules", { level: 'error' }, e);
+        }
+    }
+}
+
 (async () => {
     logger = await import(browser.runtime.getURL("logger.js"));
     try {
@@ -46,6 +87,24 @@ async function sha256Hex(str) {
     }
 
     logger.aiLog("background.js loaded – ready to classify", {debug: true});
+
+    browser.menus.create({
+        id: "apply-ai-rules-list",
+        title: "Apply AI Rules",
+        contexts: ["message_list"],
+    });
+    browser.menus.create({
+        id: "apply-ai-rules-display",
+        title: "Apply AI Rules",
+        contexts: ["message_display"],
+    });
+
+    browser.menus.onClicked.addListener(async info => {
+        if (info.menuItemId === "apply-ai-rules-list" || info.menuItemId === "apply-ai-rules-display") {
+            const ids = info.selectedMessages?.ids || (info.messageId ? [info.messageId] : []);
+            await applyAiRules(ids);
+        }
+    });
 
     // Listen for messages from UI/devtools
     browser.runtime.onMessage.addListener(async (msg) => {
@@ -77,40 +136,8 @@ async function sha256Hex(str) {
 if (typeof messenger !== "undefined" && messenger.messages?.onNewMailReceived) {
     messenger.messages.onNewMailReceived.addListener(async (folder, messages) => {
         logger.aiLog("onNewMailReceived", {debug: true}, messages);
-        if (!aiRules.length) {
-            const { aiRules: stored } = await browser.storage.local.get("aiRules");
-            aiRules = Array.isArray(stored) ? stored.map(r => {
-                if (r.actions) return r;
-                const actions = [];
-                if (r.tag) actions.push({ type: 'tag', tagKey: r.tag });
-                if (r.moveTo) actions.push({ type: 'move', folder: r.moveTo });
-                return { criterion: r.criterion, actions };
-            }) : [];
-        }
-        for (const msg of (messages?.messages || messages || [])) {
-            const id = msg.id ?? msg;
-            try {
-                const full = await messenger.messages.getFull(id);
-                const text = full?.parts?.[0]?.body || "";
-                for (const rule of aiRules) {
-                    const cacheKey = await sha256Hex(`${id}|${rule.criterion}`);
-                    const matched = await AiClassifier.classifyText(text, rule.criterion, cacheKey);
-                    if (matched) {
-                        for (const act of (rule.actions || [])) {
-                            if (act.type === 'tag' && act.tagKey) {
-                                await messenger.messages.update(id, {tags: [act.tagKey]});
-                            } else if (act.type === 'move' && act.folder) {
-                                await messenger.messages.move([id], act.folder);
-                            } else if (act.type === 'junk') {
-                                await messenger.messages.update(id, {junk: !!act.junk});
-                            }
-                        }
-                    }
-                }
-            } catch (e) {
-                logger.aiLog("failed to classify new mail", {level: 'error'}, e);
-            }
-        }
+        const ids = (messages?.messages || messages || []).map(m => m.id ?? m);
+        await applyAiRules(ids);
     });
 } else {
     logger.aiLog("messenger.messages API unavailable, skipping new mail listener", { level: 'warn' });

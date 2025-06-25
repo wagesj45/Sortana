@@ -20,6 +20,7 @@ message meets a specified criterion.
 - **Advanced parameters** – tune generation settings like temperature, top‑p and more from the options page.
 - **Debug logging** – optional colorized logs help troubleshoot interactions with the AI service.
 - **Automatic rules** – create rules that tag or move new messages based on AI classification.
+- **Context menu** – apply AI rules to selected messages from the message list or display.
 - **Packaging script** – `build-xpi.ps1` builds an XPI ready for installation.
 
 ## Architecture Overview
@@ -100,6 +101,7 @@ Sortana requests the following Thunderbird permissions:
 - `messagesUpdate` – change message properties such as tags and junk status.
 - `messagesTagsList` – retrieve existing message tags for rule actions.
 - `accountsRead` – list accounts and folders for move actions.
+- `menus` – add context menu commands.
 
 ## License
 
