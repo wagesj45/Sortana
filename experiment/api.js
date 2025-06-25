@@ -1,7 +1,7 @@
 ﻿var { ExtensionCommon } = ChromeUtils.importESModule("resource://gre/modules/ExtensionCommon.sys.mjs");
 var { Services } = globalThis || ChromeUtils.importESModule("resource://gre/modules/Services.sys.mjs");
 var { MailServices } = ChromeUtils.importESModule("resource:///modules/MailServices.sys.mjs");
-var { AiClassifier } = ChromeUtils.import("resource://aifilter/modules/AiClassifier.jsm");
+var AiClassifier;
 
 var aiLog = (...args) => console.log("[ai-filter][api]", ...args);
 var setDebug = () => {};
@@ -34,6 +34,9 @@ var aiFilter = class extends ExtensionCommon.ExtensionAPI {
         let loggerMod = ChromeUtils.import("resource://aifilter/modules/logger.jsm");
         aiLog = loggerMod.aiLog;
         setDebug = loggerMod.setDebug;
+
+        // Now that the resource URL is registered, import the classifier
+        ({ AiClassifier } = ChromeUtils.import("resource://aifilter/modules/AiClassifier.jsm"));
         aiLog("[api] onStartup()", {debug: true});
 
 
