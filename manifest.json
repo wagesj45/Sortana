@@ -23,5 +23,5 @@
     "page": "options/options.html",
     "open_in_tab": true
   },
-  "permissions": [ "storage", "messagesRead" ]
+  "permissions": [ "storage", "messagesRead", "accountsRead" ]
 }

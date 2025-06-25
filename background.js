@@ -98,7 +98,7 @@ if (typeof messenger !== "undefined" && messenger.messages?.onNewMailReceived) {
         }
     });
 } else {
-    logger.aiLog("messenger.messages API unavailable, skipping new mail listener", {level: 'warn'});
+    logger.aiLog("messenger.messages API unavailable, skipping new mail listener", { level: 'warn' });
 }
 
 // Catch any unhandled rejections
