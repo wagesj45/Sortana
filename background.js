@@ -18,30 +18,32 @@ async function sha256Hex(str) {
     const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
     return Array.from(new Uint8Array(buf), b => b.toString(16).padStart(2, '0')).join('');
 }
-// Startup
+
 (async () => {
     logger = await import(browser.runtime.getURL("logger.js"));
-    logger.aiLog("background.js loaded – ready to classify", {debug: true});
     try {
-        AiClassifier = await import(browser.runtime.getURL('modules/AiClassifier.js'));
+        AiClassifier = await import(browser.runtime.getURL("modules/AiClassifier.js"));
         logger.aiLog("AiClassifier imported", {debug: true});
     } catch (e) {
-        logger.aiLog("failed to import AiClassifier", {level: 'error'}, e);
+        console.error("failed to import AiClassifier", e);
+        return;
     }
+
     try {
         const store = await browser.storage.local.get(["endpoint", "templateName", "customTemplate", "customSystemPrompt", "aiParams", "debugLogging", "aiRules"]);
         logger.setDebug(store.debugLogging);
-        AiClassifier.setConfig(store);
+        await AiClassifier.setConfig(store);
         aiRules = Array.isArray(store.aiRules) ? store.aiRules : [];
         logger.aiLog("configuration loaded", {debug: true}, store);
     } catch (err) {
         logger.aiLog("failed to load config", {level: 'error'}, err);
     }
-})();
 
-// Listen for messages from UI/devtools
-browser.runtime.onMessage.addListener(async (msg) => {
-    logger.aiLog("onMessage received", {debug: true}, msg);
+    logger.aiLog("background.js loaded – ready to classify", {debug: true});
+
+    // Listen for messages from UI/devtools
+    browser.runtime.onMessage.addListener(async (msg) => {
+        logger.aiLog("onMessage received", {debug: true}, msg);
 
     if (msg?.type === "aiFilter:test") {
         const { text = "", criterion = "" } = msg;
@@ -104,8 +106,10 @@ window.addEventListener("unhandledrejection", ev => {
     logger.aiLog("Unhandled promise rejection", {level: 'error'}, ev.reason);
 });
 
-browser.runtime.onInstalled.addListener(async ({ reason }) => {
-    if (reason === "install") {
-        await browser.runtime.openOptionsPage();
-    }
-});
+    browser.runtime.onInstalled.addListener(async ({ reason }) => {
+        if (reason === "install") {
+            await browser.runtime.openOptionsPage();
+        }
+    });
+
+})();
