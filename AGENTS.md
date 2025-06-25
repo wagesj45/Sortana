@@ -1,6 +1,6 @@
 # AGENTS Guidelines for Sortana
 
-This file provides guidelines for codex agents contributing to the Sortana project. It describes the repository structure, the expected coding conventions, and testing commands. If a section is not applicable yet, you may leave it blank or provide placeholders.
+This file provides guidelines for codex agents contributing to the Sortana project. It describes the repository structure, the expected coding conventions, and testing commands. If you make changes to Sortana, make sure to update this document and the README.md if applicable.
 
 ## Repository Overview
 
@@ -28,13 +28,14 @@ This file provides guidelines for codex agents contributing to the Sortana proje
 
 ## Testing
 
-There are currently no automated tests for this project. If you add tests in the future, specify the commands to run them here. For now, verify the extension manually in Thunderbird.
+There are currently no automated tests for this project. If you add tests in the future, specify the commands to run them here. For now, verification must happen manually in Thunderbird.
 
 ## Documentation
 
-Additional documentation might exist outside this repository. Replace the placeholders below with the correct URLs if available.
+Additional documentation exists outside this repository.
 
-- Development guide: <URL to development docs>
-- Issue tracker: <URL to issue tracker>
-- Extension homepage: <URL to extension site>
+- Development guide: [Webextention-API for Thunderbird](https://webextension-api.thunderbird.net/en/stable/)
+  - [Messages API](https://webextension-api.thunderbird.net/en/stable/messages.html)
+  - [Storage API](https://webextension-api.thunderbird.net/en/stable/storage.html)
+- Issue tracker: [Thunderbird tracker on Bugzilla](https://bugzilla.mozilla.org/describecomponents.cgi?product=Thunderbird)
 
