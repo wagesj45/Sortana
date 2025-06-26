@@ -168,7 +168,14 @@ function buildPrompt(body, criterion) {
 }
 
 function getCachedResult(cacheKey) {
-  loadCacheSync();
+  if (!gCacheLoaded) {
+    if (Services?.tm?.spinEventLoopUntil) {
+      loadCacheSync();
+    } else {
+      // In non-privileged contexts we can't block, so bail out early.
+      return null;
+    }
+  }
   if (cacheKey && gCache.has(cacheKey)) {
     aiLog(`[AiClassifier] Cache hit for key: ${cacheKey}`, {debug: true});
     return gCache.get(cacheKey);
@@ -244,6 +251,9 @@ function classifyTextSync(text, criterion, cacheKey = null) {
 }
 
 async function classifyText(text, criterion, cacheKey = null) {
+  if (!gCacheLoaded) {
+    await loadCache();
+  }
   const cached = getCachedResult(cacheKey);
   if (cached !== null) {
     return cached;
