@@ -43,3 +43,18 @@ Additional documentation exists outside this repository.
   - [Bulma.css](https://github.com/jgthms/bulma)
 - Issue tracker: [Thunderbird tracker on Bugzilla](https://bugzilla.mozilla.org/describecomponents.cgi?product=Thunderbird)
 
+
+### Message Structure Notes
+
+Messages retrieved with `messenger.messages.getFull` are returned as
+nested objects. The root contains `headers` and a `parts` array. Each part may
+itself contain `parts` for multipart messages or a `body` string. Attachments are
+indicated via the `content-disposition` header.
+
+When constructing the text sent to the AI service, parse the full message
+recursively. Include key headers such as `from`, `to`, `subject`, and others, and
+record attachment summaries rather than raw binary data. Inline or attached
+base64 data should be replaced with placeholders showing the byte size. The
+final string should have the headers, a brief attachment section, then the plain
+text extracted from all text parts.
+
