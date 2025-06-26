@@ -1,7 +1,6 @@
 ﻿"use strict";
 var { ExtensionParent } = ChromeUtils.importESModule("resource://gre/modules/ExtensionParent.sys.mjs");
 var { MailServices }    = ChromeUtils.importESModule("resource:///modules/MailServices.sys.mjs");
-var { Services }        = globalThis || ChromeUtils.importESModule("resource://gre/modules/Services.sys.mjs");
 var { aiLog } = ChromeUtils.import("resource://aifilter/modules/logger.jsm");
 var AiClassifier    = ChromeUtils.importESModule("resource://aifilter/modules/AiClassifier.js");
 var { getPlainText }    = ChromeUtils.import("resource://aifilter/modules/messageUtils.jsm");

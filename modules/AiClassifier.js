@@ -1,6 +1,8 @@
 "use strict";
 import { aiLog, setDebug } from "../logger.js";
 
+const storage = (globalThis.messenger ?? globalThis.browser).storage;
+
 let Services;
 try {
   if (typeof globalThis !== "undefined" && globalThis.Services) {
@@ -54,7 +56,7 @@ async function loadCache() {
   }
   aiLog(`[AiClassifier] Loading cache`, {debug: true});
   try {
-    const { aiCache } = await browser.storage.local.get("aiCache");
+    const { aiCache } = await storage.local.get("aiCache");
     if (aiCache) {
       for (let [k, v] of Object.entries(aiCache)) {
         aiLog(`[AiClassifier] ⮡ Loaded entry '${k}' → ${v}`, {debug: true});
@@ -86,7 +88,7 @@ async function saveCache(updatedKey, updatedValue) {
     aiLog(`[AiClassifier] ⮡ Persisting entry '${updatedKey}' → ${updatedValue}`, {debug: true});
   }
   try {
-    await browser.storage.local.set({ aiCache: Object.fromEntries(gCache) });
+    await storage.local.set({ aiCache: Object.fromEntries(gCache) });
   } catch (e) {
     aiLog(`Failed to save cache`, {level: 'error'}, e);
   }

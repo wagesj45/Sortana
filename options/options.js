@@ -1,7 +1,8 @@
 document.addEventListener('DOMContentLoaded', async () => {
+    const storage = (globalThis.messenger ?? browser).storage;
     const logger = await import(browser.runtime.getURL('logger.js'));
     const AiClassifier = await import(browser.runtime.getURL('modules/AiClassifier.js'));
-    const defaults = await browser.storage.local.get([
+    const defaults = await storage.local.get([
         'endpoint',
         'templateName',
         'customTemplate',
@@ -269,7 +270,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
             return { criterion, actions };
         }).filter(r => r.criterion);
-        await browser.storage.local.set({ endpoint, templateName, customTemplate: customTemplateText, customSystemPrompt, aiParams: aiParamsSave, debugLogging, aiRules: rules });
+        await storage.local.set({ endpoint, templateName, customTemplate: customTemplateText, customSystemPrompt, aiParams: aiParamsSave, debugLogging, aiRules: rules });
         try {
             await AiClassifier.setConfig({ endpoint, templateName, customTemplate: customTemplateText, customSystemPrompt, aiParams: aiParamsSave, debugLogging });
             logger.setDebug(debugLogging);
