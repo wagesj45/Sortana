@@ -37,5 +37,9 @@ Additional documentation exists outside this repository.
   - [Messages API](https://webextension-api.thunderbird.net/en/stable/messages.html)
   - [Message Tags API](https://webextension-api.thunderbird.net/en/stable/messages.tags.html)
   - [Storage API](https://webextension-api.thunderbird.net/en/stable/storage.html)
+- Thunderbird Add-on Store Policies
+  - [Third Party Library Usage](https://extensionworkshop.com/documentation/publish/third-party-library-usage/)
+- Third Party Libraries
+  - [Bulma.css](https://github.com/jgthms/bulma)
 - Issue tracker: [Thunderbird tracker on Bugzilla](https://bugzilla.mozilla.org/describecomponents.cgi?product=Thunderbird)
 
