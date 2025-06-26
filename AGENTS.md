@@ -4,8 +4,7 @@ This file provides guidelines for codex agents contributing to the Sortana proje
 
 ## Repository Overview
 
-- `background.js`: Handles startup tasks and message passing between the extension and experiment APIs.
-- `experiment/`: Contains the privileged API scripts used by Thunderbird.
+- `background.js`: Handles startup tasks and coordinates message passing within the extension.
 - `modules/`: Holds reusable JavaScript modules for the extension.
 - `content/`: Scripts for modifying Thunderbird windows (e.g., the filter editor).
 - `options/`: The options page HTML and JavaScript.
