@@ -49,9 +49,11 @@ Sortana is implemented entirely with standard WebExtension scripts—no custom e
 
 1. Ensure PowerShell is available (for Windows) or adapt the script for other
    environments.
-2. Run `powershell ./build-xpi.ps1` from the repository root. The script reads
-the version from `manifest.json` and creates an XPI in the `release` folder.
-3. Install the generated XPI in Thunderbird via the Add-ons Manager. During
+2. Ensure the Bulma stylesheet (v1.0.4) is saved as `options/bulma.css`. You can
+   download it from <https://github.com/jgthms/bulma/blob/1.0.4/css/bulma.css>.
+3. Run `powershell ./build-xpi.ps1` from the repository root. The script reads
+   the version from `manifest.json` and creates an XPI in the `release` folder.
+4. Install the generated XPI in Thunderbird via the Add-ons Manager. During
    development you can also load the directory as a temporary add-on.
 
 ## Usage
