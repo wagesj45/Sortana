@@ -39,6 +39,45 @@ async function sha256Hex(str) {
     return Array.from(new Uint8Array(buf), b => b.toString(16).padStart(2, '0')).join('');
 }
 
+function byteSize(str) {
+    return new TextEncoder().encode(str || "").length;
+}
+
+function replaceInlineBase64(text) {
+    return text.replace(/[A-Za-z0-9+/]{100,}={0,2}/g,
+        m => `[base64: ${byteSize(m)} bytes]`);
+}
+
+function collectText(part, bodyParts, attachments) {
+    if (part.parts && part.parts.length) {
+        for (const p of part.parts) collectText(p, bodyParts, attachments);
+        return;
+    }
+    const ct = (part.contentType || "text/plain").toLowerCase();
+    const cd = (part.headers?.["content-disposition"]?.[0] || "").toLowerCase();
+    const body = String(part.body || "");
+    if (cd.includes("attachment") || !ct.startsWith("text/")) {
+        const nameMatch = /filename\s*=\s*"?([^";]+)/i.exec(cd) || /name\s*=\s*"?([^";]+)/i.exec(part.headers?.["content-type"]?.[0] || "");
+        const name = nameMatch ? nameMatch[1] : "";
+        attachments.push(`${name} (${ct}, ${part.size || byteSize(body)} bytes)`);
+    } else if (ct.startsWith("text/html")) {
+        const doc = new DOMParser().parseFromString(body, 'text/html');
+        bodyParts.push(replaceInlineBase64(doc.body.textContent || ""));
+    } else {
+        bodyParts.push(replaceInlineBase64(body));
+    }
+}
+
+function buildEmailText(full) {
+    const bodyParts = [];
+    const attachments = [];
+    collectText(full, bodyParts, attachments);
+    const headers = Object.entries(full.headers || {})
+        .map(([k,v]) => `${k}: ${v.join(' ')}`)
+        .join('\n');
+    const attachInfo = `Attachments: ${attachments.length}` + (attachments.length ? "\n" + attachments.map(a => ` - ${a}`).join('\n') : "");
+    return `${headers}\n${attachInfo}\n\n${bodyParts.join('\n')}`.trim();
+}
 async function applyAiRules(idsInput) {
     const ids = Array.isArray(idsInput) ? idsInput : [idsInput];
     if (!ids.length) return queue;
@@ -66,10 +105,9 @@ async function applyAiRules(idsInput) {
             updateActionIcon();
             try {
                 const full = await messenger.messages.getFull(id);
-                const text = full?.parts?.[0]?.body || "";
-                for (const rule of aiRules) {
-                    const cacheKey = await sha256Hex(`${id}|${rule.criterion}`);
-                    const matched = await AiClassifier.classifyText(text, rule.criterion, cacheKey);
+                const text = buildEmailText(full);
+                const cacheKey = await sha256Hex(`${id}|${rule.criterion}`);
+                const matched = await AiClassifier.classifyText(text, rule.criterion, cacheKey);
                     if (matched) {
                         for (const act of (rule.actions || [])) {
                             if (act.type === 'tag' && act.tagKey) {
