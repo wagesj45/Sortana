@@ -4,248 +4,148 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>AI Filter Options</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f9f9f9;
-            color: #333;
-        }
-
-        header {
-            background-color: #ffffff;
-            padding: 20px 30px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-            header img {
-                max-height: 40px;
-            }
-
-        main {
-            max-width: 700px;
-            margin: 30px auto;
-            padding: 0 20px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: #222;
-        }
-
-        input[type="text"],
-        select,
-        textarea {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 14px;
-            background-color: #fff;
-            transition: border-color 0.3s;
-        }
-
-            input[type="text"]:focus,
-            select:focus,
-            textarea:focus {
-                border-color: #007acc;
-                outline: none;
-            }
-
-        textarea {
-            resize: vertical;
-        }
-
-        .placeholder-text {
-            color: #888;
-            font-style: italic;
-        }
-
-        .button-group {
-            margin-top: 20px;
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-
-        .tab-button {
-            background: #e0e0e0;
-        }
-
-        .tab-button.active {
-            background: #007acc;
-            color: #fff;
-        }
-
-        .tab {
-            margin-top: 20px;
-        }
-
-        #rules-container {
-            margin-top: 10px;
-        }
-
-        .rule {
-            border: 1px solid #ccc;
-            padding: 10px;
-            margin-bottom: 10px;
-            border-radius: 4px;
-        }
-
-        .rule-actions {
-            margin-top: 10px;
-        }
-
-        .action-row {
-            margin-bottom: 5px;
-        }
-
-        button {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: background-color 0.3s, transform 0.2s;
-        }
-
-            button#save {
-                background-color: #007acc;
-                color: white;
-            }
-
-                button#save:hover {
-                    background-color: #005fa3;
-                }
-
-            button#reset-system {
-                background-color: #f44336;
-                color: white;
-            }
-
-                button#reset-system:hover {
-                    background-color: #d32f2f;
-                }
-
-        @media (max-width: 600px) {
-            main {
-                margin: 20px 15px;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="bulma.css">
 </head>
 <body>
-    <header>
-        <img src="../resources/img/full-logo.png" alt="AI Filter Logo">
-    </header>
+    <section class="section">
+        <div class="container" id="options-container">
+            <figure class="has-text-centered mb-4">
+                <img src="../resources/img/full-logo.png" alt="AI Filter Logo" style="max-height:40px;">
+            </figure>
 
-    <nav style="display:flex; gap:10px; justify-content:center; margin-top:10px;">
-        <button type="button" data-tab="settings" class="tab-button">Settings</button>
-        <button type="button" data-tab="rules" class="tab-button">Rules</button>
-    </nav>
+            <div class="level mb-4">
+                <div class="level-left">
+                    <div class="tabs" id="main-tabs">
+                        <ul>
+                            <li class="is-active" data-tab="settings"><a>Settings</a></li>
+                            <li data-tab="rules"><a>Rules</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="level-right">
+                    <button class="button is-primary" id="save" disabled>Save</button>
+                </div>
+            </div>
 
-    <main>
-    <div id="settings-tab" class="tab">
-        <div class="form-group">
-            <label for="endpoint">Endpoint:</label>
-            <input type="text" id="endpoint" placeholder="https://api.example.com">
+            <div id="settings-tab" class="tab-content">
+                <div class="field">
+                    <label class="label" for="endpoint">Endpoint</label>
+                    <div class="control">
+                        <input class="input" type="text" id="endpoint" placeholder="https://api.example.com">
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label class="label" for="template">Prompt template</label>
+                    <div class="control">
+                        <div class="select is-fullwidth">
+                            <select id="template"></select>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="custom-template-container" class="field is-hidden">
+                    <label class="label">Custom template</label>
+                    <div class="control">
+                        <textarea class="textarea" id="custom-template" rows="6" placeholder="Enter your custom template here..."></textarea>
+                    </div>
+                    <p class="help">Placeholders: {{system}}, {{email}}, {{query}}</p>
+                </div>
+
+                <div class="field">
+                    <label class="label" for="system-instructions">System instructions</label>
+                    <div class="control">
+                        <textarea class="textarea" id="system-instructions" rows="4" placeholder="Enter system instructions..."></textarea>
+                    </div>
+                </div>
+
+                <div class="buttons">
+                    <button class="button is-danger" id="reset-system">Reset to default</button>
+                    <button class="button" id="toggle-advanced" type="button">Advanced</button>
+                </div>
+
+                <div id="advanced-options" class="mt-4 is-hidden">
+                    <div class="field">
+                        <label class="checkbox">
+                            <input type="checkbox" id="debug-logging"> Enable debug logging
+                        </label>
+                    </div>
+                    <div class="field">
+                        <label class="label" for="max_tokens">Max tokens</label>
+                        <div class="control">
+                            <input class="input" type="number" id="max_tokens">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label" for="temperature">Temperature</label>
+                        <div class="control">
+                            <input class="input" type="number" step="0.01" id="temperature">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label" for="top_p">Top P</label>
+                        <div class="control">
+                            <input class="input" type="number" step="0.01" id="top_p">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label" for="seed">Seed</label>
+                        <div class="control">
+                            <input class="input" type="number" id="seed">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label" for="repetition_penalty">Repetition penalty</label>
+                        <div class="control">
+                            <input class="input" type="number" step="0.01" id="repetition_penalty">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label" for="top_k">Top K</label>
+                        <div class="control">
+                            <input class="input" type="number" id="top_k">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label" for="min_p">Min P</label>
+                        <div class="control">
+                            <input class="input" type="number" step="0.01" id="min_p">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label" for="presence_penalty">Presence penalty</label>
+                        <div class="control">
+                            <input class="input" type="number" step="0.01" id="presence_penalty">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label" for="frequency_penalty">Frequency penalty</label>
+                        <div class="control">
+                            <input class="input" type="number" step="0.01" id="frequency_penalty">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label" for="typical_p">Typical P</label>
+                        <div class="control">
+                            <input class="input" type="number" step="0.01" id="typical_p">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label" for="tfs">TFS</label>
+                        <div class="control">
+                            <input class="input" type="number" step="0.01" id="tfs">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="rules-tab" class="tab-content is-hidden">
+                <h2 class="title is-4">Classification Rules</h2>
+                <div id="rules-container"></div>
+                <button class="button is-link" id="add-rule" type="button">Add Rule</button>
+            </div>
         </div>
-
-        <div class="form-group">
-            <label for="template">Prompt template:</label>
-            <select id="template">
-            </select>
-        </div>
-
-        <div id="custom-template-container" class="form-group" style="display:none">
-            <label>Custom template</label>
-            <textarea id="custom-template" rows="6" cols="60" placeholder="Enter your custom template here..."></textarea>
-            <p class="placeholder-text">Placeholders: {{system}}, {{email}}, {{query}}</p>
-        </div>
-
-        <div class="form-group">
-            <label for="system-instructions">System instructions:</label>
-            <textarea id="system-instructions" rows="4" cols="60" placeholder="Enter system instructions..."></textarea>
-        </div>
-
-        <div class="button-group">
-            <button id="reset-system">Reset to default</button>
-            <button id="toggle-advanced" type="button">Advanced</button>
-            <button id="save">Save</button>
-        </div>
-
-        <div id="advanced-options" style="display:none">
-            <div class="form-group">
-                <label>
-                    <input type="checkbox" id="debug-logging"> Enable debug logging
-                </label>
-            </div>
-            <div class="form-group">
-                <label for="max_tokens">Max tokens:</label>
-                <input type="number" id="max_tokens">
-            </div>
-            <div class="form-group">
-                <label for="temperature">Temperature:</label>
-                <input type="number" step="0.01" id="temperature">
-            </div>
-            <div class="form-group">
-                <label for="top_p">Top P:</label>
-                <input type="number" step="0.01" id="top_p">
-            </div>
-            <div class="form-group">
-                <label for="seed">Seed:</label>
-                <input type="number" id="seed">
-            </div>
-            <div class="form-group">
-                <label for="repetition_penalty">Repetition penalty:</label>
-                <input type="number" step="0.01" id="repetition_penalty">
-            </div>
-            <div class="form-group">
-                <label for="top_k">Top K:</label>
-                <input type="number" id="top_k">
-            </div>
-            <div class="form-group">
-                <label for="min_p">Min P:</label>
-                <input type="number" step="0.01" id="min_p">
-            </div>
-            <div class="form-group">
-                <label for="presence_penalty">Presence penalty:</label>
-                <input type="number" step="0.01" id="presence_penalty">
-            </div>
-            <div class="form-group">
-                <label for="frequency_penalty">Frequency penalty:</label>
-                <input type="number" step="0.01" id="frequency_penalty">
-            </div>
-            <div class="form-group">
-                <label for="typical_p">Typical P:</label>
-                <input type="number" step="0.01" id="typical_p">
-            </div>
-            <div class="form-group">
-                <label for="tfs">TFS:</label>
-                <input type="number" step="0.01" id="tfs">
-            </div>
-        </div>
-
-    </div>
-
-    <div id="rules-tab" class="tab" style="display:none">
-        <h2>Classification Rules</h2>
-        <div id="rules-container"></div>
-        <button id="add-rule" type="button">Add Rule</button>
-    </div>
-
-    </main>
-
+    </section>
     <script src="options.js"></script>
 </body>
 </html>

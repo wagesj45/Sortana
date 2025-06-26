@@ -11,16 +11,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         'debugLogging',
         'aiRules'
     ]);
-    const tabButtons = document.querySelectorAll('.tab-button');
-    const tabs = document.querySelectorAll('.tab');
+    const tabButtons = document.querySelectorAll('#main-tabs li');
+    const tabs = document.querySelectorAll('.tab-content');
     tabButtons.forEach(btn => btn.addEventListener('click', () => {
-        tabButtons.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
+        tabButtons.forEach(b => b.classList.remove('is-active'));
+        btn.classList.add('is-active');
         tabs.forEach(tab => {
-            tab.style.display = tab.id === `${btn.dataset.tab}-tab` ? 'block' : 'none';
+            tab.classList.toggle('is-hidden', tab.id !== `${btn.dataset.tab}-tab`);
         });
     }));
     tabButtons[0]?.click();
+
+    const saveBtn = document.getElementById('save');
+    let initialized = false;
+    function markDirty() {
+        if (initialized) saveBtn.disabled = false;
+    }
+    document.addEventListener('input', markDirty, true);
+    document.addEventListener('change', markDirty, true);
     logger.setDebug(defaults.debugLogging === true);
     const DEFAULT_AI_PARAMS = {
         max_tokens: 4096,
@@ -57,7 +65,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     customTemplate.value = defaults.customTemplate || '';
 
     function updateVisibility() {
-        customBox.style.display = templateSelect.value === 'custom' ? 'block' : 'none';
+        customBox.classList.toggle('is-hidden', templateSelect.value !== 'custom');
     }
     templateSelect.addEventListener('change', updateVisibility);
     updateVisibility();
@@ -65,7 +73,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const advancedBox = document.getElementById('advanced-options');
     const advancedBtn = document.getElementById('toggle-advanced');
     advancedBtn.addEventListener('click', () => {
-        advancedBox.style.display = advancedBox.style.display === 'none' ? 'block' : 'none';
+        advancedBox.classList.toggle('is-hidden');
     });
 
     const debugToggle = document.getElementById('debug-logging');
@@ -109,7 +117,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function createActionRow(action = {type: 'tag'}) {
         const row = document.createElement('div');
-        row.className = 'action-row';
+        row.className = 'action-row field is-grouped';
 
         const typeSelect = document.createElement('select');
         ['tag','move','junk'].forEach(t => {
@@ -162,6 +170,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const removeBtn = document.createElement('button');
         removeBtn.textContent = 'Remove';
         removeBtn.type = 'button';
+        removeBtn.className = 'button is-small is-danger is-light';
         removeBtn.addEventListener('click', () => row.remove());
 
         row.appendChild(typeSelect);
@@ -175,7 +184,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         rulesContainer.innerHTML = '';
         for (const rule of rules) {
             const div = document.createElement('div');
-            div.className = 'rule';
+            div.className = 'rule box';
 
             const critInput = document.createElement('input');
             critInput.type = 'text';
@@ -193,11 +202,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             const addAction = document.createElement('button');
             addAction.textContent = 'Add Action';
             addAction.type = 'button';
+            addAction.className = 'button is-small';
             addAction.addEventListener('click', () => actionsContainer.appendChild(createActionRow()));
 
             const delBtn = document.createElement('button');
             delBtn.textContent = 'Delete Rule';
             delBtn.type = 'button';
+            delBtn.className = 'button is-small is-danger';
             delBtn.addEventListener('click', () => div.remove());
 
             div.appendChild(critInput);
@@ -238,6 +249,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (r.moveTo) actions.push({ type: 'move', folder: r.moveTo });
         return { criterion: r.criterion, actions };
     }));
+    initialized = true;
 
     document.getElementById('save').addEventListener('click', async () => {
         const endpoint = document.getElementById('endpoint').value;
@@ -277,5 +289,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (e) {
             logger.aiLog('[options] failed to apply config', {level: 'error'}, e);
         }
+        saveBtn.disabled = true;
     });
 });
