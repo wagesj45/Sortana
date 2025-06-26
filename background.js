@@ -10,6 +10,8 @@
 
 "use strict";
 
+const storage = (globalThis.messenger ?? browser).storage;
+
 let logger;
 let AiClassifier;
 let aiRules = [];
@@ -42,7 +44,7 @@ async function applyAiRules(idsInput) {
     if (!ids.length) return queue;
 
     if (!aiRules.length) {
-        const { aiRules: stored } = await browser.storage.local.get("aiRules");
+        const { aiRules: stored } = await storage.local.get("aiRules");
         aiRules = Array.isArray(stored) ? stored.map(r => {
             if (r.actions) return r;
             const actions = [];
@@ -101,7 +103,7 @@ async function applyAiRules(idsInput) {
     }
 
     try {
-        const store = await browser.storage.local.get(["endpoint", "templateName", "customTemplate", "customSystemPrompt", "aiParams", "debugLogging", "aiRules"]);
+        const store = await storage.local.get(["endpoint", "templateName", "customTemplate", "customSystemPrompt", "aiParams", "debugLogging", "aiRules"]);
         logger.setDebug(store.debugLogging);
         await AiClassifier.setConfig(store);
         aiRules = Array.isArray(store.aiRules) ? store.aiRules.map(r => {
