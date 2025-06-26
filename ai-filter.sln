@@ -5,10 +5,14 @@ VisualStudioVersion = 17.12.35707.178
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{BCC6E6D2-343B-4C48-854D-5FE3BBC3CB70}"
 	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		AGENTS.md = AGENTS.md
 		background.js = background.js
 		build-xpi.ps1 = build-xpi.ps1
+		LICENSE = LICENSE
 		logger.js = logger.js
 		manifest.json = manifest.json
+		README.md = README.md
 	EndProjectSection
 	ProjectSection(FolderGlobals) = preProject
 		Q_5_4Users_4Jordan_4Documents_4Gitea_4thunderbird-ai-filter_4src_4manifest_1json__JsonSchema = 
@@ -16,6 +20,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "options", "options", "{7372FCA6-B0BC-4968-A748-7ABB17A7929A}"
 	ProjectSection(SolutionItems) = preProject
+		options\bulma.css = options\bulma.css
 		options\options.html = options\options.html
 		options\options.js = options\options.js
 	EndProjectSection
