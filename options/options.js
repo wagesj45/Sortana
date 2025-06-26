@@ -120,8 +120,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const row = document.createElement('div');
         row.className = 'action-row field is-grouped mb-2';
 
+        const typeWrapper = document.createElement('div');
+        typeWrapper.className = 'select is-small mr-2';
         const typeSelect = document.createElement('select');
-        typeSelect.className = 'select is-small';
         ['tag','move','junk'].forEach(t => {
             const opt = document.createElement('option');
             opt.value = t;
@@ -129,14 +130,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             typeSelect.appendChild(opt);
         });
         typeSelect.value = action.type;
+        typeWrapper.appendChild(typeSelect);
 
         const paramSpan = document.createElement('span');
 
         function updateParams() {
             paramSpan.innerHTML = '';
             if (typeSelect.value === 'tag') {
+                const wrap = document.createElement('div');
+                wrap.className = 'select is-small';
                 const sel = document.createElement('select');
-                sel.className = 'select is-small tag-select';
+                sel.className = 'tag-select';
                 for (const t of tagList) {
                     const opt = document.createElement('option');
                     opt.value = t.key;
@@ -144,10 +148,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                     sel.appendChild(opt);
                 }
                 sel.value = action.tagKey || '';
-                paramSpan.appendChild(sel);
+                wrap.appendChild(sel);
+                paramSpan.appendChild(wrap);
             } else if (typeSelect.value === 'move') {
+                const wrap = document.createElement('div');
+                wrap.className = 'select is-small';
                 const sel = document.createElement('select');
-                sel.className = 'select is-small folder-select';
+                sel.className = 'folder-select';
                 for (const f of folderList) {
                     const opt = document.createElement('option');
                     opt.value = f.id;
@@ -155,14 +162,18 @@ document.addEventListener('DOMContentLoaded', async () => {
                     sel.appendChild(opt);
                 }
                 sel.value = action.folder || '';
-                paramSpan.appendChild(sel);
+                wrap.appendChild(sel);
+                paramSpan.appendChild(wrap);
             } else if (typeSelect.value === 'junk') {
+                const wrap = document.createElement('div');
+                wrap.className = 'select is-small';
                 const sel = document.createElement('select');
-                sel.className = 'select is-small junk-select';
+                sel.className = 'junk-select';
                 sel.appendChild(new Option('mark junk','true'));
                 sel.appendChild(new Option('mark not junk','false'));
                 sel.value = String(action.junk ?? true);
-                paramSpan.appendChild(sel);
+                wrap.appendChild(sel);
+                paramSpan.appendChild(wrap);
             }
         }
 
@@ -175,7 +186,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         removeBtn.className = 'button is-small is-danger is-light';
         removeBtn.addEventListener('click', () => row.remove());
 
-        row.appendChild(typeSelect);
+        row.appendChild(typeWrapper);
         row.appendChild(paramSpan);
         row.appendChild(removeBtn);
 
@@ -185,21 +196,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     function renderRules(rules = []) {
         rulesContainer.innerHTML = '';
         for (const rule of rules) {
-            const div = document.createElement('div');
-            div.className = 'rule box mb-4';
-            div.draggable = true;
-            div.addEventListener('dragstart', ev => { dragRule = div; ev.dataTransfer.setData('text/plain', ''); });
-            div.addEventListener('dragover', ev => ev.preventDefault());
-            div.addEventListener('drop', ev => {
+            const article = document.createElement('article');
+            article.className = 'rule message mb-4';
+            article.draggable = true;
+            article.addEventListener('dragstart', ev => { dragRule = article; ev.dataTransfer.setData('text/plain', ''); });
+            article.addEventListener('dragover', ev => ev.preventDefault());
+            article.addEventListener('drop', ev => {
                 ev.preventDefault();
-                if (dragRule && dragRule !== div) {
+                if (dragRule && dragRule !== article) {
                     const children = Array.from(rulesContainer.children);
                     const dragIndex = children.indexOf(dragRule);
-                    const dropIndex = children.indexOf(div);
+                    const dropIndex = children.indexOf(article);
                     if (dragIndex < dropIndex) {
-                        rulesContainer.insertBefore(dragRule, div.nextSibling);
+                        rulesContainer.insertBefore(dragRule, article.nextSibling);
                     } else {
-                        rulesContainer.insertBefore(dragRule, div);
+                        rulesContainer.insertBefore(dragRule, article);
                     }
                     markDirty();
                 }
@@ -209,7 +220,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             critInput.type = 'text';
             critInput.placeholder = 'Criterion';
             critInput.value = rule.criterion || '';
-            critInput.className = 'input criterion mb-2';
+            critInput.className = 'input criterion mr-2';
+            critInput.style.flexGrow = '1';
+
+            const header = document.createElement('div');
+            header.className = 'message-header';
+            header.appendChild(critInput);
+
+            const delBtn = document.createElement('button');
+            delBtn.className = 'delete';
+            delBtn.setAttribute('aria-label', 'delete');
+            delBtn.addEventListener('click', () => article.remove());
+            header.appendChild(delBtn);
 
             const actionsContainer = document.createElement('div');
             actionsContainer.className = 'rule-actions mb-2';
@@ -225,7 +247,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             addAction.addEventListener('click', () => actionsContainer.appendChild(createActionRow()));
 
             const stopLabel = document.createElement('label');
-            stopLabel.className = 'checkbox ml-2 mb-2';
+            stopLabel.className = 'checkbox mt-2';
             const stopCheck = document.createElement('input');
             stopCheck.type = 'checkbox';
             stopCheck.className = 'stop-processing';
@@ -233,19 +255,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             stopLabel.appendChild(stopCheck);
             stopLabel.append(' Stop after match');
 
-            const delBtn = document.createElement('button');
-            delBtn.textContent = 'Delete Rule';
-            delBtn.type = 'button';
-            delBtn.className = 'button is-small is-danger';
-            delBtn.addEventListener('click', () => div.remove());
+            const body = document.createElement('div');
+            body.className = 'message-body';
+            body.appendChild(actionsContainer);
+            body.appendChild(addAction);
+            body.appendChild(stopLabel);
 
-            div.appendChild(critInput);
-            div.appendChild(actionsContainer);
-            div.appendChild(addAction);
-            div.appendChild(stopLabel);
-            div.appendChild(delBtn);
+            article.appendChild(header);
+            article.appendChild(body);
 
-            rulesContainer.appendChild(div);
+            rulesContainer.appendChild(article);
         }
     }
 
