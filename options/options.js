@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const saveBtn = document.getElementById('save');
     let initialized = false;
+    let dragRule = null;
     function markDirty() {
         if (initialized) saveBtn.disabled = false;
     }
@@ -185,6 +186,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         for (const rule of rules) {
             const div = document.createElement('div');
             div.className = 'rule box';
+            div.draggable = true;
+            div.addEventListener('dragstart', ev => { dragRule = div; ev.dataTransfer.setData('text/plain', ''); });
+            div.addEventListener('dragover', ev => ev.preventDefault());
+            div.addEventListener('drop', ev => {
+                ev.preventDefault();
+                if (dragRule && dragRule !== div) {
+                    const children = Array.from(rulesContainer.children);
+                    const dragIndex = children.indexOf(dragRule);
+                    const dropIndex = children.indexOf(div);
+                    if (dragIndex < dropIndex) {
+                        rulesContainer.insertBefore(dragRule, div.nextSibling);
+                    } else {
+                        rulesContainer.insertBefore(dragRule, div);
+                    }
+                    markDirty();
+                }
+            });
 
             const critInput = document.createElement('input');
             critInput.type = 'text';
@@ -205,6 +223,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             addAction.className = 'button is-small';
             addAction.addEventListener('click', () => actionsContainer.appendChild(createActionRow()));
 
+            const stopLabel = document.createElement('label');
+            stopLabel.className = 'checkbox ml-2';
+            const stopCheck = document.createElement('input');
+            stopCheck.type = 'checkbox';
+            stopCheck.className = 'stop-processing';
+            stopCheck.checked = rule.stopProcessing === true;
+            stopLabel.appendChild(stopCheck);
+            stopLabel.append(' Stop after match');
+
             const delBtn = document.createElement('button');
             delBtn.textContent = 'Delete Rule';
             delBtn.type = 'button';
@@ -214,6 +241,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             div.appendChild(critInput);
             div.appendChild(actionsContainer);
             div.appendChild(addAction);
+            div.appendChild(stopLabel);
             div.appendChild(delBtn);
 
             rulesContainer.appendChild(div);
@@ -236,9 +264,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
                 return { type };
             });
-            return { criterion, actions };
+            const stopProcessing = ruleEl.querySelector('.stop-processing')?.checked;
+            return { criterion, actions, stopProcessing };
         });
-        data.push({ criterion: '', actions: [] });
+        data.push({ criterion: '', actions: [], stopProcessing: false });
         renderRules(data);
     });
 
@@ -247,7 +276,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const actions = [];
         if (r.tag) actions.push({ type: 'tag', tagKey: r.tag });
         if (r.moveTo) actions.push({ type: 'move', folder: r.moveTo });
-        return { criterion: r.criterion, actions };
+        const rule = { criterion: r.criterion, actions };
+        if (r.stopProcessing) rule.stopProcessing = true;
+        return rule;
     }));
     initialized = true;
 
@@ -280,7 +311,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
                 return { type };
             });
-            return { criterion, actions };
+            const stopProcessing = ruleEl.querySelector('.stop-processing')?.checked;
+            return { criterion, actions, stopProcessing };
         }).filter(r => r.criterion);
         await storage.local.set({ endpoint, templateName, customTemplate: customTemplateText, customSystemPrompt, aiParams: aiParamsSave, debugLogging, aiRules: rules });
         try {

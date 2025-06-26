@@ -50,7 +50,9 @@ async function applyAiRules(idsInput) {
             const actions = [];
             if (r.tag) actions.push({ type: 'tag', tagKey: r.tag });
             if (r.moveTo) actions.push({ type: 'move', folder: r.moveTo });
-            return { criterion: r.criterion, actions };
+            const rule = { criterion: r.criterion, actions };
+            if (r.stopProcessing) rule.stopProcessing = true;
+            return rule;
         }) : [];
     }
 
@@ -77,6 +79,9 @@ async function applyAiRules(idsInput) {
                             } else if (act.type === 'junk') {
                                 await messenger.messages.update(id, { junk: !!act.junk });
                             }
+                        }
+                        if (rule.stopProcessing) {
+                            break;
                         }
                     }
                 }
@@ -111,9 +116,26 @@ async function applyAiRules(idsInput) {
             const actions = [];
             if (r.tag) actions.push({ type: 'tag', tagKey: r.tag });
             if (r.moveTo) actions.push({ type: 'move', folder: r.moveTo });
-            return { criterion: r.criterion, actions };
+            const rule = { criterion: r.criterion, actions };
+            if (r.stopProcessing) rule.stopProcessing = true;
+            return rule;
         }) : [];
         logger.aiLog("configuration loaded", {debug: true}, store);
+        storage.onChanged.addListener(async changes => {
+            if (changes.aiRules) {
+                const newRules = changes.aiRules.newValue || [];
+                aiRules = newRules.map(r => {
+                    if (r.actions) return r;
+                    const actions = [];
+                    if (r.tag) actions.push({ type: 'tag', tagKey: r.tag });
+                    if (r.moveTo) actions.push({ type: 'move', folder: r.moveTo });
+                    const rule = { criterion: r.criterion, actions };
+                    if (r.stopProcessing) rule.stopProcessing = true;
+                    return rule;
+                });
+                logger.aiLog("aiRules updated from storage change", {debug: true}, aiRules);
+            }
+        });
     } catch (err) {
         logger.aiLog("failed to load config", {level: 'error'}, err);
     }
@@ -145,7 +167,8 @@ async function applyAiRules(idsInput) {
 
     browser.menus.onClicked.addListener(async info => {
         if (info.menuItemId === "apply-ai-rules-list" || info.menuItemId === "apply-ai-rules-display") {
-            const ids = info.selectedMessages?.ids || (info.messageId ? [info.messageId] : []);
+            const ids = info.selectedMessages?.messages?.map(m => m.id) ||
+                         (info.messageId ? [info.messageId] : []);
             await applyAiRules(ids);
         }
     });

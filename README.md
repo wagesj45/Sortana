@@ -20,6 +20,7 @@ message meets a specified criterion.
 - **Advanced parameters** – tune generation settings like temperature, top‑p and more from the options page.
 - **Debug logging** – optional colorized logs help troubleshoot interactions with the AI service.
 - **Automatic rules** – create rules that tag or move new messages based on AI classification.
+- **Rule ordering** – drag rules to prioritize them and optionally stop processing after a match.
 - **Context menu** – apply AI rules from the message list or the message display action button.
 - **Status icons** – toolbar icons indicate when messages are queued or being classified.
 - **Packaging script** – `build-xpi.ps1` builds an XPI ready for installation.
@@ -60,7 +61,8 @@ Sortana is implemented entirely with standard WebExtension scripts—no custom e
 
 1. Open the add-on's options and set the URL of your classification service.
 2. Use the **Classification Rules** section to add a criterion and optional
-   actions such as tagging or moving a message when it matches.
+   actions such as tagging or moving a message when it matches. Drag rules to
+   reorder them and check *Stop after match* to halt further processing.
 3. Save your settings. New mail will be evaluated automatically using the
    configured rules.
 
