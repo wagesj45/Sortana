@@ -118,9 +118,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function createActionRow(action = {type: 'tag'}) {
         const row = document.createElement('div');
-        row.className = 'action-row field is-grouped';
+        row.className = 'action-row field is-grouped mb-2';
 
         const typeSelect = document.createElement('select');
+        typeSelect.className = 'select is-small';
         ['tag','move','junk'].forEach(t => {
             const opt = document.createElement('option');
             opt.value = t;
@@ -135,7 +136,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             paramSpan.innerHTML = '';
             if (typeSelect.value === 'tag') {
                 const sel = document.createElement('select');
-                sel.className = 'tag-select';
+                sel.className = 'select is-small tag-select';
                 for (const t of tagList) {
                     const opt = document.createElement('option');
                     opt.value = t.key;
@@ -146,7 +147,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 paramSpan.appendChild(sel);
             } else if (typeSelect.value === 'move') {
                 const sel = document.createElement('select');
-                sel.className = 'folder-select';
+                sel.className = 'select is-small folder-select';
                 for (const f of folderList) {
                     const opt = document.createElement('option');
                     opt.value = f.id;
@@ -157,7 +158,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 paramSpan.appendChild(sel);
             } else if (typeSelect.value === 'junk') {
                 const sel = document.createElement('select');
-                sel.className = 'junk-select';
+                sel.className = 'select is-small junk-select';
                 sel.appendChild(new Option('mark junk','true'));
                 sel.appendChild(new Option('mark not junk','false'));
                 sel.value = String(action.junk ?? true);
@@ -185,7 +186,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         rulesContainer.innerHTML = '';
         for (const rule of rules) {
             const div = document.createElement('div');
-            div.className = 'rule box';
+            div.className = 'rule box mb-4';
             div.draggable = true;
             div.addEventListener('dragstart', ev => { dragRule = div; ev.dataTransfer.setData('text/plain', ''); });
             div.addEventListener('dragover', ev => ev.preventDefault());
@@ -208,10 +209,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             critInput.type = 'text';
             critInput.placeholder = 'Criterion';
             critInput.value = rule.criterion || '';
-            critInput.className = 'criterion';
+            critInput.className = 'input criterion mb-2';
 
             const actionsContainer = document.createElement('div');
-            actionsContainer.className = 'rule-actions';
+            actionsContainer.className = 'rule-actions mb-2';
 
             for (const act of (rule.actions || [])) {
                 actionsContainer.appendChild(createActionRow(act));
@@ -220,11 +221,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             const addAction = document.createElement('button');
             addAction.textContent = 'Add Action';
             addAction.type = 'button';
-            addAction.className = 'button is-small';
+            addAction.className = 'button is-small mb-2';
             addAction.addEventListener('click', () => actionsContainer.appendChild(createActionRow()));
 
             const stopLabel = document.createElement('label');
-            stopLabel.className = 'checkbox ml-2';
+            stopLabel.className = 'checkbox ml-2 mb-2';
             const stopCheck = document.createElement('input');
             stopCheck.type = 'checkbox';
             stopCheck.className = 'stop-processing';
