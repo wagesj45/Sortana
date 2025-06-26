@@ -106,8 +106,10 @@ async function applyAiRules(idsInput) {
             try {
                 const full = await messenger.messages.getFull(id);
                 const text = buildEmailText(full);
-                const cacheKey = await sha256Hex(`${id}|${rule.criterion}`);
-                const matched = await AiClassifier.classifyText(text, rule.criterion, cacheKey);
+
+                for (const rule of aiRules) {
+                    const cacheKey = await sha256Hex(`${id}|${rule.criterion}`);
+                    const matched = await AiClassifier.classifyText(text, rule.criterion, cacheKey);
                     if (matched) {
                         for (const act of (rule.actions || [])) {
                             if (act.type === 'tag' && act.tagKey) {
