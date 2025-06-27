@@ -106,6 +106,15 @@ Sortana requests the following Thunderbird permissions:
 - `accountsRead` – list accounts and folders for move actions.
 - `menus` – add context menu commands.
 
+## Thunderbird Add-on Store Disclosures
+
+The [Third Party Library Usage](https://extensionworkshop.com/documentation/publish/third-party-library-usage/) policy
+requires disclosure of third party libraries that are included in the add-on. Even though
+the disclosure is only required for add-on review, they'll be listed here as well. Sortana
+uses the following third party libraries:
+
+- [Bulma.css v1.0.4](https://github.com/jgthms/bulma/blob/1.0.4/css/bulma.css)
+
 ## License
 
 This project is licensed under the terms of the GNU General Public License
