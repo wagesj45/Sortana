@@ -3,25 +3,33 @@ document.addEventListener('DOMContentLoaded', async () => {
   const id = parseInt(params.get('mid'), 10);
   if (!id) return;
   try {
-    const { subject, reasons } = await browser.runtime.sendMessage({ type: 'sortana:getReasons', id });
+    const { subject, results } = await browser.runtime.sendMessage({ type: 'sortana:getDetails', id });
     document.getElementById('subject').textContent = subject;
     const container = document.getElementById('rules');
-    for (const r of reasons) {
+    for (const r of results) {
       const article = document.createElement('article');
-      article.className = 'message mb-4';
+      const color = r.matched === true ? 'is-success' : 'is-danger';
+      article.className = `message ${color} mb-4`;
       const header = document.createElement('div');
       header.className = 'message-header';
       header.innerHTML = `<p>${r.criterion}</p>`;
       const body = document.createElement('div');
       body.className = 'message-body';
+      const status = document.createElement('p');
+      status.textContent = r.matched ? 'Matched' : 'Did not match';
       const pre = document.createElement('pre');
-      pre.textContent = r.reason;
+      pre.textContent = r.reason || '';
+      body.appendChild(status);
       body.appendChild(pre);
       article.appendChild(header);
       article.appendChild(body);
       container.appendChild(article);
     }
+    document.getElementById('clear').addEventListener('click', async () => {
+      await browser.runtime.sendMessage({ type: 'sortana:clearCacheForMessage', id });
+      window.close();
+    });
   } catch (e) {
-    console.error('failed to load reasons', e);
+    console.error('failed to load details', e);
   }
 });

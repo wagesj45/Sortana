@@ -30,7 +30,7 @@ function setIcon(path) {
 }
 
 function updateActionIcon() {
-    let path = "resources/img/logo32.png";
+    let path = "resources/img/brain.png";
     if (processing || queuedCount > 0) {
         path = "resources/img/busy.png";
     }
@@ -223,40 +223,9 @@ async function clearCacheForMessages(idsInput) {
 
     logger.aiLog("background.js loaded – ready to classify", {debug: true});
     if (browser.messageDisplayAction) {
-        browser.messageDisplayAction.setTitle({ title: "Classify" });
+        browser.messageDisplayAction.setTitle({ title: "Details" });
         if (browser.messageDisplayAction.setLabel) {
-            browser.messageDisplayAction.setLabel({ label: "Classify" });
-        }
-    }
-    if (browser.scripting && browser.scripting.messageDisplay) {
-        try {
-            const scripts = [
-                {
-                    id: "clear-cache-button",
-                    js: ["resources/clearCacheButton.js"],
-                },
-                {
-                    id: "reason-button",
-                    js: ["resources/reasonButton.js"],
-                },
-            ];
-            await browser.scripting.messageDisplay.registerScripts(scripts);
-        } catch (e) {
-            logger.aiLog("failed to register message display script", { level: 'warn' }, e);
-        }
-    } else if (browser.messageDisplayScripts) {
-        try {
-            const scripts = [
-                { js: ["resources/clearCacheButton.js"] },
-                { js: ["resources/reasonButton.js"] },
-            ];
-            if (browser.messageDisplayScripts.registerScripts) {
-                await browser.messageDisplayScripts.registerScripts(scripts);
-            } else if (browser.messageDisplayScripts.register) {
-                await browser.messageDisplayScripts.register(scripts);
-            }
-        } catch (e) {
-            logger.aiLog("failed to register message display script", { level: 'warn' }, e);
+            browser.messageDisplayAction.setLabel({ label: "Details" });
         }
     }
 
@@ -293,17 +262,7 @@ async function clearCacheForMessages(idsInput) {
         icons: { "16": "resources/img/brain.png" }
     });
 
-    if (browser.messageDisplayAction) {
-        browser.messageDisplayAction.onClicked.addListener(async (tab) => {
-            try {
-                const msgs = await browser.messageDisplay.getDisplayedMessages(tab.id);
-                const ids = msgs.map(m => m.id);
-                await applyAiRules(ids);
-            } catch (e) {
-                logger.aiLog("failed to apply AI rules from action", { level: 'error' }, e);
-            }
-        });
-    }
+
 
     browser.menus.onClicked.addListener(async info => {
         if (info.menuItemId === "apply-ai-rules-list" || info.menuItemId === "apply-ai-rules-display") {
@@ -317,7 +276,7 @@ async function clearCacheForMessages(idsInput) {
         } else if (info.menuItemId === "view-ai-reason-list" || info.menuItemId === "view-ai-reason-display") {
             const id = info.messageId || info.selectedMessages?.messages?.[0]?.id;
             if (id) {
-                const url = browser.runtime.getURL(`reasoning.html?mid=${id}`);
+                const url = browser.runtime.getURL(`details.html?mid=${id}`);
                 browser.tabs.create({ url });
             }
         }
@@ -382,6 +341,45 @@ async function clearCacheForMessages(idsInput) {
         } catch (e) {
             logger.aiLog("failed to collect reasons", { level: 'error' }, e);
             return { subject: '', reasons: [] };
+        }
+    } else if (msg?.type === "sortana:getDetails") {
+        try {
+            const id = msg.id;
+            const hdr = await messenger.messages.get(id);
+            const subject = hdr?.subject || "";
+            if (!aiRules.length) {
+                const { aiRules: stored } = await storage.local.get("aiRules");
+                aiRules = Array.isArray(stored) ? stored.map(r => {
+                    if (r.actions) return r;
+                    const actions = [];
+                    if (r.tag) actions.push({ type: 'tag', tagKey: r.tag });
+                    if (r.moveTo) actions.push({ type: 'move', folder: r.moveTo });
+                    const rule = { criterion: r.criterion, actions };
+                    if (r.stopProcessing) rule.stopProcessing = true;
+                    return rule;
+                }) : [];
+            }
+            const results = [];
+            for (const rule of aiRules) {
+                const key = await sha256Hex(`${id}|${rule.criterion}`);
+                const matched = AiClassifier.getCachedResult(key);
+                const reason = AiClassifier.getReason(key);
+                if (matched !== null || reason) {
+                    results.push({ criterion: rule.criterion, matched, reason });
+                }
+            }
+            return { subject, results };
+        } catch (e) {
+            logger.aiLog("failed to collect details", { level: 'error' }, e);
+            return { subject: '', results: [] };
+        }
+    } else if (msg?.type === "sortana:clearCacheForMessage") {
+        try {
+            await clearCacheForMessages([msg.id]);
+            return { ok: true };
+        } catch (e) {
+            logger.aiLog("failed to clear cache for message", { level: 'error' }, e);
+            return { ok: false };
         }
     } else {
         logger.aiLog("Unknown message type, ignoring", {level: 'warn'}, msg?.type);
