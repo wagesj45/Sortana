@@ -228,12 +228,17 @@ async function clearCacheForMessages(idsInput) {
             browser.messageDisplayAction.setLabel({ label: "Classify" });
         }
     }
-    if (browser.messageDisplayScripts?.registerScripts) {
+    if (browser.messageDisplayScripts) {
         try {
-            await browser.messageDisplayScripts.registerScripts([
+            const scripts = [
                 { js: [browser.runtime.getURL("resources/clearCacheButton.js")] },
                 { js: [browser.runtime.getURL("resources/reasonButton.js")] }
-            ]);
+            ];
+            if (browser.messageDisplayScripts.registerScripts) {
+                await browser.messageDisplayScripts.registerScripts(scripts);
+            } else if (browser.messageDisplayScripts.register) {
+                await browser.messageDisplayScripts.register(scripts);
+            }
         } catch (e) {
             logger.aiLog("failed to register message display script", { level: 'warn' }, e);
         }
@@ -259,6 +264,18 @@ async function clearCacheForMessages(idsInput) {
         title: "Clear AI Cache",
         contexts: ["message_display_action"],
     });
+    browser.menus.create({
+        id: "view-ai-reason-list",
+        title: "View Reasoning",
+        contexts: ["message_list"],
+        icons: { "16": "resources/img/brain.png" }
+    });
+    browser.menus.create({
+        id: "view-ai-reason-display",
+        title: "View Reasoning",
+        contexts: ["message_display_action"],
+        icons: { "16": "resources/img/brain.png" }
+    });
 
     if (browser.messageDisplayAction) {
         browser.messageDisplayAction.onClicked.addListener(async (tab) => {
@@ -281,6 +298,12 @@ async function clearCacheForMessages(idsInput) {
             const ids = info.selectedMessages?.messages?.map(m => m.id) ||
                          (info.messageId ? [info.messageId] : []);
             await clearCacheForMessages(ids);
+        } else if (info.menuItemId === "view-ai-reason-list" || info.menuItemId === "view-ai-reason-display") {
+            const id = info.messageId || info.selectedMessages?.messages?.[0]?.id;
+            if (id) {
+                const url = browser.runtime.getURL(`reasoning.html?mid=${id}`);
+                browser.tabs.create({ url });
+            }
         }
     });
 
