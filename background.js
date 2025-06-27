@@ -233,11 +233,11 @@ async function clearCacheForMessages(idsInput) {
             const scripts = [
                 {
                     id: "clear-cache-button",
-                    js: [browser.runtime.getURL("resources/clearCacheButton.js")],
+                    js: ["resources/clearCacheButton.js"],
                 },
                 {
                     id: "reason-button",
-                    js: [browser.runtime.getURL("resources/reasonButton.js")],
+                    js: ["resources/reasonButton.js"],
                 },
             ];
             await browser.scripting.messageDisplay.registerScripts(scripts);
@@ -247,8 +247,8 @@ async function clearCacheForMessages(idsInput) {
     } else if (browser.messageDisplayScripts) {
         try {
             const scripts = [
-                { js: [browser.runtime.getURL("resources/clearCacheButton.js")] },
-                { js: [browser.runtime.getURL("resources/reasonButton.js")] },
+                { js: ["resources/clearCacheButton.js"] },
+                { js: ["resources/reasonButton.js"] },
             ];
             if (browser.messageDisplayScripts.registerScripts) {
                 await browser.messageDisplayScripts.registerScripts(scripts);
