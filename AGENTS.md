@@ -36,6 +36,7 @@ Additional documentation exists outside this repository.
 - Development guide: [Webextention-API for Thunderbird](https://webextension-api.thunderbird.net/en/stable/)
   - [Messages API](https://webextension-api.thunderbird.net/en/stable/messages.html)
   - [Message Tags API](https://webextension-api.thunderbird.net/en/stable/messages.tags.html)
+  - [messageDisplayAction API](https://webextension-api.thunderbird.net/en/stable/messageDisplayAction.html)
   - [Storage API](https://webextension-api.thunderbird.net/en/stable/storage.html)
 - Thunderbird Add-on Store Policies
   - [Third Party Library Usage](https://extensionworkshop.com/documentation/publish/third-party-library-usage/)
