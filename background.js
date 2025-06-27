@@ -228,11 +228,27 @@ async function clearCacheForMessages(idsInput) {
             browser.messageDisplayAction.setLabel({ label: "Classify" });
         }
     }
-    if (browser.messageDisplayScripts) {
+    if (browser.scripting && browser.scripting.messageDisplay) {
+        try {
+            const scripts = [
+                {
+                    id: "clear-cache-button",
+                    js: [browser.runtime.getURL("resources/clearCacheButton.js")],
+                },
+                {
+                    id: "reason-button",
+                    js: [browser.runtime.getURL("resources/reasonButton.js")],
+                },
+            ];
+            await browser.scripting.messageDisplay.registerScripts(scripts);
+        } catch (e) {
+            logger.aiLog("failed to register message display script", { level: 'warn' }, e);
+        }
+    } else if (browser.messageDisplayScripts) {
         try {
             const scripts = [
                 { js: [browser.runtime.getURL("resources/clearCacheButton.js")] },
-                { js: [browser.runtime.getURL("resources/reasonButton.js")] }
+                { js: [browser.runtime.getURL("resources/reasonButton.js")] },
             ];
             if (browser.messageDisplayScripts.registerScripts) {
                 await browser.messageDisplayScripts.registerScripts(scripts);
