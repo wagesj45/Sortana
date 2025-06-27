@@ -38,6 +38,7 @@
     "messagesUpdate",
     "messagesTagsList",
     "accountsRead",
-    "menus"
+    "menus",
+    "scripting"
   ]
 }
