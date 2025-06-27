@@ -22,7 +22,9 @@
     "default_icon": "resources/img/logo32.png"
   },
   "message_display_action": {
-    "default_icon": "resources/img/logo32.png"
+    "default_icon": "resources/img/logo32.png",
+    "default_title": "Classify",
+    "default_label": "Classify"
   },
   "background": { "scripts": [ "background.js" ] },
   "options_ui": {

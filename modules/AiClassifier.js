@@ -210,6 +210,25 @@ function cacheResult(cacheKey, matched) {
   }
 }
 
+async function removeCacheEntries(keys = []) {
+  if (!Array.isArray(keys)) {
+    keys = [keys];
+  }
+  if (!gCacheLoaded) {
+    await loadCache();
+  }
+  let removed = false;
+  for (let key of keys) {
+    if (gCache.delete(key)) {
+      removed = true;
+      aiLog(`[AiClassifier] Removed cache entry '${key}'`, {debug: true});
+    }
+  }
+  if (removed) {
+    await saveCache();
+  }
+}
+
 function classifyTextSync(text, criterion, cacheKey = null) {
   if (!Services?.tm?.spinEventLoopUntil) {
     throw new Error("classifyTextSync requires Services");
@@ -288,4 +307,4 @@ async function classifyText(text, criterion, cacheKey = null) {
   }
 }
 
-export { classifyText, classifyTextSync, setConfig };
+export { classifyText, classifyTextSync, setConfig, removeCacheEntries };
