@@ -231,7 +231,8 @@ async function clearCacheForMessages(idsInput) {
     if (browser.messageDisplayScripts?.registerScripts) {
         try {
             await browser.messageDisplayScripts.registerScripts([
-                { js: [browser.runtime.getURL("resources/clearCacheButton.js")] }
+                { js: [browser.runtime.getURL("resources/clearCacheButton.js")] },
+                { js: [browser.runtime.getURL("resources/reasonButton.js")] }
             ]);
         } catch (e) {
             logger.aiLog("failed to register message display script", { level: 'warn' }, e);
@@ -312,6 +313,36 @@ async function clearCacheForMessages(idsInput) {
             await clearCacheForMessages(ids);
         } catch (e) {
             logger.aiLog("failed to clear cache from message script", { level: 'error' }, e);
+        }
+    } else if (msg?.type === "sortana:getReasons") {
+        try {
+            const id = msg.id;
+            const hdr = await messenger.messages.get(id);
+            const subject = hdr?.subject || "";
+            if (!aiRules.length) {
+                const { aiRules: stored } = await storage.local.get("aiRules");
+                aiRules = Array.isArray(stored) ? stored.map(r => {
+                    if (r.actions) return r;
+                    const actions = [];
+                    if (r.tag) actions.push({ type: 'tag', tagKey: r.tag });
+                    if (r.moveTo) actions.push({ type: 'move', folder: r.moveTo });
+                    const rule = { criterion: r.criterion, actions };
+                    if (r.stopProcessing) rule.stopProcessing = true;
+                    return rule;
+                }) : [];
+            }
+            const reasons = [];
+            for (const rule of aiRules) {
+                const key = await sha256Hex(`${id}|${rule.criterion}`);
+                const reason = AiClassifier.getReason(key);
+                if (reason) {
+                    reasons.push({ criterion: rule.criterion, reason });
+                }
+            }
+            return { subject, reasons };
+        } catch (e) {
+            logger.aiLog("failed to collect reasons", { level: 'error' }, e);
+            return { subject: '', reasons: [] };
         }
     } else {
         logger.aiLog("Unknown message type, ignoring", {level: 'warn'}, msg?.type);
