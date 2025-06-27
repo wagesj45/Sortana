@@ -7,7 +7,7 @@
           document.createXULElement('toolbarbutton') :
           document.createElement('button');
     button.id = 'sortana-reason-button';
-    button.setAttribute('label', 'Show Reasoning');
+    button.setAttribute('label', 'View Reasoning');
     button.className = 'toolbarbutton-1';
     const icon = browser.runtime.getURL('resources/img/brain.png');
     if (button.setAttribute) {
