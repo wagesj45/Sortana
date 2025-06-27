@@ -22,7 +22,7 @@ message meets a specified criterion.
 - **Automatic rules** – create rules that tag or move new messages based on AI classification.
 - **Rule ordering** – drag rules to prioritize them and optionally stop processing after a match.
 - **Context menu** – apply AI rules from the message list or the message display action button.
-- **Status icons** – toolbar icons indicate when messages are queued or being classified.
+- **Status icons** – toolbar icons show when classification is in progress and briefly display success or error states.
 - **Packaging script** – `build-xpi.ps1` builds an XPI ready for installation.
 
 ## Architecture Overview

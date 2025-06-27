@@ -18,20 +18,29 @@ let aiRules = [];
 let queue = Promise.resolve();
 let queuedCount = 0;
 let processing = false;
+let iconTimer = null;
 
-function updateActionIcon() {
-    let path = "resources/img/logo32.png";
-    if (processing) {
-        path = "resources/img/status-classifying.png";
-    } else if (queuedCount > 0) {
-        path = "resources/img/status-queued.png";
-    }
+function setIcon(path) {
     if (browser.browserAction) {
         browser.browserAction.setIcon({ path });
     }
     if (browser.messageDisplayAction) {
         browser.messageDisplayAction.setIcon({ path });
     }
+}
+
+function updateActionIcon() {
+    let path = "resources/img/logo32.png";
+    if (processing || queuedCount > 0) {
+        path = "resources/img/busy.png";
+    }
+    setIcon(path);
+}
+
+function showTransientIcon(path, delay = 1500) {
+    clearTimeout(iconTimer);
+    setIcon(path);
+    iconTimer = setTimeout(updateActionIcon, delay);
 }
 
 async function sha256Hex(str) {
@@ -125,11 +134,12 @@ async function applyAiRules(idsInput) {
                         }
                     }
                 }
-            } catch (e) {
-                logger.aiLog("failed to apply AI rules", { level: 'error' }, e);
-            } finally {
                 processing = false;
-                updateActionIcon();
+                showTransientIcon("resources/img/done.png");
+            } catch (e) {
+                processing = false;
+                logger.aiLog("failed to apply AI rules", { level: 'error' }, e);
+                showTransientIcon("resources/img/error.png");
             }
         });
     }
