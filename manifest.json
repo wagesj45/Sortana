@@ -22,9 +22,10 @@
     "default_icon": "resources/img/logo32.png"
   },
   "message_display_action": {
-    "default_icon": "resources/img/logo32.png",
-    "default_title": "Classify",
-    "default_label": "Classify"
+    "default_icon": "resources/img/brain.png",
+    "default_title": "Details",
+    "default_label": "Details",
+    "default_popup": "details.html"
   },
   "background": { "scripts": [ "background.js" ] },
   "options_ui": {
