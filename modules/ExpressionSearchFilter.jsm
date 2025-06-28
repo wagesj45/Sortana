@@ -5,15 +5,6 @@ var { aiLog } = ChromeUtils.import("resource://aifilter/modules/logger.jsm");
 var AiClassifier    = ChromeUtils.importESModule("resource://aifilter/modules/AiClassifier.js");
 var { getPlainText }    = ChromeUtils.import("resource://aifilter/modules/messageUtils.jsm");
 
-function sha256Hex(str) {
-  const hasher = Cc["@mozilla.org/security/hash;1"].createInstance(Ci.nsICryptoHash);
-  hasher.init(Ci.nsICryptoHash.SHA256);
-  const data = new TextEncoder().encode(str);
-  hasher.update(data, data.length);
-  const binary = hasher.finish(false);
-  return Array.from(binary, c => ("0" + c.charCodeAt(0).toString(16)).slice(-2)).join("");
-}
-
 var EXPORTED_SYMBOLS = ["AIFilter", "ClassificationTerm"];
 
 class CustomerTermBase {
@@ -70,7 +61,7 @@ class ClassificationTerm extends CustomerTermBase {
                    op === Ci.nsMsgSearchOp.DoesntMatch ? "doesn't match" : `unknown (${op})`;
     aiLog(`[ExpressionSearchFilter] Matching message ${msgHdr.messageId} using op "${opName}" and value "${value}"`, {debug: true});
 
-    let key = [msgHdr.messageId, op, value].map(sha256Hex).join("|");
+    let key = AiClassifier.buildCacheKeySync(msgHdr.messageId, value);
     let body = getPlainText(msgHdr);
 
     let matched = AiClassifier.classifyTextSync(body, value, key);
