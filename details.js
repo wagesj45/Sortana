@@ -1,6 +1,17 @@
 document.addEventListener('DOMContentLoaded', async () => {
   const params = new URLSearchParams(location.search);
-  const id = parseInt(params.get('mid'), 10);
+  let id = parseInt(params.get('mid'), 10);
+
+  if (!id) {
+    try {
+      const tabs = await browser.tabs.query({ active: true, currentWindow: true });
+      const tabId = tabs[0]?.id;
+      const msgs = tabId ? await browser.messageDisplay.getDisplayedMessages(tabId) : [];
+      id = msgs[0]?.id;
+    } catch (e) {
+      console.error('failed to determine message id', e);
+    }
+  }
   if (!id) return;
   try {
     const { subject, results } = await browser.runtime.sendMessage({ type: 'sortana:getDetails', id });
