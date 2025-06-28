@@ -9,6 +9,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		AGENTS.md = AGENTS.md
 		background.js = background.js
 		build-xpi.ps1 = build-xpi.ps1
+		details.html = details.html
+		details.js = details.js
 		LICENSE = LICENSE
 		logger.js = logger.js
 		manifest.json = manifest.json
@@ -51,8 +53,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "prompt_templates", "prompt_
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "resources", "resources", "{68A87938-5C2B-49F5-8AAA-8A34FBBFD854}"
-	ProjectSection(SolutionItems) = preProject
-	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "img", "img", "{F266602F-1755-4A95-A11B-6C90C701C5BF}"
 	ProjectSection(SolutionItems) = preProject
