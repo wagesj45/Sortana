@@ -387,4 +387,4 @@ async function classifyText(text, criterion, cacheKey = null) {
   }
 }
 
-export { classifyText, classifyTextSync, setConfig, removeCacheEntries, getReason };
+export { classifyText, classifyTextSync, setConfig, removeCacheEntries, getReason, getCachedResult };
