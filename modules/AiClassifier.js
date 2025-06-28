@@ -49,8 +49,39 @@ let gAiParams = {
 
 let gCache = new Map();
 let gCacheLoaded = false;
-let gReasonCache = new Map();
-let gReasonCacheLoaded = false;
+
+function sha256HexSync(str) {
+  try {
+    const hasher = Cc["@mozilla.org/security/hash;1"].createInstance(Ci.nsICryptoHash);
+    hasher.init(Ci.nsICryptoHash.SHA256);
+    const data = new TextEncoder().encode(str);
+    hasher.update(data, data.length);
+    const binary = hasher.finish(false);
+    return Array.from(binary, c => ("0" + c.charCodeAt(0).toString(16)).slice(-2)).join("");
+  } catch (e) {
+    aiLog(`sha256HexSync failed`, { level: 'error' }, e);
+    return "";
+  }
+}
+
+async function sha256Hex(str) {
+  if (typeof crypto?.subtle?.digest === "function") {
+    const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf), b => b.toString(16).padStart(2, "0")).join("");
+  }
+  return sha256HexSync(str);
+}
+
+function buildCacheKeySync(id, criterion) {
+  return sha256HexSync(`${id}|${criterion}`);
+}
+
+async function buildCacheKey(id, criterion) {
+  if (Services) {
+    return buildCacheKeySync(id, criterion);
+  }
+  return sha256Hex(`${id}|${criterion}`);
+}
 
 async function loadCache() {
   if (gCacheLoaded) {
@@ -58,15 +89,28 @@ async function loadCache() {
   }
   aiLog(`[AiClassifier] Loading cache`, {debug: true});
   try {
-    const { aiCache } = await storage.local.get("aiCache");
+    const { aiCache, aiReasonCache } = await storage.local.get(["aiCache", "aiReasonCache"]);
     if (aiCache) {
       for (let [k, v] of Object.entries(aiCache)) {
-        aiLog(`[AiClassifier] ⮡ Loaded entry '${k}' → ${v}`, {debug: true});
-        gCache.set(k, v);
+        if (v && typeof v === "object") {
+          gCache.set(k, { matched: v.matched ?? null, reason: v.reason || "" });
+        } else {
+          gCache.set(k, { matched: v, reason: "" });
+        }
       }
       aiLog(`[AiClassifier] Loaded ${gCache.size} cache entries`, {debug: true});
     } else {
       aiLog(`[AiClassifier] Cache is empty`, {debug: true});
+    }
+    if (aiReasonCache) {
+      aiLog(`[AiClassifier] Migrating ${Object.keys(aiReasonCache).length} reason entries`, {debug: true});
+      for (let [k, reason] of Object.entries(aiReasonCache)) {
+        let entry = gCache.get(k) || { matched: null, reason: "" };
+        entry.reason = reason;
+        gCache.set(k, entry);
+      }
+      await storage.local.remove("aiReasonCache");
+      await storage.local.set({ aiCache: Object.fromEntries(gCache) });
     }
   } catch (e) {
     aiLog(`Failed to load cache`, {level: 'error'}, e);
@@ -96,49 +140,6 @@ async function saveCache(updatedKey, updatedValue) {
   }
 }
 
-async function loadReasonCache() {
-  if (gReasonCacheLoaded) {
-    return;
-  }
-  aiLog(`[AiClassifier] Loading reason cache`, {debug: true});
-  try {
-    const { aiReasonCache } = await storage.local.get("aiReasonCache");
-    if (aiReasonCache) {
-      for (let [k, v] of Object.entries(aiReasonCache)) {
-        aiLog(`[AiClassifier] ⮡ Loaded reason '${k}'`, {debug: true});
-        gReasonCache.set(k, v);
-      }
-      aiLog(`[AiClassifier] Loaded ${gReasonCache.size} reason entries`, {debug: true});
-    } else {
-      aiLog(`[AiClassifier] Reason cache is empty`, {debug: true});
-    }
-  } catch (e) {
-    aiLog(`Failed to load reason cache`, {level: 'error'}, e);
-  }
-  gReasonCacheLoaded = true;
-}
-
-function loadReasonCacheSync() {
-  if (!gReasonCacheLoaded) {
-    if (!Services?.tm?.spinEventLoopUntil) {
-      throw new Error("loadReasonCacheSync requires Services");
-    }
-    let done = false;
-    loadReasonCache().finally(() => { done = true; });
-    Services.tm.spinEventLoopUntil(() => done);
-  }
-}
-
-async function saveReasonCache(updatedKey, updatedValue) {
-  if (typeof updatedKey !== "undefined") {
-    aiLog(`[AiClassifier] ⮡ Persisting reason '${updatedKey}'`, {debug: true});
-  }
-  try {
-    await storage.local.set({ aiReasonCache: Object.fromEntries(gReasonCache) });
-  } catch (e) {
-    aiLog(`Failed to save reason cache`, {level: 'error'}, e);
-  }
-}
 
 async function loadTemplate(name) {
   try {
@@ -220,26 +221,27 @@ function getCachedResult(cacheKey) {
     if (Services?.tm?.spinEventLoopUntil) {
       loadCacheSync();
     } else {
-      // In non-privileged contexts we can't block, so bail out early.
       return null;
     }
   }
   if (cacheKey && gCache.has(cacheKey)) {
     aiLog(`[AiClassifier] Cache hit for key: ${cacheKey}`, {debug: true});
-    return gCache.get(cacheKey);
+    const entry = gCache.get(cacheKey);
+    return entry?.matched ?? null;
   }
   return null;
 }
 
 function getReason(cacheKey) {
-  if (!gReasonCacheLoaded) {
+  if (!gCacheLoaded) {
     if (Services?.tm?.spinEventLoopUntil) {
-      loadReasonCacheSync();
+      loadCacheSync();
     } else {
       return null;
     }
   }
-  return cacheKey ? gReasonCache.get(cacheKey) || null : null;
+  const entry = gCache.get(cacheKey);
+  return cacheKey && entry ? entry.reason || null : null;
 }
 
 function buildPayload(text, criterion) {
@@ -260,20 +262,20 @@ function parseMatch(result) {
   return { matched, reason: thinkText };
 }
 
-function cacheResult(cacheKey, matched) {
-  if (cacheKey) {
-    aiLog(`[AiClassifier] Caching entry '${cacheKey}' → ${matched}`, {debug: true});
-    gCache.set(cacheKey, matched);
-    saveCache(cacheKey, matched);
+function cacheEntry(cacheKey, matched, reason) {
+  if (!cacheKey) {
+    return;
   }
-}
-
-function cacheReason(cacheKey, reason) {
-  if (cacheKey) {
-    aiLog(`[AiClassifier] Caching reason '${cacheKey}'`, {debug: true});
-    gReasonCache.set(cacheKey, reason);
-    saveReasonCache(cacheKey, reason);
+  aiLog(`[AiClassifier] Caching entry '${cacheKey}'`, {debug: true});
+  const entry = gCache.get(cacheKey) || { matched: null, reason: "" };
+  if (typeof matched === "boolean") {
+    entry.matched = matched;
   }
+  if (typeof reason === "string") {
+    entry.reason = reason;
+  }
+  gCache.set(cacheKey, entry);
+  saveCache(cacheKey, entry);
 }
 
 async function removeCacheEntries(keys = []) {
@@ -289,23 +291,15 @@ async function removeCacheEntries(keys = []) {
       removed = true;
       aiLog(`[AiClassifier] Removed cache entry '${key}'`, {debug: true});
     }
-    if (gReasonCache.delete(key)) {
-      removed = true;
-      aiLog(`[AiClassifier] Removed reason entry '${key}'`, {debug: true});
-    }
   }
   if (removed) {
     await saveCache();
-    await saveReasonCache();
   }
 }
 
 function classifyTextSync(text, criterion, cacheKey = null) {
   if (!Services?.tm?.spinEventLoopUntil) {
     throw new Error("classifyTextSync requires Services");
-  }
-  if (!gReasonCacheLoaded) {
-    loadReasonCacheSync();
   }
   const cached = getCachedResult(cacheKey);
   if (cached !== null) {
@@ -329,8 +323,7 @@ function classifyTextSync(text, criterion, cacheKey = null) {
         const json = await response.json();
         aiLog(`[AiClassifier] Received response:`, {debug: true}, json);
         result = parseMatch(json);
-        cacheResult(cacheKey, result.matched);
-        cacheReason(cacheKey, result.reason);
+        cacheEntry(cacheKey, result.matched, result.reason);
         result = result.matched;
       } else {
         aiLog(`HTTP status ${response.status}`, {level: 'warn'});
@@ -350,9 +343,6 @@ function classifyTextSync(text, criterion, cacheKey = null) {
 async function classifyText(text, criterion, cacheKey = null) {
   if (!gCacheLoaded) {
     await loadCache();
-  }
-  if (!gReasonCacheLoaded) {
-    await loadReasonCache();
   }
   const cached = getCachedResult(cacheKey);
   if (cached !== null) {
@@ -378,8 +368,7 @@ async function classifyText(text, criterion, cacheKey = null) {
     const result = await response.json();
     aiLog(`[AiClassifier] Received response:`, {debug: true}, result);
     const parsed = parseMatch(result);
-    cacheResult(cacheKey, parsed.matched);
-    cacheReason(cacheKey, parsed.reason);
+    cacheEntry(cacheKey, parsed.matched, parsed.reason);
     return parsed.matched;
   } catch (e) {
     aiLog(`HTTP request failed`, {level: 'error'}, e);
@@ -387,4 +376,8 @@ async function classifyText(text, criterion, cacheKey = null) {
   }
 }
 
-export { classifyText, classifyTextSync, setConfig, removeCacheEntries, getReason, getCachedResult };
+async function init() {
+  await loadCache();
+}
+
+export { classifyText, classifyTextSync, setConfig, removeCacheEntries, getReason, getCachedResult, buildCacheKey, buildCacheKeySync, init };

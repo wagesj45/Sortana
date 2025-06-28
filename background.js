@@ -43,10 +43,6 @@ function showTransientIcon(path, delay = 1500) {
     iconTimer = setTimeout(updateActionIcon, delay);
 }
 
-async function sha256Hex(str) {
-    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-    return Array.from(new Uint8Array(buf), b => b.toString(16).padStart(2, '0')).join('');
-}
 
 function byteSize(str) {
     return new TextEncoder().encode(str || "").length;
@@ -117,7 +113,7 @@ async function applyAiRules(idsInput) {
                 const text = buildEmailText(full);
 
                 for (const rule of aiRules) {
-                    const cacheKey = await sha256Hex(`${id}|${rule.criterion}`);
+                    const cacheKey = await AiClassifier.buildCacheKey(id, rule.criterion);
                     const matched = await AiClassifier.classifyText(text, rule.criterion, cacheKey);
                     if (matched) {
                         for (const act of (rule.actions || [])) {
@@ -168,7 +164,7 @@ async function clearCacheForMessages(idsInput) {
     for (const msg of ids) {
         const id = msg?.id ?? msg;
         for (const rule of aiRules) {
-            const key = await sha256Hex(`${id}|${rule.criterion}`);
+            const key = await AiClassifier.buildCacheKey(id, rule.criterion);
             keys.push(key);
         }
     }
@@ -192,6 +188,7 @@ async function clearCacheForMessages(idsInput) {
         const store = await storage.local.get(["endpoint", "templateName", "customTemplate", "customSystemPrompt", "aiParams", "debugLogging", "aiRules"]);
         logger.setDebug(store.debugLogging);
         await AiClassifier.setConfig(store);
+        await AiClassifier.init();
         aiRules = Array.isArray(store.aiRules) ? store.aiRules.map(r => {
             if (r.actions) return r;
             const actions = [];
@@ -331,7 +328,7 @@ async function clearCacheForMessages(idsInput) {
             }
             const reasons = [];
             for (const rule of aiRules) {
-                const key = await sha256Hex(`${id}|${rule.criterion}`);
+                const key = await AiClassifier.buildCacheKey(id, rule.criterion);
                 const reason = AiClassifier.getReason(key);
                 if (reason) {
                     reasons.push({ criterion: rule.criterion, reason });
@@ -361,7 +358,7 @@ async function clearCacheForMessages(idsInput) {
             }
             const results = [];
             for (const rule of aiRules) {
-                const key = await sha256Hex(`${id}|${rule.criterion}`);
+                const key = await AiClassifier.buildCacheKey(id, rule.criterion);
                 const matched = AiClassifier.getCachedResult(key);
                 const reason = AiClassifier.getReason(key);
                 if (matched !== null || reason) {

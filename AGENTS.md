@@ -59,3 +59,10 @@ base64 data should be replaced with placeholders showing the byte size. The
 final string should have the headers, a brief attachment section, then the plain
 text extracted from all text parts.
 
+### Cache Strategy
+
+`aiCache` persists classification results. Each key is the SHA‑256 hex of
+`"<message id>|<criterion>"` and maps to an object with `matched` and `reason`
+properties. Any legacy `aiReasonCache` data is merged into `aiCache` the first
+time the add-on loads after an update.
+

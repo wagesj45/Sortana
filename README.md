@@ -16,7 +16,7 @@ message meets a specified criterion.
 - **Custom system prompts** – tailor the instructions sent to the model for more precise results.
 - **Filter editor integration** – patches Thunderbird's filter editor to accept
   text criteria for AI classification.
-- **Persistent result caching** – classification results are saved to disk so messages aren't re-evaluated across restarts.
+- **Persistent result caching** – classification results and reasoning are saved to disk so messages aren't re-evaluated across restarts.
 - **Advanced parameters** – tune generation settings like temperature, top‑p and more from the options page.
 - **Debug logging** – optional colorized logs help troubleshoot interactions with the AI service.
 - **Automatic rules** – create rules that tag or move new messages based on AI classification.
@@ -24,6 +24,13 @@ message meets a specified criterion.
 - **Context menu** – apply AI rules from the message list or the message display action button.
 - **Status icons** – toolbar icons show when classification is in progress and briefly display success or error states.
 - **Packaging script** – `build-xpi.ps1` builds an XPI ready for installation.
+
+### Cache Storage
+
+Classification results are stored under the `aiCache` key in extension storage.
+Each entry maps a SHA‑256 hash of `"<message id>|<criterion>"` to an object
+containing `matched` and `reason` fields. Older installations with a separate
+`aiReasonCache` will be migrated automatically on startup.
 
 ## Architecture Overview
 
