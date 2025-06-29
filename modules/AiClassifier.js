@@ -76,11 +76,26 @@ function buildCacheKeySync(id, criterion) {
   return sha256HexSync(`${id}|${criterion}`);
 }
 
-async function buildCacheKey(id, criterion) {
-  if (Services) {
-    return buildCacheKeySync(id, criterion);
+async function resolveHeaderId(id) {
+  if (typeof id === "number" && typeof messenger?.messages?.get === "function") {
+    try {
+      const hdr = await messenger.messages.get(id);
+      if (hdr?.headerMessageId) {
+        return hdr.headerMessageId;
+      }
+    } catch (e) {
+      aiLog(`Failed to resolve headerMessageId for ${id}`, { level: 'warn' }, e);
+    }
   }
-  return sha256Hex(`${id}|${criterion}`);
+  return String(id);
+}
+
+async function buildCacheKey(id, criterion) {
+  const resolvedId = await resolveHeaderId(id);
+  if (Services) {
+    return buildCacheKeySync(resolvedId, criterion);
+  }
+  return sha256Hex(`${resolvedId}|${criterion}`);
 }
 
 async function loadCache() {

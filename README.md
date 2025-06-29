@@ -28,7 +28,7 @@ message meets a specified criterion.
 ### Cache Storage
 
 Classification results are stored under the `aiCache` key in extension storage.
-Each entry maps a SHA‑256 hash of `"<message id>|<criterion>"` to an object
+Each entry maps a SHA‑256 hash of `"<message Message-ID>|<criterion>"` to an object
 containing `matched` and `reason` fields. Older installations with a separate
 `aiReasonCache` will be migrated automatically on startup.
 

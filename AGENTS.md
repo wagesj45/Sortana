@@ -62,7 +62,7 @@ text extracted from all text parts.
 ### Cache Strategy
 
 `aiCache` persists classification results. Each key is the SHA‑256 hex of
-`"<message id>|<criterion>"` and maps to an object with `matched` and `reason`
+`"<message Message-ID>|<criterion>"` and maps to an object with `matched` and `reason`
 properties. Any legacy `aiReasonCache` data is merged into `aiCache` the first
 time the add-on loads after an update.
 
