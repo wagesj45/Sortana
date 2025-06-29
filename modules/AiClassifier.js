@@ -312,6 +312,17 @@ async function removeCacheEntries(keys = []) {
   }
 }
 
+async function clearCache() {
+  if (!gCacheLoaded) {
+    await loadCache();
+  }
+  if (gCache.size > 0) {
+    gCache.clear();
+    await saveCache();
+    aiLog(`[AiClassifier] Cleared cache`, {debug: true});
+  }
+}
+
 function classifyTextSync(text, criterion, cacheKey = null) {
   if (!Services?.tm?.spinEventLoopUntil) {
     throw new Error("classifyTextSync requires Services");
@@ -396,4 +407,4 @@ async function init() {
   await loadCache();
 }
 
-export { classifyText, classifyTextSync, setConfig, removeCacheEntries, getReason, getCachedResult, buildCacheKey, buildCacheKeySync, init };
+export { classifyText, classifyTextSync, setConfig, removeCacheEntries, clearCache, getReason, getCachedResult, buildCacheKey, buildCacheKeySync, init };

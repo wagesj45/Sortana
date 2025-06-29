@@ -46,6 +46,7 @@
                         <ul>
                             <li class="is-active" data-tab="settings"><a>Settings</a></li>
                             <li data-tab="rules"><a>Rules</a></li>
+                            <li data-tab="maintenance"><a>Maintenance</a></li>
                         </ul>
                     </div>
                 </div>
@@ -170,6 +171,17 @@
                 <h2 class="title is-4">Classification Rules</h2>
                 <div id="rules-container"></div>
                 <button class="button is-link" id="add-rule" type="button">Add Rule</button>
+            </div>
+
+            <div id="maintenance-tab" class="tab-content is-hidden">
+                <h2 class="title is-4">Maintenance</h2>
+                <table class="table is-fullwidth">
+                    <tbody>
+                        <tr><th>Rule count</th><td id="rule-count"></td></tr>
+                        <tr><th>Cache entries</th><td id="cache-count"></td></tr>
+                    </tbody>
+                </table>
+                <button class="button is-danger" id="clear-cache" type="button">Clear Cache</button>
             </div>
         </div>
     </section>

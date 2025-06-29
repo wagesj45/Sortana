@@ -9,7 +9,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         'customSystemPrompt',
         'aiParams',
         'debugLogging',
-        'aiRules'
+        'aiRules',
+        'aiCache'
     ]);
     const tabButtons = document.querySelectorAll('#main-tabs li');
     const tabs = document.querySelectorAll('.tab-content');
@@ -300,6 +301,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (r.stopProcessing) rule.stopProcessing = true;
         return rule;
     }));
+
+    const ruleCountEl = document.getElementById('rule-count');
+    const cacheCountEl = document.getElementById('cache-count');
+    ruleCountEl.textContent = (defaults.aiRules || []).length;
+    cacheCountEl.textContent = defaults.aiCache ? Object.keys(defaults.aiCache).length : 0;
+    document.getElementById('clear-cache').addEventListener('click', async () => {
+        await AiClassifier.clearCache();
+        cacheCountEl.textContent = '0';
+    });
     initialized = true;
 
     document.getElementById('save').addEventListener('click', async () => {

@@ -24,6 +24,7 @@ message meets a specified criterion.
 - **Context menu** – apply AI rules from the message list or the message display action button.
 - **Status icons** – toolbar icons show when classification is in progress and briefly display success or error states.
 - **Packaging script** – `build-xpi.ps1` builds an XPI ready for installation.
+- **Maintenance tab** – view rule counts, cache entries and clear cached results from the options page.
 
 ### Cache Storage
 
