@@ -29,8 +29,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "options", "options", "{7372
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "modules", "modules", "{75ED3C1E-D3C7-4546-9F2E-AC85859DDF4B}"
 	ProjectSection(SolutionItems) = preProject
+		modules\AiClassifier.js = modules\AiClassifier.js
 		modules\ExpressionSearchFilter.jsm = modules\ExpressionSearchFilter.jsm
 		modules\logger.jsm = modules\logger.jsm
+		modules\messageUtils.jsm = modules\messageUtils.jsm
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_locales", "_locales", "{D446E5C6-BDDE-4091-BD1A-EC57170003CF}"
@@ -38,11 +40,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "en-US", "en-US", "{8BEA7793-3336-40ED-AB96-7FFB09FEB0F6}"
 	ProjectSection(SolutionItems) = preProject
 		_locales\en-US\messages.json = _locales\en-US\messages.json
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "content", "content", "{028FDA4B-AC3E-4A0E-9291-978E213F9B78}"
-	ProjectSection(SolutionItems) = preProject
-		content\filterEditor.js = content\filterEditor.js
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "prompt_templates", "prompt_templates", "{86516D53-50D4-4FE2-9D8A-977A8F5EBDBD}"
@@ -79,7 +76,6 @@ Global
 		{75ED3C1E-D3C7-4546-9F2E-AC85859DDF4B} = {BCC6E6D2-343B-4C48-854D-5FE3BBC3CB70}
 		{D446E5C6-BDDE-4091-BD1A-EC57170003CF} = {BCC6E6D2-343B-4C48-854D-5FE3BBC3CB70}
 		{8BEA7793-3336-40ED-AB96-7FFB09FEB0F6} = {D446E5C6-BDDE-4091-BD1A-EC57170003CF}
-		{028FDA4B-AC3E-4A0E-9291-978E213F9B78} = {BCC6E6D2-343B-4C48-854D-5FE3BBC3CB70}
 		{86516D53-50D4-4FE2-9D8A-977A8F5EBDBD} = {BCC6E6D2-343B-4C48-854D-5FE3BBC3CB70}
 		{68A87938-5C2B-49F5-8AAA-8A34FBBFD854} = {BCC6E6D2-343B-4C48-854D-5FE3BBC3CB70}
 		{F266602F-1755-4A95-A11B-6C90C701C5BF} = {68A87938-5C2B-49F5-8AAA-8A34FBBFD854}
