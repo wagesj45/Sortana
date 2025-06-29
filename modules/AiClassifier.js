@@ -352,6 +352,7 @@ async function classifyText(text, criterion, cacheKey = null) {
   const payload = buildPayload(text, criterion);
 
   aiLog(`[AiClassifier] Sending classification request to ${gEndpoint}`, {debug: true});
+  aiLog(`[AiClassifier] Classification request payload:`, { debug: true }, payload);
 
   try {
     const response = await fetch(gEndpoint, {
