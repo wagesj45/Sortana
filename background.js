@@ -388,6 +388,8 @@ async function clearCacheForMessages(idsInput) {
             logger.aiLog("failed to clear cache for message", { level: 'error' }, e);
             return { ok: false };
         }
+    } else if (msg?.type === "sortana:getQueueCount") {
+        return { count: queuedCount + (processing ? 1 : 0) };
     } else {
         logger.aiLog("Unknown message type, ignoring", {level: 'warn'}, msg?.type);
     }

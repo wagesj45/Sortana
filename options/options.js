@@ -304,8 +304,22 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const ruleCountEl = document.getElementById('rule-count');
     const cacheCountEl = document.getElementById('cache-count');
+    const queueCountEl = document.getElementById('queue-count');
     ruleCountEl.textContent = (defaults.aiRules || []).length;
     cacheCountEl.textContent = defaults.aiCache ? Object.keys(defaults.aiCache).length : 0;
+
+    async function refreshQueueCount() {
+        try {
+            const { count } = await browser.runtime.sendMessage({ type: 'sortana:getQueueCount' });
+            queueCountEl.textContent = count;
+        } catch (e) {
+            queueCountEl.textContent = '?';
+        }
+    }
+
+    refreshQueueCount();
+    setInterval(refreshQueueCount, 2000);
+
     document.getElementById('clear-cache').addEventListener('click', async () => {
         await AiClassifier.clearCache();
         cacheCountEl.textContent = '0';
