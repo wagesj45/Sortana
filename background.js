@@ -111,6 +111,13 @@ async function applyAiRules(idsInput) {
             try {
                 const full = await messenger.messages.getFull(id);
                 const text = buildEmailText(full);
+                let currentTags = [];
+                try {
+                    const hdr = await messenger.messages.get(id);
+                    currentTags = Array.isArray(hdr.tags) ? [...hdr.tags] : [];
+                } catch (e) {
+                    currentTags = [];
+                }
 
                 for (const rule of aiRules) {
                     const cacheKey = await AiClassifier.buildCacheKey(id, rule.criterion);
@@ -118,7 +125,10 @@ async function applyAiRules(idsInput) {
                     if (matched) {
                         for (const act of (rule.actions || [])) {
                             if (act.type === 'tag' && act.tagKey) {
-                                await messenger.messages.update(id, { tags: [act.tagKey] });
+                                if (!currentTags.includes(act.tagKey)) {
+                                    currentTags.push(act.tagKey);
+                                    await messenger.messages.update(id, { tags: currentTags });
+                                }
                             } else if (act.type === 'move' && act.folder) {
                                 await messenger.messages.move([id], act.folder);
                             } else if (act.type === 'junk') {
