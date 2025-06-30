@@ -21,6 +21,7 @@ let processing = false;
 let iconTimer = null;
 let timingStats = { count: 0, mean: 0, m2: 0, total: 0, last: -1 };
 let currentStart = 0;
+let logGetTiming = true;
 
 function setIcon(path) {
     if (browser.browserAction) {
@@ -321,12 +322,15 @@ async function clearCacheForMessages(idsInput) {
 
     // Listen for messages from UI/devtools
     browser.runtime.onMessage.addListener(async (msg) => {
-        logger.aiLog("onMessage received", {debug: true}, msg);
+        if ((msg?.type === "sortana:getTiming" && logGetTiming) || (msg?.type !== "sortana:getTiming")) {
+            logGetTiming = false;
+            logger.aiLog("onMessage received", { debug: true }, msg);
+        }
 
-    if (msg?.type === "aiFilter:test") {
+        if (msg?.type === "sortana:test") {
         const { text = "", criterion = "" } = msg;
-        logger.aiLog("aiFilter:test – text", {debug: true}, text);
-        logger.aiLog("aiFilter:test – criterion", {debug: true}, criterion);
+            logger.aiLog("sortana:test – text", {debug: true}, text);
+            logger.aiLog("sortana:test – criterion", {debug: true}, criterion);
 
         try {
             logger.aiLog("Calling AiClassifier.classifyText()", {debug: true});

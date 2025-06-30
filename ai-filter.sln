@@ -30,9 +30,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "modules", "modules", "{75ED3C1E-D3C7-4546-9F2E-AC85859DDF4B}"
 	ProjectSection(SolutionItems) = preProject
 		modules\AiClassifier.js = modules\AiClassifier.js
-		modules\ExpressionSearchFilter.jsm = modules\ExpressionSearchFilter.jsm
-		modules\logger.jsm = modules\logger.jsm
-		modules\messageUtils.jsm = modules\messageUtils.jsm
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_locales", "_locales", "{D446E5C6-BDDE-4091-BD1A-EC57170003CF}"

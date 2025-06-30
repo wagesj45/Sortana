@@ -26,7 +26,7 @@ if (-not $version) {
 }
 
 # 4) Define output names & clean up
-$xpiName = "ai-filter-$version.xpi"
+$xpiName = "sortana-$version.xpi"
 $zipPath = Join-Path $ReleaseDir "ai-filter-$version.zip"
 $xpiPath = Join-Path $ReleaseDir $xpiName
 
