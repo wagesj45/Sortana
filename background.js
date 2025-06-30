@@ -19,7 +19,7 @@ let queue = Promise.resolve();
 let queuedCount = 0;
 let processing = false;
 let iconTimer = null;
-let timingStats = { count: 0, mean: 0, m2: 0, total: 0 };
+let timingStats = { count: 0, mean: 0, m2: 0, total: 0, last: -1 };
 let currentStart = 0;
 
 function setIcon(path) {
@@ -149,6 +149,7 @@ async function applyAiRules(idsInput) {
                 const t = timingStats;
                 t.count += 1;
                 t.total += elapsed;
+                t.last = elapsed;
                 const delta = elapsed - t.mean;
                 t.mean += delta / t.count;
                 t.m2 += delta * (elapsed - t.mean);
@@ -161,6 +162,7 @@ async function applyAiRules(idsInput) {
                 const t = timingStats;
                 t.count += 1;
                 t.total += elapsed;
+                t.last = elapsed;
                 const delta = elapsed - t.mean;
                 t.mean += delta / t.count;
                 t.m2 += delta * (elapsed - t.mean);
@@ -223,6 +225,9 @@ async function clearCacheForMessages(idsInput) {
         const savedStats = await storage.local.get('classifyStats');
         if (savedStats.classifyStats && typeof savedStats.classifyStats === 'object') {
             Object.assign(timingStats, savedStats.classifyStats);
+        }
+        if (typeof timingStats.last !== 'number') {
+            timingStats.last = -1;
         }
         aiRules = Array.isArray(store.aiRules) ? store.aiRules.map(r => {
             if (r.actions) return r;
@@ -421,6 +426,8 @@ async function clearCacheForMessages(idsInput) {
         return {
             count: queuedCount + (processing ? 1 : 0),
             current: currentStart ? Date.now() - currentStart : -1,
+            last: t.last,
+            runs: t.count,
             average: t.mean,
             total: t.total,
             stddev: std
