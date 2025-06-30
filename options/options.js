@@ -306,6 +306,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const cacheCountEl = document.getElementById('cache-count');
     const queueCountEl = document.getElementById('queue-count');
     const currentTimeEl = document.getElementById('current-time');
+    const lastTimeEl = document.getElementById('last-time');
     const averageTimeEl = document.getElementById('average-time');
     const totalTimeEl = document.getElementById('total-time');
     let timingLogged = false;
@@ -313,29 +314,43 @@ document.addEventListener('DOMContentLoaded', async () => {
     cacheCountEl.textContent = defaults.aiCache ? Object.keys(defaults.aiCache).length : 0;
 
     function format(ms) {
-        if (ms < 0) return '--:--';
-        return (ms / 1000).toFixed(1) + 's';
+        if (ms < 0) return '--:--:--';
+        let totalSec = Math.floor(ms / 1000);
+        const sec = totalSec % 60;
+        totalSec = (totalSec - sec) / 60;
+        const min = totalSec % 60;
+        const hr = (totalSec - min) / 60;
+        return `${String(hr).padStart(2, '0')}:${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
     }
 
     async function refreshMaintenance() {
         try {
             const stats = await browser.runtime.sendMessage({ type: 'sortana:getTiming' });
             queueCountEl.textContent = stats.count;
-            currentTimeEl.classList.remove('has-text-success','has-text-danger');
+            currentTimeEl.classList.remove('has-text-danger');
+            lastTimeEl.classList.remove('has-text-success','has-text-danger');
             let arrow = '';
+            if (stats.last >= 0) {
+                if (stats.stddev > 0 && stats.last - stats.average > stats.stddev) {
+                    lastTimeEl.classList.add('has-text-danger');
+                    arrow = ' ▲';
+                } else if (stats.stddev > 0 && stats.average - stats.last > stats.stddev) {
+                    lastTimeEl.classList.add('has-text-success');
+                    arrow = ' ▼';
+                }
+                lastTimeEl.textContent = format(stats.last) + arrow;
+            } else {
+                lastTimeEl.textContent = '--:--:--';
+            }
             if (stats.current >= 0) {
                 if (stats.stddev > 0 && stats.current - stats.average > stats.stddev) {
                     currentTimeEl.classList.add('has-text-danger');
-                    arrow = ' ▲';
-                } else if (stats.stddev > 0 && stats.average - stats.current > stats.stddev) {
-                    currentTimeEl.classList.add('has-text-success');
-                    arrow = ' ▼';
                 }
-                currentTimeEl.textContent = format(stats.current) + arrow;
+                currentTimeEl.textContent = format(stats.current);
             } else {
-                currentTimeEl.textContent = '--:--';
+                currentTimeEl.textContent = '--:--:--';
             }
-            averageTimeEl.textContent = stats.count ? format(stats.average) : '--:--';
+            averageTimeEl.textContent = stats.runs > 0 ? format(stats.average) : '--:--:--';
             totalTimeEl.textContent = format(stats.total);
             if (!timingLogged) {
                 logger.aiLog('retrieved timing stats', {debug: true});
@@ -343,9 +358,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         } catch (e) {
             queueCountEl.textContent = '?';
-            currentTimeEl.textContent = '--:--';
-            averageTimeEl.textContent = '--:--';
-            totalTimeEl.textContent = '--:--';
+            currentTimeEl.textContent = '--:--:--';
+            lastTimeEl.textContent = '--:--:--';
+            averageTimeEl.textContent = '--:--:--';
+            totalTimeEl.textContent = '--:--:--';
         }
 
         ruleCountEl.textContent = document.querySelectorAll('#rules-container .rule').length;
@@ -357,7 +373,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     refreshMaintenance();
-    setInterval(refreshMaintenance, 2000);
+    setInterval(refreshMaintenance, 1000);
 
     document.getElementById('clear-cache').addEventListener('click', async () => {
         await AiClassifier.clearCache();
