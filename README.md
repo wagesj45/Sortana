@@ -9,7 +9,6 @@ message meets a specified criterion.
 
 ## Features
 
-- **AI classification rule** – adds the "AI classification" term with `matches` and `doesn't match` operators.
 - **Configurable endpoint** – set the classification service URL on the options page.
 - **Prompt templates** – choose between several model formats or provide your own custom template.
 - **Custom system prompts** – tailor the instructions sent to the model for more precise results.
