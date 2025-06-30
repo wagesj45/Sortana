@@ -9,13 +9,10 @@ message meets a specified criterion.
 
 ## Features
 
-- **AI classification rule** – adds the "AI classification" term with
-  `matches` and `doesn't match` operators.
+- **AI classification rule** – adds the "AI classification" term with `matches` and `doesn't match` operators.
 - **Configurable endpoint** – set the classification service URL on the options page.
 - **Prompt templates** – choose between several model formats or provide your own custom template.
 - **Custom system prompts** – tailor the instructions sent to the model for more precise results.
-- **Filter editor integration** – patches Thunderbird's filter editor to accept
-  text criteria for AI classification.
 - **Persistent result caching** – classification results and reasoning are saved to disk so messages aren't re-evaluated across restarts.
 - **Advanced parameters** – tune generation settings like temperature, top‑p and more from the options page.
 - **Debug logging** – optional colorized logs help troubleshoot interactions with the AI service.
@@ -23,6 +20,9 @@ message meets a specified criterion.
 - **Rule ordering** – drag rules to prioritize them and optionally stop processing after a match.
 - **Context menu** – apply AI rules from the message list or the message display action button.
 - **Status icons** – toolbar icons show when classification is in progress and briefly display success or error states.
+- **View reasoning** – inspect why rules matched via the Details popup.
+- **Cache management** – clear cached results from the context menu or options page.
+- **Queue & timing stats** – monitor processing time on the Maintenance tab.
 - **Packaging script** – `build-xpi.ps1` builds an XPI ready for installation.
 - **Maintenance tab** – view rule counts, cache entries and clear cached results from the options page.
 
@@ -37,22 +37,22 @@ containing `matched` and `reason` fields. Older installations with a separate
 
 Sortana is implemented entirely with standard WebExtension scripts—no custom experiment code is required:
 
-- `background.js` loads saved settings and listens for new messages.
-- `modules/ExpressionSearchFilter.jsm` implements the AI filter and performs the
-  HTTP request.
-- `options/` contains the HTML and JavaScript for configuring the endpoint and
-  rules.
+- `background.js` loads saved settings, manages the classification queue and listens for new messages.
+- `modules/AiClassifier.js` implements the classification logic and cache handling.
+- `options/` contains the HTML and JavaScript for configuring the endpoint and rules.
+- `details.html` / `details.js` present cached reasoning for a message.
 - `_locales/` holds localized strings used throughout the UI.
 
 ### Key Files
 
 | Path                                    | Purpose                                        |
 | --------------------------------------- | ---------------------------------------------- |
-| `manifest.json`                         | Extension manifest and entry points.           |
-| `background.js`                         | Startup tasks and message handling.            |
-| `modules/ExpressionSearchFilter.jsm`    | Custom filter term and AI request logic.       |
+| `manifest.json`                         | Extension manifest and entry points. |
+| `background.js`                         | Startup tasks and classification queue management. |
+| `modules/AiClassifier.js`               | Core classification logic and cache handling. |
 | `options/options.html` and `options.js` | Endpoint and rule configuration UI. |
-| `logger.js` and `modules/logger.jsm`    | Colorized logging with optional debug mode.    |
+| `details.html` and `details.js`         | View stored reasoning for a message. |
+| `logger.js`                             | Colorized logging with optional debug mode. |
 
 ## Building
 
