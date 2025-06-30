@@ -5,9 +5,9 @@ This file provides guidelines for codex agents contributing to the Sortana proje
 ## Repository Overview
 
 - `background.js`: Handles startup tasks and coordinates message passing within the extension.
-- `modules/`: Holds reusable JavaScript modules for the extension.
-- `content/`: Scripts for modifying Thunderbird windows (e.g., the filter editor).
-- `options/`: The options page HTML and JavaScript.
+- `modules/`: Contains reusable JavaScript modules such as `AiClassifier.js`.
+- `options/`: The options page HTML, JavaScript and Bulma CSS.
+- `details.html` and `details.js`: View AI reasoning and clear cache for a message.
 - `resources/`: Images and other static files.
 - `prompt_templates/`: Prompt template files for the AI service.
 - `build-xpi.ps1`: PowerShell script to package the extension.
