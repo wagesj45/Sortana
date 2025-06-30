@@ -305,20 +305,59 @@ document.addEventListener('DOMContentLoaded', async () => {
     const ruleCountEl = document.getElementById('rule-count');
     const cacheCountEl = document.getElementById('cache-count');
     const queueCountEl = document.getElementById('queue-count');
+    const currentTimeEl = document.getElementById('current-time');
+    const averageTimeEl = document.getElementById('average-time');
+    const totalTimeEl = document.getElementById('total-time');
+    let timingLogged = false;
     ruleCountEl.textContent = (defaults.aiRules || []).length;
     cacheCountEl.textContent = defaults.aiCache ? Object.keys(defaults.aiCache).length : 0;
 
-    async function refreshQueueCount() {
+    function format(ms) {
+        if (ms < 0) return '--:--';
+        return (ms / 1000).toFixed(1) + 's';
+    }
+
+    async function refreshMaintenance() {
         try {
-            const { count } = await browser.runtime.sendMessage({ type: 'sortana:getQueueCount' });
-            queueCountEl.textContent = count;
+            const stats = await browser.runtime.sendMessage({ type: 'sortana:getTiming' });
+            queueCountEl.textContent = stats.count;
+            currentTimeEl.classList.remove('has-text-success','has-text-danger');
+            let arrow = '';
+            if (stats.current >= 0) {
+                if (stats.stddev > 0 && stats.current - stats.average > stats.stddev) {
+                    currentTimeEl.classList.add('has-text-danger');
+                    arrow = ' ▲';
+                } else if (stats.stddev > 0 && stats.average - stats.current > stats.stddev) {
+                    currentTimeEl.classList.add('has-text-success');
+                    arrow = ' ▼';
+                }
+                currentTimeEl.textContent = format(stats.current) + arrow;
+            } else {
+                currentTimeEl.textContent = '--:--';
+            }
+            averageTimeEl.textContent = stats.count ? format(stats.average) : '--:--';
+            totalTimeEl.textContent = format(stats.total);
+            if (!timingLogged) {
+                logger.aiLog('retrieved timing stats', {debug: true});
+                timingLogged = true;
+            }
         } catch (e) {
             queueCountEl.textContent = '?';
+            currentTimeEl.textContent = '--:--';
+            averageTimeEl.textContent = '--:--';
+            totalTimeEl.textContent = '--:--';
+        }
+
+        ruleCountEl.textContent = document.querySelectorAll('#rules-container .rule').length;
+        try {
+            cacheCountEl.textContent = await AiClassifier.getCacheSize();
+        } catch {
+            cacheCountEl.textContent = '?';
         }
     }
 
-    refreshQueueCount();
-    setInterval(refreshQueueCount, 2000);
+    refreshMaintenance();
+    setInterval(refreshMaintenance, 2000);
 
     document.getElementById('clear-cache').addEventListener('click', async () => {
         await AiClassifier.clearCache();
