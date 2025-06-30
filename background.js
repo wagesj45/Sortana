@@ -19,6 +19,8 @@ let queue = Promise.resolve();
 let queuedCount = 0;
 let processing = false;
 let iconTimer = null;
+let timingStats = { count: 0, mean: 0, m2: 0, total: 0 };
+let currentStart = 0;
 
 function setIcon(path) {
     if (browser.browserAction) {
@@ -106,6 +108,7 @@ async function applyAiRules(idsInput) {
         updateActionIcon();
         queue = queue.then(async () => {
             processing = true;
+            currentStart = Date.now();
             queuedCount--;
             updateActionIcon();
             try {
@@ -141,9 +144,27 @@ async function applyAiRules(idsInput) {
                     }
                 }
                 processing = false;
+                const elapsed = Date.now() - currentStart;
+                currentStart = 0;
+                const t = timingStats;
+                t.count += 1;
+                t.total += elapsed;
+                const delta = elapsed - t.mean;
+                t.mean += delta / t.count;
+                t.m2 += delta * (elapsed - t.mean);
+                await storage.local.set({ classifyStats: t });
                 showTransientIcon("resources/img/done.png");
             } catch (e) {
                 processing = false;
+                const elapsed = Date.now() - currentStart;
+                currentStart = 0;
+                const t = timingStats;
+                t.count += 1;
+                t.total += elapsed;
+                const delta = elapsed - t.mean;
+                t.mean += delta / t.count;
+                t.m2 += delta * (elapsed - t.mean);
+                await storage.local.set({ classifyStats: t });
                 logger.aiLog("failed to apply AI rules", { level: 'error' }, e);
                 showTransientIcon("resources/img/error.png");
             }
@@ -199,6 +220,10 @@ async function clearCacheForMessages(idsInput) {
         logger.setDebug(store.debugLogging);
         await AiClassifier.setConfig(store);
         await AiClassifier.init();
+        const savedStats = await storage.local.get('classifyStats');
+        if (savedStats.classifyStats && typeof savedStats.classifyStats === 'object') {
+            Object.assign(timingStats, savedStats.classifyStats);
+        }
         aiRules = Array.isArray(store.aiRules) ? store.aiRules.map(r => {
             if (r.actions) return r;
             const actions = [];
@@ -390,6 +415,16 @@ async function clearCacheForMessages(idsInput) {
         }
     } else if (msg?.type === "sortana:getQueueCount") {
         return { count: queuedCount + (processing ? 1 : 0) };
+    } else if (msg?.type === "sortana:getTiming") {
+        const t = timingStats;
+        const std = t.count > 1 ? Math.sqrt(t.m2 / (t.count - 1)) : 0;
+        return {
+            count: queuedCount + (processing ? 1 : 0),
+            current: currentStart ? Date.now() - currentStart : -1,
+            average: t.mean,
+            total: t.total,
+            stddev: std
+        };
     } else {
         logger.aiLog("Unknown message type, ignoring", {level: 'warn'}, msg?.type);
     }

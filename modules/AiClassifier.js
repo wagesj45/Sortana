@@ -323,6 +323,13 @@ async function clearCache() {
   }
 }
 
+async function getCacheSize() {
+  if (!gCacheLoaded) {
+    await loadCache();
+  }
+  return gCache.size;
+}
+
 function classifyTextSync(text, criterion, cacheKey = null) {
   if (!Services?.tm?.spinEventLoopUntil) {
     throw new Error("classifyTextSync requires Services");
@@ -407,4 +414,4 @@ async function init() {
   await loadCache();
 }
 
-export { classifyText, classifyTextSync, setConfig, removeCacheEntries, clearCache, getReason, getCachedResult, buildCacheKey, buildCacheKeySync, init };
+export { classifyText, classifyTextSync, setConfig, removeCacheEntries, clearCache, getReason, getCachedResult, buildCacheKey, buildCacheKeySync, getCacheSize, init };
