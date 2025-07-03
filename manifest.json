@@ -7,7 +7,7 @@
     "gecko": {
       "id": "ai-filter@jordanwages",
       "strict_min_version": "128.0",
-      "strict_max_version": "*"
+      "strict_max_version": "140.*"
     }
   },
   "icons": {
