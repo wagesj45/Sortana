@@ -15,4 +15,5 @@
   "template.custom": { "message": "Custom" },
   "options.save": { "message": "Save" },
   "options.debugLogging": { "message": "Enable debug logging" }
+  ,"options.htmlToMarkdown": { "message": "Convert HTML body to Markdown" }
 }

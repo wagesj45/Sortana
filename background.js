@@ -22,6 +22,8 @@ let iconTimer = null;
 let timingStats = { count: 0, mean: 0, m2: 0, total: 0, last: -1 };
 let currentStart = 0;
 let logGetTiming = true;
+let htmlToMarkdown = false;
+let TurndownService = null;
 
 function setIcon(path) {
     if (browser.browserAction) {
@@ -70,7 +72,17 @@ function collectText(part, bodyParts, attachments) {
         attachments.push(`${name} (${ct}, ${part.size || byteSize(body)} bytes)`);
     } else if (ct.startsWith("text/html")) {
         const doc = new DOMParser().parseFromString(body, 'text/html');
-        bodyParts.push(replaceInlineBase64(doc.body.textContent || ""));
+        if (htmlToMarkdown && TurndownService) {
+            try {
+                const td = new TurndownService();
+                const md = td.turndown(doc.body.innerHTML || body);
+                bodyParts.push(replaceInlineBase64(`[HTML Body converted to Markdown]\n${md}`));
+            } catch (e) {
+                bodyParts.push(replaceInlineBase64(doc.body.textContent || ""));
+            }
+        } else {
+            bodyParts.push(replaceInlineBase64(doc.body.textContent || ""));
+        }
     } else {
         bodyParts.push(replaceInlineBase64(body));
     }
@@ -213,16 +225,19 @@ async function clearCacheForMessages(idsInput) {
     try {
         AiClassifier = await import(browser.runtime.getURL("modules/AiClassifier.js"));
         logger.aiLog("AiClassifier imported", {debug: true});
+        const td = await import(browser.runtime.getURL("resources/js/turndown.js"));
+        TurndownService = td.default || td.TurndownService;
     } catch (e) {
         console.error("failed to import AiClassifier", e);
         return;
     }
 
     try {
-        const store = await storage.local.get(["endpoint", "templateName", "customTemplate", "customSystemPrompt", "aiParams", "debugLogging", "aiRules"]);
+        const store = await storage.local.get(["endpoint", "templateName", "customTemplate", "customSystemPrompt", "aiParams", "debugLogging", "htmlToMarkdown", "aiRules"]);
         logger.setDebug(store.debugLogging);
         await AiClassifier.setConfig(store);
         await AiClassifier.init();
+        htmlToMarkdown = store.htmlToMarkdown === true;
         const savedStats = await storage.local.get('classifyStats');
         if (savedStats.classifyStats && typeof savedStats.classifyStats === 'object') {
             Object.assign(timingStats, savedStats.classifyStats);
@@ -253,6 +268,10 @@ async function clearCacheForMessages(idsInput) {
                     return rule;
                 });
                 logger.aiLog("aiRules updated from storage change", {debug: true}, aiRules);
+            }
+            if (changes.htmlToMarkdown) {
+                htmlToMarkdown = changes.htmlToMarkdown.newValue === true;
+                logger.aiLog("htmlToMarkdown updated from storage change", {debug: true}, htmlToMarkdown);
             }
         });
     } catch (err) {

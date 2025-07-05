@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         'customSystemPrompt',
         'aiParams',
         'debugLogging',
+        'htmlToMarkdown',
         'aiRules',
         'aiCache'
     ]);
@@ -80,6 +81,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const debugToggle = document.getElementById('debug-logging');
     debugToggle.checked = defaults.debugLogging === true;
+
+    const htmlToggle = document.getElementById('html-to-markdown');
+    htmlToggle.checked = defaults.htmlToMarkdown === true;
 
     const aiParams = Object.assign({}, DEFAULT_AI_PARAMS, defaults.aiParams || {});
     for (const [key, val] of Object.entries(aiParams)) {
@@ -395,6 +399,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }
         const debugLogging = debugToggle.checked;
+        const htmlToMarkdown = htmlToggle.checked;
         const rules = [...rulesContainer.querySelectorAll('.rule')].map(ruleEl => {
             const criterion = ruleEl.querySelector('.criterion').value;
             const actions = [...ruleEl.querySelectorAll('.action-row')].map(row => {
@@ -413,7 +418,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const stopProcessing = ruleEl.querySelector('.stop-processing')?.checked;
             return { criterion, actions, stopProcessing };
         }).filter(r => r.criterion);
-        await storage.local.set({ endpoint, templateName, customTemplate: customTemplateText, customSystemPrompt, aiParams: aiParamsSave, debugLogging, aiRules: rules });
+        await storage.local.set({ endpoint, templateName, customTemplate: customTemplateText, customSystemPrompt, aiParams: aiParamsSave, debugLogging, htmlToMarkdown, aiRules: rules });
         try {
             await AiClassifier.setConfig({ endpoint, templateName, customTemplate: customTemplateText, customSystemPrompt, aiParams: aiParamsSave, debugLogging });
             logger.setDebug(debugLogging);
