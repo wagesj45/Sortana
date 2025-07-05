@@ -121,11 +121,14 @@ the disclosure is only required for add-on review, they'll be listed here as wel
 uses the following third party libraries:
 
 - [Bulma.css v1.0.4](https://github.com/jgthms/bulma/blob/1.0.4/css/bulma.css)
+  - MIT License
+- [turndown v7.2.0](https://github.com/mixmark-io/turndown/tree/v7.2.0)
+  - MIT License
 
 ## License
 
 This project is licensed under the terms of the GNU General Public License
-version 3. See `LICENSE` for the full text.
+version 3. See `LICENSE` for the full text. Third party libraries are licensed seperately.
 
 ## Acknowledgments
 
