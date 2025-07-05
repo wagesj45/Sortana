@@ -14,6 +14,7 @@ message meets a specified criterion.
 - **Custom system prompts** – tailor the instructions sent to the model for more precise results.
 - **Persistent result caching** – classification results and reasoning are saved to disk so messages aren't re-evaluated across restarts.
 - **Advanced parameters** – tune generation settings like temperature, top‑p and more from the options page.
+- **Markdown conversion** – optionally convert HTML bodies to Markdown before sending them to the AI service.
 - **Debug logging** – optional colorized logs help troubleshoot interactions with the AI service.
 - **Automatic rules** – create rules that tag or move new messages based on AI classification.
 - **Rule ordering** – drag rules to prioritize them and optionally stop processing after a match.

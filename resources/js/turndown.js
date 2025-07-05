@@ -972,3 +972,6 @@ var TurndownService = (function () {
   return TurndownService;
 
 }());
+
+export { TurndownService };
+export default TurndownService;
