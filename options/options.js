@@ -10,6 +10,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         'aiParams',
         'debugLogging',
         'htmlToMarkdown',
+        'stripUrlParams',
+        'altTextImages',
+        'collapseWhitespace',
         'aiRules',
         'aiCache'
     ]);
@@ -84,6 +87,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const htmlToggle = document.getElementById('html-to-markdown');
     htmlToggle.checked = defaults.htmlToMarkdown === true;
+
+    const stripUrlToggle = document.getElementById('strip-url-params');
+    stripUrlToggle.checked = defaults.stripUrlParams === true;
+
+    const altTextToggle = document.getElementById('alt-text-images');
+    altTextToggle.checked = defaults.altTextImages === true;
+
+    const collapseWhitespaceToggle = document.getElementById('collapse-whitespace');
+    collapseWhitespaceToggle.checked = defaults.collapseWhitespace === true;
 
     const aiParams = Object.assign({}, DEFAULT_AI_PARAMS, defaults.aiParams || {});
     for (const [key, val] of Object.entries(aiParams)) {
@@ -418,7 +430,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             const stopProcessing = ruleEl.querySelector('.stop-processing')?.checked;
             return { criterion, actions, stopProcessing };
         }).filter(r => r.criterion);
-        await storage.local.set({ endpoint, templateName, customTemplate: customTemplateText, customSystemPrompt, aiParams: aiParamsSave, debugLogging, htmlToMarkdown, aiRules: rules });
+        const stripUrlParams = stripUrlToggle.checked;
+        const altTextImages = altTextToggle.checked;
+        const collapseWhitespace = collapseWhitespaceToggle.checked;
+        await storage.local.set({ endpoint, templateName, customTemplate: customTemplateText, customSystemPrompt, aiParams: aiParamsSave, debugLogging, htmlToMarkdown, stripUrlParams, altTextImages, collapseWhitespace, aiRules: rules });
         try {
             await AiClassifier.setConfig({ endpoint, templateName, customTemplate: customTemplateText, customSystemPrompt, aiParams: aiParamsSave, debugLogging });
             logger.setDebug(debugLogging);

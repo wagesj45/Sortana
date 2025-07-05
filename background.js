@@ -23,6 +23,9 @@ let timingStats = { count: 0, mean: 0, m2: 0, total: 0, last: -1 };
 let currentStart = 0;
 let logGetTiming = true;
 let htmlToMarkdown = false;
+let stripUrlParams = false;
+let altTextImages = false;
+let collapseWhitespace = false;
 let TurndownService = null;
 
 function setIcon(path) {
@@ -58,6 +61,20 @@ function replaceInlineBase64(text) {
         m => `[base64: ${byteSize(m)} bytes]`);
 }
 
+function sanitizeString(text) {
+    let t = String(text);
+    if (stripUrlParams) {
+        t = t.replace(/https?:\/\/[^\s)]+/g, m => {
+            const idx = m.indexOf('?');
+            return idx >= 0 ? m.slice(0, idx) : m;
+        });
+    }
+    if (collapseWhitespace) {
+        t = t.replace(/[ \t\u00A0]{2,}/g, ' ').replace(/\n{3,}/g, '\n\n');
+    }
+    return t;
+}
+
 function collectText(part, bodyParts, attachments) {
     if (part.parts && part.parts.length) {
         for (const p of part.parts) collectText(p, bodyParts, attachments);
@@ -72,19 +89,35 @@ function collectText(part, bodyParts, attachments) {
         attachments.push(`${name} (${ct}, ${part.size || byteSize(body)} bytes)`);
     } else if (ct.startsWith("text/html")) {
         const doc = new DOMParser().parseFromString(body, 'text/html');
+        if (altTextImages) {
+            doc.querySelectorAll('img').forEach(img => {
+                const alt = img.getAttribute('alt') || '';
+                img.replaceWith(doc.createTextNode(alt));
+            });
+        }
+        if (stripUrlParams) {
+            doc.querySelectorAll('[href]').forEach(a => {
+                const href = a.getAttribute('href');
+                if (href) a.setAttribute('href', href.split('?')[0]);
+            });
+            doc.querySelectorAll('[src]').forEach(e => {
+                const src = e.getAttribute('src');
+                if (src) e.setAttribute('src', src.split('?')[0]);
+            });
+        }
         if (htmlToMarkdown && TurndownService) {
             try {
                 const td = new TurndownService();
-                const md = td.turndown(doc.body.innerHTML || body);
+                const md = sanitizeString(td.turndown(doc.body.innerHTML || body));
                 bodyParts.push(replaceInlineBase64(`[HTML Body converted to Markdown]\n${md}`));
             } catch (e) {
-                bodyParts.push(replaceInlineBase64(doc.body.textContent || ""));
+                bodyParts.push(replaceInlineBase64(sanitizeString(doc.body.textContent || "")));
             }
         } else {
-            bodyParts.push(replaceInlineBase64(doc.body.textContent || ""));
+            bodyParts.push(replaceInlineBase64(sanitizeString(doc.body.textContent || "")));
         }
     } else {
-        bodyParts.push(replaceInlineBase64(body));
+        bodyParts.push(replaceInlineBase64(sanitizeString(body)));
     }
 }
 
@@ -96,7 +129,8 @@ function buildEmailText(full) {
         .map(([k,v]) => `${k}: ${v.join(' ')}`)
         .join('\n');
     const attachInfo = `Attachments: ${attachments.length}` + (attachments.length ? "\n" + attachments.map(a => ` - ${a}`).join('\n') : "");
-    return `${headers}\n${attachInfo}\n\n${bodyParts.join('\n')}`.trim();
+    const combined = `${headers}\n${attachInfo}\n\n${bodyParts.join('\n')}`.trim();
+    return sanitizeString(combined);
 }
 async function applyAiRules(idsInput) {
     const ids = Array.isArray(idsInput) ? idsInput : [idsInput];
@@ -233,11 +267,14 @@ async function clearCacheForMessages(idsInput) {
     }
 
     try {
-        const store = await storage.local.get(["endpoint", "templateName", "customTemplate", "customSystemPrompt", "aiParams", "debugLogging", "htmlToMarkdown", "aiRules"]);
+        const store = await storage.local.get(["endpoint", "templateName", "customTemplate", "customSystemPrompt", "aiParams", "debugLogging", "htmlToMarkdown", "stripUrlParams", "altTextImages", "collapseWhitespace", "aiRules"]);
         logger.setDebug(store.debugLogging);
         await AiClassifier.setConfig(store);
         await AiClassifier.init();
         htmlToMarkdown = store.htmlToMarkdown === true;
+        stripUrlParams = store.stripUrlParams === true;
+        altTextImages = store.altTextImages === true;
+        collapseWhitespace = store.collapseWhitespace === true;
         const savedStats = await storage.local.get('classifyStats');
         if (savedStats.classifyStats && typeof savedStats.classifyStats === 'object') {
             Object.assign(timingStats, savedStats.classifyStats);
@@ -272,6 +309,18 @@ async function clearCacheForMessages(idsInput) {
             if (changes.htmlToMarkdown) {
                 htmlToMarkdown = changes.htmlToMarkdown.newValue === true;
                 logger.aiLog("htmlToMarkdown updated from storage change", {debug: true}, htmlToMarkdown);
+            }
+            if (changes.stripUrlParams) {
+                stripUrlParams = changes.stripUrlParams.newValue === true;
+                logger.aiLog("stripUrlParams updated from storage change", {debug: true}, stripUrlParams);
+            }
+            if (changes.altTextImages) {
+                altTextImages = changes.altTextImages.newValue === true;
+                logger.aiLog("altTextImages updated from storage change", {debug: true}, altTextImages);
+            }
+            if (changes.collapseWhitespace) {
+                collapseWhitespace = changes.collapseWhitespace.newValue === true;
+                logger.aiLog("collapseWhitespace updated from storage change", {debug: true}, collapseWhitespace);
             }
         });
     } catch (err) {

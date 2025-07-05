@@ -14,6 +14,9 @@
   "template.mistral": { "message": "Mistral" },
   "template.custom": { "message": "Custom" },
   "options.save": { "message": "Save" },
-  "options.debugLogging": { "message": "Enable debug logging" }
-  ,"options.htmlToMarkdown": { "message": "Convert HTML body to Markdown" }
+  "options.debugLogging": { "message": "Enable debug logging" },
+  "options.htmlToMarkdown": { "message": "Convert HTML body to Markdown" },
+  "options.stripUrlParams": { "message": "Remove URL tracking parameters" },
+  "options.altTextImages": { "message": "Replace images with alt text" },
+  "options.collapseWhitespace": { "message": "Collapse long whitespace" }
 }
