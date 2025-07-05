@@ -413,7 +413,7 @@ async function clearCacheForMessages(idsInput) {
         }
     } else if (msg?.type === "sortana:clearCacheForDisplayed") {
         try {
-            const tabs = await browser.tabs.query({ active: true, currentWindow: true });
+            const tabs = await browser.tabs.query({ active: true, lastFocusedWindow: true });
             const tabId = tabs[0]?.id;
             const msgs = tabId ? await browser.messageDisplay.getDisplayedMessages(tabId) : [];
             const ids = msgs.map(m => m.id);
