@@ -8,6 +8,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       const tabId = tabs[0]?.id;
       const msgs = tabId ? await browser.messageDisplay.getDisplayedMessages(tabId) : [];
       id = msgs[0]?.id;
+      if (!id) {
+        const mailTabs = await browser.mailTabs.query({ active: true, currentWindow: true });
+        const mailTabId = mailTabs[0]?.id;
+        const selected = mailTabId !== undefined ? await browser.mailTabs.getSelectedMessages(mailTabId) : null;
+        id = selected?.messages?.[0]?.id;
+      }
     } catch (e) {
       console.error('failed to determine message id', e);
     }

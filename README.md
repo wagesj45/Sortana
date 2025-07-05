@@ -113,6 +113,7 @@ Sortana requests the following Thunderbird permissions:
 - `messagesTagsList` – retrieve existing message tags for rule actions.
 - `accountsRead` – list accounts and folders for move actions.
 - `menus` – add context menu commands.
+- `tabs` – open new tabs and query the active tab.
 
 ## Thunderbird Add-on Store Disclosures
 
