@@ -333,6 +333,19 @@ async function clearCacheForMessages(idsInput) {
         if (browser.messageDisplayAction.setLabel) {
             browser.messageDisplayAction.setLabel({ label: "Details" });
         }
+
+        browser.messageDisplayAction.onClicked.addListener(async (tab) => {
+            const header = await browser.messageDisplay.getDisplayedMessage(tab.id);
+            if (!header) {
+                console.warn("[Sortana] no displayed message in tab", tab.id);
+                return;
+            }
+
+            const popupUrl = `${browser.runtime.getURL("details.html")}?mid=${header.id}`;
+
+            await browser.messageDisplayAction.setPopup({ tabId: tab.id, popup: popupUrl });
+            await browser.messageDisplayAction.openPopup({ tabId: tab.id });
+        });
     }
 
     browser.menus.create({
@@ -370,7 +383,7 @@ async function clearCacheForMessages(idsInput) {
 
 
 
-    browser.menus.onClicked.addListener(async info => {
+    browser.menus.onClicked.addListener(async (info, tab) => {
         if (info.menuItemId === "apply-ai-rules-list" || info.menuItemId === "apply-ai-rules-display") {
             const ids = info.selectedMessages?.messages?.map(m => m.id) ||
                          (info.messageId ? [info.messageId] : []);
@@ -380,11 +393,12 @@ async function clearCacheForMessages(idsInput) {
                          (info.messageId ? [info.messageId] : []);
             await clearCacheForMessages(ids);
         } else if (info.menuItemId === "view-ai-reason-list" || info.menuItemId === "view-ai-reason-display") {
-            const id = info.messageId || info.selectedMessages?.messages?.[0]?.id;
-            if (id) {
-                const url = browser.runtime.getURL(`details.html?mid=${id}`);
-                browser.tabs.create({ url });
-            }
+            const header = await browser.messageDisplay.getDisplayedMessage(tab.id);
+            if (!header) { return; }
+
+            const url = `${browser.runtime.getURL("details.html")}?mid=${header.id}`;
+
+            await browser.tabs.create({ url });
         }
     });
 
@@ -410,19 +424,6 @@ async function clearCacheForMessages(idsInput) {
             logger.aiLog("Error in classify()", {level: 'error'}, err);
             // rethrow so the caller sees the failure
             throw err;
-        }
-    } else if (msg?.type === "sortana:getActiveMessage") {
-        try {
-            const displayed = await browser.messageDisplay.getDisplayedMessages();
-            let id = displayed[0]?.id;
-            if (!id) {
-                const selected = await browser.mailTabs.getSelectedMessages();
-                id = selected?.messages?.[0]?.id;
-            }
-            return { id: id ?? null };
-        } catch (e) {
-            logger.aiLog("failed to get active message", { level: 'error' }, e);
-            return { id: null };
         }
     } else if (msg?.type === "sortana:clearCacheForDisplayed") {
         try {

@@ -1,48 +1,40 @@
 document.addEventListener('DOMContentLoaded', async () => {
+  const logger = (await import(browser.runtime.getURL('logger.js'))).aiLog;
+
+  const midParam = new URLSearchParams(location.search).get('mid');
+  const messageId = parseInt(midParam, 10);
+
+  if (!messageId) {
+    logger('no ?mid → trying displayedMessage fallback');
+    const openerTabId = (await browser.tabs.getCurrent()).openerTabId;
+    const header = await browser.messageDisplay.getDisplayedMessage(openerTabId);
+    if (!header) {
+      logger('still no message – aborting');
+      return;
+    }
+    loadMessage(header.id);
+    return;
+  }
+
+  loadMessage(messageId);
+});
+
+async function loadMessage(id) {
   const storage = (globalThis.messenger ?? browser).storage;
-  const logger = await import(browser.runtime.getURL('logger.js'));
+  const logMod = await import(browser.runtime.getURL('logger.js'));
   const { debugLogging } = await storage.local.get('debugLogging');
-  logger.setDebug(debugLogging === true);
-  logger.aiLog('details page loaded', { debug: true });
+  logMod.setDebug(debugLogging === true);
+  const log = logMod.aiLog;
 
-  const params = new URLSearchParams(location.search);
-  let id = parseInt(params.get('mid'), 10);
-  logger.aiLog('initial message id', { debug: true }, id);
-
-  if (!id) {
-    try {
-      const msgs = await browser.messageDisplay.getDisplayedMessages();
-      id = msgs[0]?.id;
-      logger.aiLog('message id from displayed messages', { debug: true }, id);
-      if (!id) {
-        const selected = await browser.mailTabs.getSelectedMessages();
-        id = selected?.messages?.[0]?.id;
-        logger.aiLog('message id from selected messages', { debug: true }, id);
-      }
-    } catch (e) {
-      logger.aiLog('failed to determine message id locally', { level: 'error' }, e);
-    }
-  }
-
-  if (!id) {
-    try {
-      const resp = await browser.runtime.sendMessage({ type: 'sortana:getActiveMessage' });
-      id = resp?.id;
-      logger.aiLog('message id from background', { debug: true }, id);
-    } catch (e) {
-      logger.aiLog('failed to get message id from background', { level: 'error' }, e);
-    }
-  }
-
-  if (!id) return;
+  log('details page loaded', { debug: true });
   try {
-    logger.aiLog('requesting message details', {}, id);
+    log('requesting message details', {}, id);
     const { subject, results } = await browser.runtime.sendMessage({ type: 'sortana:getDetails', id });
-    logger.aiLog('received details', { debug: true }, { subject, results });
+    log('received details', { debug: true }, { subject, results });
     document.getElementById('subject').textContent = subject;
     const container = document.getElementById('rules');
     for (const r of results) {
-      logger.aiLog('rendering rule result', { debug: true }, r);
+      log('rendering rule result', { debug: true }, r);
       const article = document.createElement('article');
       const color = r.matched === true ? 'is-success' : 'is-danger';
       article.className = `message ${color} mb-4`;
@@ -62,11 +54,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       container.appendChild(article);
     }
     document.getElementById('clear').addEventListener('click', async () => {
-      logger.aiLog('clearing cache for message', {}, id);
+      log('clearing cache for message', {}, id);
       await browser.runtime.sendMessage({ type: 'sortana:clearCacheForMessage', id });
       window.close();
     });
   } catch (e) {
-    logger.aiLog('failed to load details', { level: 'error' }, e);
+    log('failed to load details', { level: 'error' }, e);
   }
-});
+}
