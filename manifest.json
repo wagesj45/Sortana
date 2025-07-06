@@ -40,8 +40,6 @@
     "accountsRead",
     "menus",
     "scripting",
-    "tabs",
-    "*://*/*"
-  ],
-  "content_security_policy": "script-src 'self'; object-src 'none'; connect-src 'self' http: https:"
+    "tabs"
+  ]
 }

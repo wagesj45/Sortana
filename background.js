@@ -258,7 +258,7 @@ async function clearCacheForMessages(idsInput) {
     logger = await import(browser.runtime.getURL("logger.js"));
     try {
         AiClassifier = await import(browser.runtime.getURL("modules/AiClassifier.js"));
-        logger.aiLog("AiClassifier imported", {debug: true});
+        logger.aiLog("AiClassifier imported", { debug: true });
         const td = await import(browser.runtime.getURL("resources/js/turndown.js"));
         TurndownService = td.default || td.TurndownService;
     } catch (e) {
@@ -291,7 +291,7 @@ async function clearCacheForMessages(idsInput) {
             if (r.stopProcessing) rule.stopProcessing = true;
             return rule;
         }) : [];
-        logger.aiLog("configuration loaded", {debug: true}, store);
+        logger.aiLog("configuration loaded", { debug: true }, store);
         storage.onChanged.addListener(async changes => {
             if (changes.aiRules) {
                 const newRules = changes.aiRules.newValue || [];
@@ -304,30 +304,30 @@ async function clearCacheForMessages(idsInput) {
                     if (r.stopProcessing) rule.stopProcessing = true;
                     return rule;
                 });
-                logger.aiLog("aiRules updated from storage change", {debug: true}, aiRules);
+                logger.aiLog("aiRules updated from storage change", { debug: true }, aiRules);
             }
             if (changes.htmlToMarkdown) {
                 htmlToMarkdown = changes.htmlToMarkdown.newValue === true;
-                logger.aiLog("htmlToMarkdown updated from storage change", {debug: true}, htmlToMarkdown);
+                logger.aiLog("htmlToMarkdown updated from storage change", { debug: true }, htmlToMarkdown);
             }
             if (changes.stripUrlParams) {
                 stripUrlParams = changes.stripUrlParams.newValue === true;
-                logger.aiLog("stripUrlParams updated from storage change", {debug: true}, stripUrlParams);
+                logger.aiLog("stripUrlParams updated from storage change", { debug: true }, stripUrlParams);
             }
             if (changes.altTextImages) {
                 altTextImages = changes.altTextImages.newValue === true;
-                logger.aiLog("altTextImages updated from storage change", {debug: true}, altTextImages);
+                logger.aiLog("altTextImages updated from storage change", { debug: true }, altTextImages);
             }
             if (changes.collapseWhitespace) {
                 collapseWhitespace = changes.collapseWhitespace.newValue === true;
-                logger.aiLog("collapseWhitespace updated from storage change", {debug: true}, collapseWhitespace);
+                logger.aiLog("collapseWhitespace updated from storage change", { debug: true }, collapseWhitespace);
             }
         });
     } catch (err) {
-        logger.aiLog("failed to load config", {level: 'error'}, err);
+        logger.aiLog("failed to load config", { level: 'error' }, err);
     }
 
-    logger.aiLog("background.js loaded – ready to classify", {debug: true});
+    logger.aiLog("background.js loaded – ready to classify", { debug: true });
     if (browser.messageDisplayAction) {
         browser.messageDisplayAction.setTitle({ title: "Details" });
         if (browser.messageDisplayAction.setLabel) {
@@ -372,7 +372,7 @@ async function clearCacheForMessages(idsInput) {
     //for the love of god work please
     browser.messageDisplayAction.onClicked.addListener(async (tab, info) => {
         try {
-            let header = await browser.messageDisplay.getDisplayedMessages();
+            let header = await browser.messageDisplay.getDisplayedMessages(tab.id);
             if (!header) {
                 logger.aiLog("No header, no message loaded?", { debug: true });
                 return;
@@ -384,6 +384,10 @@ async function clearCacheForMessages(idsInput) {
         } catch (err) {
             logger.aiLog("Failed to open details popup", { debug: true });
         }
+    });
+
+    browser.messageDisplay.onMessagesDisplayed.addListener(async (tab, displayedMessages) => {
+        logger.aiLog("Messages displayed!", { debug: true }, displayedMessages);
     });
 
     browser.menus.onClicked.addListener(async (info, tab) => {

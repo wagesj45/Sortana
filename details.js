@@ -8,14 +8,14 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   const thisTab   = await browser.tabs.getCurrent();
-  const baseTabId = thisTab.openerTabId ?? thisTab.id;
-  const [header]  = await browser.messageDisplay.getDisplayedMessages(baseTabId);
+  //const baseTabId = thisTab.openerTabId ?? thisTab.id;
+  //const [header]  = await browser.messageDisplay.getDisplayedMessages(baseTabId);
 
-  if (header) {
-    loadMessage(header.id);
-  } else {
-    aiLog("Details popup: no displayed message found");
-  }
+  //if (header) {
+  //  loadMessage(header.id);
+  //} else {
+  //  aiLog("Details popup: no displayed message found");
+  //}
 });
 
 async function loadMessage(id) {
