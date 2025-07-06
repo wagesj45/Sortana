@@ -24,7 +24,8 @@
   "message_display_action": {
     "default_icon": "resources/img/brain.png",
     "default_title": "Details",
-    "default_label": "Details"
+    "default_label": "Details",
+    "default_popup": "details.html"
   },
   "background": { "scripts": [ "background.js" ] },
   "options_ui": {
