@@ -411,6 +411,19 @@ async function clearCacheForMessages(idsInput) {
             // rethrow so the caller sees the failure
             throw err;
         }
+    } else if (msg?.type === "sortana:getActiveMessage") {
+        try {
+            const displayed = await browser.messageDisplay.getDisplayedMessages();
+            let id = displayed[0]?.id;
+            if (!id) {
+                const selected = await browser.mailTabs.getSelectedMessages();
+                id = selected?.messages?.[0]?.id;
+            }
+            return { id: id ?? null };
+        } catch (e) {
+            logger.aiLog("failed to get active message", { level: 'error' }, e);
+            return { id: null };
+        }
     } else if (msg?.type === "sortana:clearCacheForDisplayed") {
         try {
             const msgs = await browser.messageDisplay.getDisplayedMessages();
