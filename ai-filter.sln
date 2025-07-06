@@ -64,6 +64,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "img", "img", "{F266602F-175
 		resources\img\logo96.png = resources\img\logo96.png
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "js", "js", "{21D2A42C-3F85-465C-9141-C106AFD92B68}"
+	ProjectSection(SolutionItems) = preProject
+		resources\js\turndown.js = resources\js\turndown.js
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -76,5 +81,6 @@ Global
 		{86516D53-50D4-4FE2-9D8A-977A8F5EBDBD} = {BCC6E6D2-343B-4C48-854D-5FE3BBC3CB70}
 		{68A87938-5C2B-49F5-8AAA-8A34FBBFD854} = {BCC6E6D2-343B-4C48-854D-5FE3BBC3CB70}
 		{F266602F-1755-4A95-A11B-6C90C701C5BF} = {68A87938-5C2B-49F5-8AAA-8A34FBBFD854}
+		{21D2A42C-3F85-465C-9141-C106AFD92B68} = {68A87938-5C2B-49F5-8AAA-8A34FBBFD854}
 	EndGlobalSection
 EndGlobal
