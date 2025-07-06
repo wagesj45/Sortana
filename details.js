@@ -20,9 +20,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         logger.aiLog('message id from selected messages', { debug: true }, id);
       }
     } catch (e) {
-      logger.aiLog('failed to determine message id', { level: 'error' }, e);
+      logger.aiLog('failed to determine message id locally', { level: 'error' }, e);
     }
   }
+
+  if (!id) {
+    try {
+      const resp = await browser.runtime.sendMessage({ type: 'sortana:getActiveMessage' });
+      id = resp?.id;
+      logger.aiLog('message id from background', { debug: true }, id);
+    } catch (e) {
+      logger.aiLog('failed to get message id from background', { level: 'error' }, e);
+    }
+  }
+
   if (!id) return;
   try {
     logger.aiLog('requesting message details', {}, id);
