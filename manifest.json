@@ -42,5 +42,8 @@
     "menus",
     "scripting",
     "tabs"
+  ],
+  "host_permissions": [
+    "*://*/*"
   ]
 }
