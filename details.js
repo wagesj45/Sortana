@@ -11,15 +11,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   if (!id) {
     try {
-      const tabs = await messenger.tabs.query({ active: true, currentWindow: true });
-      const tabId = tabs[0]?.id;
-      const msgs = tabId ? await browser.messageDisplay.getDisplayedMessages(tabId) : [];
+      const msgs = await browser.messageDisplay.getDisplayedMessages();
       id = msgs[0]?.id;
       logger.aiLog('message id from displayed messages', { debug: true }, id);
       if (!id) {
-        const mailTabs = await browser.mailTabs.query({ active: true, lastFocusedWindow: true });
-        const mailTabId = mailTabs[0]?.id;
-        const selected = mailTabId !== undefined ? await browser.mailTabs.getSelectedMessages(mailTabId) : null;
+        const selected = await browser.mailTabs.getSelectedMessages();
         id = selected?.messages?.[0]?.id;
         logger.aiLog('message id from selected messages', { debug: true }, id);
       }
