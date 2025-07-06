@@ -369,7 +369,22 @@ async function clearCacheForMessages(idsInput) {
         icons: { "16": "resources/img/brain.png" }
     });
 
+    //for the love of god work please
+    browser.messageDisplayAction.onClicked.addListener(async (tab, info) => {
+        try {
+            let header = await browser.messageDisplay.getDisplayedMessages();
+            if (!header) {
+                logger.aiLog("No header, no message loaded?", { debug: true });
+                return;
+            }
 
+            const url = browser.runtime.getURL(`details.html?mid=${header.id}`);
+            await browser.messageDisplayAction.setPopup({ tabId: tab.id, popup: url });
+            await browser.messageDisplayAction.openPopup({ tabId: tab.id });
+        } catch (err) {
+            logger.aiLog("Failed to open details popup", { debug: true });
+        }
+    });
 
     browser.menus.onClicked.addListener(async (info, tab) => {
         if (info.menuItemId === "apply-ai-rules-list" || info.menuItemId === "apply-ai-rules-display") {
