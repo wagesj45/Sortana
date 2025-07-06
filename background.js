@@ -334,18 +334,6 @@ async function clearCacheForMessages(idsInput) {
             browser.messageDisplayAction.setLabel({ label: "Details" });
         }
 
-        browser.messageDisplayAction.onClicked.addListener(async (tab) => {
-            const header = await browser.messageDisplay.getDisplayedMessage(tab.id);
-            if (!header) {
-                console.warn("[Sortana] no displayed message in tab", tab.id);
-                return;
-            }
-
-            const popupUrl = `${browser.runtime.getURL("details.html")}?mid=${header.id}`;
-
-            await browser.messageDisplayAction.setPopup({ tabId: tab.id, popup: popupUrl });
-            await browser.messageDisplayAction.openPopup({ tabId: tab.id });
-        });
     }
 
     browser.menus.create({
@@ -393,7 +381,7 @@ async function clearCacheForMessages(idsInput) {
                          (info.messageId ? [info.messageId] : []);
             await clearCacheForMessages(ids);
         } else if (info.menuItemId === "view-ai-reason-list" || info.menuItemId === "view-ai-reason-display") {
-            const header = await browser.messageDisplay.getDisplayedMessage(tab.id);
+            const [header] = await browser.messageDisplay.getDisplayedMessages(tab.id);
             if (!header) { return; }
 
             const url = `${browser.runtime.getURL("details.html")}?mid=${header.id}`;

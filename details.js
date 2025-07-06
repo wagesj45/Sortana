@@ -1,22 +1,21 @@
-document.addEventListener('DOMContentLoaded', async () => {
-  const logger = (await import(browser.runtime.getURL('logger.js'))).aiLog;
+document.addEventListener("DOMContentLoaded", async () => {
+  const aiLog = (await import(browser.runtime.getURL("logger.js"))).aiLog;
 
-  const midParam = new URLSearchParams(location.search).get('mid');
-  const messageId = parseInt(midParam, 10);
-
-  if (!messageId) {
-    logger('no ?mid → trying displayedMessage fallback');
-    const openerTabId = (await browser.tabs.getCurrent()).openerTabId;
-    const header = await browser.messageDisplay.getDisplayedMessage(openerTabId);
-    if (!header) {
-      logger('still no message – aborting');
-      return;
-    }
-    loadMessage(header.id);
+  const qMid = parseInt(new URLSearchParams(location.search).get("mid"), 10);
+  if (!isNaN(qMid)) {
+    loadMessage(qMid);
     return;
   }
 
-  loadMessage(messageId);
+  const thisTab   = await browser.tabs.getCurrent();
+  const baseTabId = thisTab.openerTabId ?? thisTab.id;
+  const [header]  = await browser.messageDisplay.getDisplayedMessages(baseTabId);
+
+  if (header) {
+    loadMessage(header.id);
+  } else {
+    aiLog("Details popup: no displayed message found");
+  }
 });
 
 async function loadMessage(id) {
