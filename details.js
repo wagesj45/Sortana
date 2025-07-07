@@ -4,15 +4,14 @@ const qMid = parseInt(new URLSearchParams(location.search).get("mid"), 10);
 if (!isNaN(qMid)) {
   loadMessage(qMid);
 } else {
-  const thisTab   = await browser.tabs.getCurrent();
-  //const baseTabId = thisTab.openerTabId ?? thisTab.id;
-  //const [header]  = await browser.messageDisplay.getDisplayedMessages(baseTabId);
-
-  //if (header) {
-  //  loadMessage(header.id);
-  //} else {
-  //  aiLog("Details popup: no displayed message found");
-  //}
+  const { messages } = await browser.runtime.sendMessage({
+    type: "sortana:getDisplayedMessages",
+  });
+  if (messages && messages[0]) {
+    loadMessage(messages[0].id);
+  } else {
+    aiLog("Details popup: no displayed message found");
+  }
 }
 
 async function loadMessage(id) {
