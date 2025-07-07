@@ -501,6 +501,15 @@ async function clearCacheForMessages(idsInput) {
             logger.aiLog("failed to collect details", { level: 'error' }, e);
             return { subject: '', results: [] };
         }
+    } else if (msg?.type === "sortana:getDisplayedMessages") {
+        try {
+            const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
+            const messages = await browser.messageDisplay.getDisplayedMessages(tab?.id);
+            return { messages };
+        } catch (e) {
+            logger.aiLog("failed to get displayed messages", { level: 'error' }, e);
+            return { messages: [] };
+        }
     } else if (msg?.type === "sortana:clearCacheForMessage") {
         try {
             await clearCacheForMessages([msg.id]);
