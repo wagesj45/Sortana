@@ -377,6 +377,19 @@ async function clearCacheForMessages(idsInput) {
                 refreshMenuIcons();
             }
         });
+
+        if (browser.theme?.onUpdated) {
+            browser.theme.onUpdated.addListener(async () => {
+                if (userTheme === 'auto') {
+                    const theme = await detectSystemTheme();
+                    if (theme !== currentTheme) {
+                        currentTheme = theme;
+                        updateActionIcon();
+                        refreshMenuIcons();
+                    }
+                }
+            });
+        }
     } catch (err) {
         logger.aiLog("failed to load config", { level: 'error' }, err);
     }
