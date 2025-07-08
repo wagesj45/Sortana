@@ -1,4 +1,10 @@
 const aiLog = (await import(browser.runtime.getURL("logger.js"))).aiLog;
+const storage = (globalThis.messenger ?? browser).storage;
+const { theme } = await storage.local.get('theme');
+const mode = (theme || 'auto') === 'auto'
+  ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+  : theme;
+document.documentElement.dataset.theme = mode;
 
 const qMid = parseInt(new URLSearchParams(location.search).get("mid"), 10);
 if (!isNaN(qMid)) {
