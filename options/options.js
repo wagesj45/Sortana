@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         typical_p: 1,
         tfs: 1
     };
-    document.getElementById('endpoint').value = defaults.endpoint || 'http://127.0.0.1:5000/v1/classify';
+    document.getElementById('endpoint').value = defaults.endpoint || 'http://127.0.0.1:5000/v1/completions';
 
     const templates = {
         openai: browser.i18n.getMessage('template.openai'),
