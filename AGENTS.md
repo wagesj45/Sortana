@@ -66,3 +66,10 @@ text extracted from all text parts.
 properties. Any legacy `aiReasonCache` data is merged into `aiCache` the first
 time the add-on loads after an update.
 
+### Icon Set Usage
+
+Toolbar and menu icons reside under `resources/img` and are provided in 16, 32
+and 64 pixel variants. When changing these icons, pass a dictionary mapping the
+sizes to the paths in `browserAction.setIcon` or `messageDisplayAction.setIcon`.
+Use `resources/svg/svg2img.ps1` to regenerate PNGs from the SVG sources.
+

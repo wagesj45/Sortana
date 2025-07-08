@@ -141,3 +141,5 @@ Sortana builds upon knowledge gained from open-source projects. In particular,
 how Thunderbird's WebExtension and experiment APIs can be extended. Their code
 provided invaluable guidance during development.
 
+- Icons from [cc0-icons.jonh.eu](https://cc0-icons.jonh.eu/) are used under the CC0 license.
+
