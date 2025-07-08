@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const AiClassifier = await import(browser.runtime.getURL('modules/AiClassifier.js'));
     const dataTransfer = await import(browser.runtime.getURL('options/dataTransfer.js'));
     const { detectSystemTheme } = await import(browser.runtime.getURL('modules/themeUtils.js'));
+    const { DEFAULT_AI_PARAMS } = await import(browser.runtime.getURL('modules/defaultParams.js'));
     const defaults = await storage.local.get([
         'endpoint',
         'templateName',
@@ -66,19 +67,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         markDirty();
         await applyTheme(themeSelect.value);
     });
-    const DEFAULT_AI_PARAMS = {
-        max_tokens: 4096,
-        temperature: 0.6,
-        top_p: 0.95,
-        seed: -1,
-        repetition_penalty: 1.0,
-        top_k: 20,
-        min_p: 0,
-        presence_penalty: 0,
-        frequency_penalty: 0,
-        typical_p: 1,
-        tfs: 1
-    };
     document.getElementById('endpoint').value = defaults.endpoint || 'http://127.0.0.1:5000/v1/completions';
 
     const templates = {
