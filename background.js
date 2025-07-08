@@ -30,6 +30,18 @@ let TurndownService = null;
 let userTheme = 'auto';
 let currentTheme = 'light';
 
+function normalizeRules(rules) {
+    return Array.isArray(rules) ? rules.map(r => {
+        if (r.actions) return r;
+        const actions = [];
+        if (r.tag) actions.push({ type: 'tag', tagKey: r.tag });
+        if (r.moveTo) actions.push({ type: 'move', folder: r.moveTo });
+        const rule = { criterion: r.criterion, actions };
+        if (r.stopProcessing) rule.stopProcessing = true;
+        return rule;
+    }) : [];
+}
+
 function iconPaths(name) {
     return {
         16: `resources/img/${name}-${currentTheme}-16.png`,
@@ -184,15 +196,7 @@ async function applyAiRules(idsInput) {
 
     if (!aiRules.length) {
         const { aiRules: stored } = await storage.local.get("aiRules");
-        aiRules = Array.isArray(stored) ? stored.map(r => {
-            if (r.actions) return r;
-            const actions = [];
-            if (r.tag) actions.push({ type: 'tag', tagKey: r.tag });
-            if (r.moveTo) actions.push({ type: 'move', folder: r.moveTo });
-            const rule = { criterion: r.criterion, actions };
-            if (r.stopProcessing) rule.stopProcessing = true;
-            return rule;
-        }) : [];
+        aiRules = normalizeRules(stored);
     }
 
     for (const msg of ids) {
@@ -275,15 +279,7 @@ async function clearCacheForMessages(idsInput) {
 
     if (!aiRules.length) {
         const { aiRules: stored } = await storage.local.get("aiRules");
-        aiRules = Array.isArray(stored) ? stored.map(r => {
-            if (r.actions) return r;
-            const actions = [];
-            if (r.tag) actions.push({ type: 'tag', tagKey: r.tag });
-            if (r.moveTo) actions.push({ type: 'move', folder: r.moveTo });
-            const rule = { criterion: r.criterion, actions };
-            if (r.stopProcessing) rule.stopProcessing = true;
-            return rule;
-        }) : [];
+        aiRules = normalizeRules(stored);
     }
 
     const keys = [];
@@ -330,28 +326,12 @@ async function clearCacheForMessages(idsInput) {
         if (typeof timingStats.last !== 'number') {
             timingStats.last = -1;
         }
-        aiRules = Array.isArray(store.aiRules) ? store.aiRules.map(r => {
-            if (r.actions) return r;
-            const actions = [];
-            if (r.tag) actions.push({ type: 'tag', tagKey: r.tag });
-            if (r.moveTo) actions.push({ type: 'move', folder: r.moveTo });
-            const rule = { criterion: r.criterion, actions };
-            if (r.stopProcessing) rule.stopProcessing = true;
-            return rule;
-        }) : [];
+        aiRules = normalizeRules(store.aiRules);
         logger.aiLog("configuration loaded", { debug: true }, store);
         storage.onChanged.addListener(async changes => {
             if (changes.aiRules) {
                 const newRules = changes.aiRules.newValue || [];
-                aiRules = newRules.map(r => {
-                    if (r.actions) return r;
-                    const actions = [];
-                    if (r.tag) actions.push({ type: 'tag', tagKey: r.tag });
-                    if (r.moveTo) actions.push({ type: 'move', folder: r.moveTo });
-                    const rule = { criterion: r.criterion, actions };
-                    if (r.stopProcessing) rule.stopProcessing = true;
-                    return rule;
-                });
+                aiRules = normalizeRules(newRules);
                 logger.aiLog("aiRules updated from storage change", { debug: true }, aiRules);
             }
             if (changes.htmlToMarkdown) {
@@ -499,15 +479,7 @@ async function clearCacheForMessages(idsInput) {
                 const subject = hdr?.subject || "";
                 if (!aiRules.length) {
                     const { aiRules: stored } = await storage.local.get("aiRules");
-                    aiRules = Array.isArray(stored) ? stored.map(r => {
-                        if (r.actions) return r;
-                        const actions = [];
-                        if (r.tag) actions.push({ type: 'tag', tagKey: r.tag });
-                        if (r.moveTo) actions.push({ type: 'move', folder: r.moveTo });
-                        const rule = { criterion: r.criterion, actions };
-                        if (r.stopProcessing) rule.stopProcessing = true;
-                        return rule;
-                    }) : [];
+                    aiRules = normalizeRules(stored);
                 }
                 const reasons = [];
                 for (const rule of aiRules) {
@@ -529,15 +501,7 @@ async function clearCacheForMessages(idsInput) {
                 const subject = hdr?.subject || "";
                 if (!aiRules.length) {
                     const { aiRules: stored } = await storage.local.get("aiRules");
-                    aiRules = Array.isArray(stored) ? stored.map(r => {
-                        if (r.actions) return r;
-                        const actions = [];
-                        if (r.tag) actions.push({ type: 'tag', tagKey: r.tag });
-                        if (r.moveTo) actions.push({ type: 'move', folder: r.moveTo });
-                        const rule = { criterion: r.criterion, actions };
-                        if (r.stopProcessing) rule.stopProcessing = true;
-                        return rule;
-                    }) : [];
+                    aiRules = normalizeRules(stored);
                 }
                 const results = [];
                 for (const rule of aiRules) {
