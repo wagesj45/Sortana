@@ -22,7 +22,7 @@
     "default_icon": "resources/img/logo32.png"
   },
   "message_display_action": {
-    "default_icon": "resources/img/brain.png",
+    "default_icon": "resources/img/logo.png",
     "default_title": "Details",
     "default_label": "Details",
     "default_popup": "details.html"

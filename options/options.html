@@ -44,18 +44,25 @@
                 <div class="level-left">
                     <div class="tabs" id="main-tabs">
                         <ul>
-                            <li class="is-active" data-tab="settings"><a>Settings</a></li>
-                            <li data-tab="rules"><a>Rules</a></li>
-                            <li data-tab="maintenance"><a>Maintenance</a></li>
+                            <li class="is-active" data-tab="settings"><a><span class="icon is-small"><img src="../resources/svg/settings.svg" alt=""></span><span>Settings</span></a></li>
+                            <li data-tab="rules"><a><span class="icon is-small"><img src="../resources/svg/clipboarddata.svg" alt=""></span><span>Rules</span></a></li>
+                            <li data-tab="maintenance"><a><span class="icon is-small"><img src="../resources/svg/gear.svg" alt=""></span><span>Maintenance</span></a></li>
                         </ul>
                     </div>
                 </div>
                 <div class="level-right">
-                    <button class="button is-primary" id="save" disabled>Save</button>
+                    <button class="button is-primary" id="save" disabled>
+                        <span class="icon is-small"><img src="../resources/svg/flag.svg" alt=""></span>
+                        <span>Save</span>
+                    </button>
                 </div>
             </div>
 
             <div id="settings-tab" class="tab-content">
+                <h2 class="title is-4">
+                    <span class="icon is-small"><img src="../resources/svg/settings.svg" alt=""></span>
+                    <span>Settings</span>
+                </h2>
                 <div class="field">
                     <label class="label" for="endpoint">Endpoint</label>
                     <div class="control">
@@ -88,8 +95,14 @@
                 </div>
 
                 <div class="buttons">
-                    <button class="button is-danger" id="reset-system">Reset to default</button>
-                    <button class="button" id="toggle-advanced" type="button">Advanced</button>
+                    <button class="button is-danger" id="reset-system">
+                        <span class="icon is-small"><img src="../resources/svg/reply.svg" alt=""></span>
+                        <span>Reset to default</span>
+                    </button>
+                    <button class="button" id="toggle-advanced" type="button">
+                        <span class="icon is-small"><img src="../resources/svg/gear.svg" alt=""></span>
+                        <span>Advanced</span>
+                    </button>
                 </div>
 
                 <div id="advanced-options" class="mt-4 is-hidden">
@@ -188,13 +201,19 @@
             </div>
 
             <div id="rules-tab" class="tab-content is-hidden">
-                <h2 class="title is-4">Classification Rules</h2>
+                <h2 class="title is-4">
+                    <span class="icon is-small"><img src="../resources/svg/clipboarddata.svg" alt=""></span>
+                    <span>Classification Rules</span>
+                </h2>
                 <div id="rules-container"></div>
                 <button class="button is-link" id="add-rule" type="button">Add Rule</button>
             </div>
 
             <div id="maintenance-tab" class="tab-content is-hidden">
-                <h2 class="title is-4">Maintenance</h2>
+                <h2 class="title is-4">
+                    <span class="icon is-small"><img src="../resources/svg/gear.svg" alt=""></span>
+                    <span>Maintenance</span>
+                </h2>
                 <table class="table is-fullwidth">
                     <tbody>
                         <tr><th>Rule count</th><td id="rule-count"></td></tr>
@@ -206,7 +225,10 @@
                         <tr><th>Total run time</th><td id="total-time">--:--:--</td></tr>
                     </tbody>
                 </table>
-                <button class="button is-danger" id="clear-cache" type="button">Clear Cache</button>
+                <button class="button is-danger" id="clear-cache" type="button">
+                    <span class="icon is-small"><img src="../resources/svg/trash.svg" alt=""></span>
+                    <span>Clear Cache</span>
+                </button>
                 <div class="field mt-4">
                     <label class="label">Data categories</label>
                     <div class="control">
@@ -217,10 +239,16 @@
                 </div>
                 <div class="field is-grouped mt-4">
                     <p class="control">
-                        <button class="button" id="export-data" type="button">Export Data</button>
+                        <button class="button" id="export-data" type="button">
+                            <span class="icon is-small"><img src="../resources/svg/download.svg" alt=""></span>
+                            <span>Export Data</span>
+                        </button>
                     </p>
                     <p class="control">
-                        <button class="button" id="import-data" type="button">Import Data</button>
+                        <button class="button" id="import-data" type="button">
+                            <span class="icon is-small"><img src="../resources/svg/upload.svg" alt=""></span>
+                            <span>Import Data</span>
+                        </button>
                         <input class="is-hidden" type="file" id="import-file" accept="application/json">
                     </p>
                 </div>

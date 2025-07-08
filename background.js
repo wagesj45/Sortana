@@ -28,6 +28,25 @@ let altTextImages = false;
 let collapseWhitespace = false;
 let TurndownService = null;
 
+const ICONS = {
+    logo: "resources/img/logo.png",
+    circledots: {
+        16: "resources/img/circledots-16.png",
+        32: "resources/img/circledots-32.png",
+        64: "resources/img/circledots-64.png"
+    },
+    circle: {
+        16: "resources/img/circle-16.png",
+        32: "resources/img/circle-32.png",
+        64: "resources/img/circle-64.png"
+    },
+    average: {
+        16: "resources/img/average-16.png",
+        32: "resources/img/average-32.png",
+        64: "resources/img/average-64.png"
+    }
+};
+
 function setIcon(path) {
     if (browser.browserAction) {
         browser.browserAction.setIcon({ path });
@@ -38,9 +57,9 @@ function setIcon(path) {
 }
 
 function updateActionIcon() {
-    let path = "resources/img/brain.png";
+    let path = ICONS.logo;
     if (processing || queuedCount > 0) {
-        path = "resources/img/busy.png";
+        path = ICONS.circledots;
     }
     setIcon(path);
 }
@@ -201,7 +220,7 @@ async function applyAiRules(idsInput) {
                 t.mean += delta / t.count;
                 t.m2 += delta * (elapsed - t.mean);
                 await storage.local.set({ classifyStats: t });
-                showTransientIcon("resources/img/done.png");
+                showTransientIcon(ICONS.circle);
             } catch (e) {
                 processing = false;
                 const elapsed = Date.now() - currentStart;
@@ -215,7 +234,7 @@ async function applyAiRules(idsInput) {
                 t.m2 += delta * (elapsed - t.mean);
                 await storage.local.set({ classifyStats: t });
                 logger.aiLog("failed to apply AI rules", { level: 'error' }, e);
-                showTransientIcon("resources/img/error.png");
+                showTransientIcon(ICONS.average);
             }
         });
     }
@@ -250,7 +269,7 @@ async function clearCacheForMessages(idsInput) {
     }
     if (keys.length) {
         await AiClassifier.removeCacheEntries(keys);
-        showTransientIcon("resources/img/done.png");
+        showTransientIcon(ICONS.circle);
     }
 }
 
@@ -340,33 +359,61 @@ async function clearCacheForMessages(idsInput) {
         id: "apply-ai-rules-list",
         title: "Apply AI Rules",
         contexts: ["message_list"],
+        icons: {
+            16: "resources/img/eye-16.png",
+            32: "resources/img/eye-32.png",
+            64: "resources/img/eye-64.png"
+        }
     });
     browser.menus.create({
         id: "apply-ai-rules-display",
         title: "Apply AI Rules",
         contexts: ["message_display_action"],
+        icons: {
+            16: "resources/img/eye-16.png",
+            32: "resources/img/eye-32.png",
+            64: "resources/img/eye-64.png"
+        }
     });
     browser.menus.create({
         id: "clear-ai-cache-list",
         title: "Clear AI Cache",
         contexts: ["message_list"],
+        icons: {
+            16: "resources/img/trash-16.png",
+            32: "resources/img/trash-32.png",
+            64: "resources/img/trash-64.png"
+        }
     });
     browser.menus.create({
         id: "clear-ai-cache-display",
         title: "Clear AI Cache",
         contexts: ["message_display_action"],
+        icons: {
+            16: "resources/img/trash-16.png",
+            32: "resources/img/trash-32.png",
+            64: "resources/img/trash-64.png"
+        }
     });
     browser.menus.create({
         id: "view-ai-reason-list",
         title: "View Reasoning",
         contexts: ["message_list"],
-        icons: { "16": "resources/img/brain.png" }
+        icons: {
+            16: "resources/img/clipboarddata-16.png",
+            32: "resources/img/clipboarddata-32.png",
+            64: "resources/img/clipboarddata-64.png"
+        }
     });
     browser.menus.create({
         id: "view-ai-reason-display",
         title: "View Reasoning",
         contexts: ["message_display_action"],
-        icons: { "16": "resources/img/brain.png" }
+        icons: {
+            16: "resources/img/clipboarddata-16.png",
+            32: "resources/img/clipboarddata-32.png",
+            64: "resources/img/clipboarddata-64.png"
+        }
     });
 
     browser.menus.onClicked.addListener(async (info, tab) => {
