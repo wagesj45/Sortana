@@ -61,10 +61,6 @@ async function sha256Hex(str) {
   return sha256HexSync(str);
 }
 
-function buildCacheKeySync(id, criterion) {
-  return sha256HexSync(`${id}|${criterion}`);
-}
-
 async function resolveHeaderId(id) {
   if (typeof id === "number" && typeof messenger?.messages?.get === "function") {
     try {
@@ -82,7 +78,7 @@ async function resolveHeaderId(id) {
 async function buildCacheKey(id, criterion) {
   const resolvedId = await resolveHeaderId(id);
   if (Services) {
-    return buildCacheKeySync(resolvedId, criterion);
+    return sha256HexSync(`${resolvedId}|${criterion}`);
   }
   return sha256Hex(`${resolvedId}|${criterion}`);
 }
@@ -122,16 +118,6 @@ async function loadCache() {
   gCacheLoaded = true;
 }
 
-function loadCacheSync() {
-  if (!gCacheLoaded) {
-    if (!Services?.tm?.spinEventLoopUntil) {
-      throw new Error("loadCacheSync requires Services");
-    }
-    let done = false;
-    loadCache().finally(() => { done = true; });
-    Services.tm.spinEventLoopUntil(() => done);
-  }
-}
 
 async function saveCache(updatedKey, updatedValue) {
   if (typeof updatedKey !== "undefined") {
@@ -222,11 +208,7 @@ function buildPrompt(body, criterion) {
 
 function getCachedResult(cacheKey) {
   if (!gCacheLoaded) {
-    if (Services?.tm?.spinEventLoopUntil) {
-      loadCacheSync();
-    } else {
-      return null;
-    }
+    return null;
   }
   if (cacheKey && gCache.has(cacheKey)) {
     aiLog(`[AiClassifier] Cache hit for key: ${cacheKey}`, {debug: true});
@@ -238,11 +220,7 @@ function getCachedResult(cacheKey) {
 
 function getReason(cacheKey) {
   if (!gCacheLoaded) {
-    if (Services?.tm?.spinEventLoopUntil) {
-      loadCacheSync();
-    } else {
-      return null;
-    }
+    return null;
   }
   const entry = gCache.get(cacheKey);
   return cacheKey && entry ? entry.reason || null : null;
@@ -319,48 +297,6 @@ async function getCacheSize() {
   return gCache.size;
 }
 
-function classifyTextSync(text, criterion, cacheKey = null) {
-  if (!Services?.tm?.spinEventLoopUntil) {
-    throw new Error("classifyTextSync requires Services");
-  }
-  const cached = getCachedResult(cacheKey);
-  if (cached !== null) {
-    return cached;
-  }
-
-  const payload = buildPayload(text, criterion);
-
-  aiLog(`[AiClassifier] Sending classification request to ${gEndpoint}`, {debug: true});
-
-  let result;
-  let done = false;
-  (async () => {
-    try {
-      const response = await fetch(gEndpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: payload,
-      });
-      if (response.ok) {
-        const json = await response.json();
-        aiLog(`[AiClassifier] Received response:`, {debug: true}, json);
-        result = parseMatch(json);
-        cacheEntry(cacheKey, result.matched, result.reason);
-        result = result.matched;
-      } else {
-        aiLog(`HTTP status ${response.status}`, {level: 'warn'});
-        result = false;
-      }
-    } catch (e) {
-      aiLog(`HTTP request failed`, {level: 'error'}, e);
-      result = false;
-    } finally {
-      done = true;
-    }
-  })();
-  Services.tm.spinEventLoopUntil(() => done);
-  return result;
-}
 
 async function classifyText(text, criterion, cacheKey = null) {
   if (!gCacheLoaded) {
@@ -403,4 +339,4 @@ async function init() {
   await loadCache();
 }
 
-export { classifyText, classifyTextSync, setConfig, removeCacheEntries, clearCache, getReason, getCachedResult, buildCacheKey, buildCacheKeySync, getCacheSize, init };
+export { classifyText, setConfig, removeCacheEntries, clearCache, getReason, getCachedResult, buildCacheKey, getCacheSize, init };
