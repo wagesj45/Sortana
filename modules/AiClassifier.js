@@ -1,5 +1,6 @@
 "use strict";
 import { aiLog, setDebug } from "../logger.js";
+import { DEFAULT_AI_PARAMS } from "./defaultParams.js";
 
 const storage = (globalThis.messenger ?? globalThis.browser).storage;
 
@@ -33,19 +34,7 @@ let gCustomTemplate = "";
 let gCustomSystemPrompt = DEFAULT_CUSTOM_SYSTEM_PROMPT;
 let gTemplateText = "";
 
-let gAiParams = {
-  max_tokens: 4096,
-  temperature: 0.6,
-  top_p: 0.95,
-  seed: -1,
-  repetition_penalty: 1.0,
-  top_k: 20,
-  min_p: 0,
-  presence_penalty: 0,
-  frequency_penalty: 0,
-  typical_p: 1,
-  tfs: 1,
-};
+let gAiParams = Object.assign({}, DEFAULT_AI_PARAMS);
 
 let gCache = new Map();
 let gCacheLoaded = false;
