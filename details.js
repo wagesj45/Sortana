@@ -10,11 +10,11 @@ const qMid = parseInt(new URLSearchParams(location.search).get("mid"), 10);
 if (!isNaN(qMid)) {
   loadMessage(qMid);
 } else {
-  const { messages } = await browser.runtime.sendMessage({
+  const { ids } = await browser.runtime.sendMessage({
     type: "sortana:getDisplayedMessages",
   });
-  if (messages && messages[0]) {
-    loadMessage(messages[0].id);
+  if (ids && ids[0]) {
+    loadMessage(ids[0]);
   } else {
       const tabs = await browser.tabs.query({ active: true, currentWindow: true });
       const tabId = tabs[0]?.id;
