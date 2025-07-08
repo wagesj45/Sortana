@@ -15,7 +15,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         'altTextImages',
         'collapseWhitespace',
         'aiRules',
-        'aiCache'
+        'aiCache',
+        'theme'
     ]);
     const tabButtons = document.querySelectorAll('#main-tabs li');
     const tabs = document.querySelectorAll('.tab-content');
@@ -37,6 +38,37 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.addEventListener('input', markDirty, true);
     document.addEventListener('change', markDirty, true);
     logger.setDebug(defaults.debugLogging === true);
+
+    const themeSelect = document.getElementById('theme-select');
+    themeSelect.value = defaults.theme || 'auto';
+
+    function systemTheme() {
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+
+    function updateIcons(theme) {
+        document.querySelectorAll('img[data-icon]').forEach(img => {
+            const name = img.dataset.icon;
+            const size = img.dataset.size || 16;
+            if (name === 'full-logo') {
+                img.src = `../resources/img/full-logo${theme === 'dark' ? '-white' : ''}.png`;
+            } else {
+                img.src = `../resources/img/${name}-${theme}-${size}.png`;
+            }
+        });
+    }
+
+    function applyTheme(setting) {
+        const mode = setting === 'auto' ? systemTheme() : setting;
+        document.documentElement.dataset.theme = mode;
+        updateIcons(mode);
+    }
+
+    applyTheme(themeSelect.value);
+    themeSelect.addEventListener('change', () => {
+        markDirty();
+        applyTheme(themeSelect.value);
+    });
     const DEFAULT_AI_PARAMS = {
         max_tokens: 4096,
         temperature: 0.6,
@@ -452,7 +484,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const stripUrlParams = stripUrlToggle.checked;
         const altTextImages = altTextToggle.checked;
         const collapseWhitespace = collapseWhitespaceToggle.checked;
-        await storage.local.set({ endpoint, templateName, customTemplate: customTemplateText, customSystemPrompt, aiParams: aiParamsSave, debugLogging, htmlToMarkdown, stripUrlParams, altTextImages, collapseWhitespace, aiRules: rules });
+        const theme = themeSelect.value;
+        await storage.local.set({ endpoint, templateName, customTemplate: customTemplateText, customSystemPrompt, aiParams: aiParamsSave, debugLogging, htmlToMarkdown, stripUrlParams, altTextImages, collapseWhitespace, aiRules: rules, theme });
+        applyTheme(theme);
         try {
             await AiClassifier.setConfig({ endpoint, templateName, customTemplate: customTemplateText, customSystemPrompt, aiParams: aiParamsSave, debugLogging });
             logger.setDebug(debugLogging);

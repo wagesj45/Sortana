@@ -37,22 +37,22 @@
     <section class="section">
         <div class="container" id="options-container">
             <figure class="has-text-centered mb-4">
-                <img src="../resources/img/full-logo.png" alt="AI Filter Logo" style="max-height:40px;">
+                <img data-icon="full-logo" src="../resources/img/full-logo.png" alt="AI Filter Logo" style="max-height:40px;">
             </figure>
 
             <div class="level mb-4">
                 <div class="level-left">
                     <div class="tabs" id="main-tabs">
                         <ul>
-                            <li class="is-active" data-tab="settings"><a><span class="icon is-small"><img src="../resources/svg/settings.svg" alt=""></span><span>Settings</span></a></li>
-                            <li data-tab="rules"><a><span class="icon is-small"><img src="../resources/svg/clipboarddata.svg" alt=""></span><span>Rules</span></a></li>
-                            <li data-tab="maintenance"><a><span class="icon is-small"><img src="../resources/svg/gear.svg" alt=""></span><span>Maintenance</span></a></li>
+                            <li class="is-active" data-tab="settings"><a><span class="icon is-small"><img data-icon="settings" data-size="16" src="../resources/img/settings-light-16.png" alt=""></span><span>Settings</span></a></li>
+                            <li data-tab="rules"><a><span class="icon is-small"><img data-icon="clipboarddata" data-size="16" src="../resources/img/clipboarddata-light-16.png" alt=""></span><span>Rules</span></a></li>
+                            <li data-tab="maintenance"><a><span class="icon is-small"><img data-icon="gear" data-size="16" src="../resources/img/gear-light-16.png" alt=""></span><span>Maintenance</span></a></li>
                         </ul>
                     </div>
                 </div>
                 <div class="level-right">
                     <button class="button is-primary" id="save" disabled>
-                        <span class="icon is-small"><img src="../resources/svg/flag.svg" alt=""></span>
+                        <span class="icon is-small"><img data-icon="flag" data-size="16" src="../resources/img/flag-light-16.png" alt=""></span>
                         <span>Save</span>
                     </button>
                 </div>
@@ -60,7 +60,7 @@
 
             <div id="settings-tab" class="tab-content">
                 <h2 class="title is-4">
-                    <span class="icon is-small"><img src="../resources/svg/settings.svg" alt=""></span>
+                    <span class="icon is-small"><img data-icon="settings" data-size="16" src="../resources/img/settings-light-16.png" alt=""></span>
                     <span>Settings</span>
                 </h2>
                 <div class="field">
@@ -94,13 +94,26 @@
                     </div>
                 </div>
 
+                <div class="field">
+                    <label class="label" for="theme-select">Theme</label>
+                    <div class="control">
+                        <div class="select">
+                            <select id="theme-select">
+                                <option value="auto">Match Thunderbird</option>
+                                <option value="light">Light</option>
+                                <option value="dark">Dark</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="buttons">
                     <button class="button is-danger" id="reset-system">
-                        <span class="icon is-small"><img src="../resources/svg/reply.svg" alt=""></span>
+                        <span class="icon is-small"><img data-icon="reply" data-size="16" src="../resources/img/reply-light-16.png" alt=""></span>
                         <span>Reset to default</span>
                     </button>
                     <button class="button" id="toggle-advanced" type="button">
-                        <span class="icon is-small"><img src="../resources/svg/gear.svg" alt=""></span>
+                        <span class="icon is-small"><img data-icon="gear" data-size="16" src="../resources/img/gear-light-16.png" alt=""></span>
                         <span>Advanced</span>
                     </button>
                 </div>
@@ -202,7 +215,7 @@
 
             <div id="rules-tab" class="tab-content is-hidden">
                 <h2 class="title is-4">
-                    <span class="icon is-small"><img src="../resources/svg/clipboarddata.svg" alt=""></span>
+                    <span class="icon is-small"><img data-icon="clipboarddata" data-size="16" src="../resources/img/clipboarddata-light-16.png" alt=""></span>
                     <span>Classification Rules</span>
                 </h2>
                 <div id="rules-container"></div>
@@ -211,7 +224,7 @@
 
             <div id="maintenance-tab" class="tab-content is-hidden">
                 <h2 class="title is-4">
-                    <span class="icon is-small"><img src="../resources/svg/gear.svg" alt=""></span>
+                    <span class="icon is-small"><img data-icon="gear" data-size="16" src="../resources/img/gear-light-16.png" alt=""></span>
                     <span>Maintenance</span>
                 </h2>
                 <table class="table is-fullwidth">
@@ -226,7 +239,7 @@
                     </tbody>
                 </table>
                 <button class="button is-danger" id="clear-cache" type="button">
-                    <span class="icon is-small"><img src="../resources/svg/trash.svg" alt=""></span>
+                    <span class="icon is-small"><img data-icon="trash" data-size="16" src="../resources/img/trash-light-16.png" alt=""></span>
                     <span>Clear Cache</span>
                 </button>
                 <div class="field mt-4">
@@ -240,13 +253,13 @@
                 <div class="field is-grouped mt-4">
                     <p class="control">
                         <button class="button" id="export-data" type="button">
-                            <span class="icon is-small"><img src="../resources/svg/download.svg" alt=""></span>
+                            <span class="icon is-small"><img data-icon="download" data-size="16" src="../resources/img/download-light-16.png" alt=""></span>
                             <span>Export Data</span>
                         </button>
                     </p>
                     <p class="control">
                         <button class="button" id="import-data" type="button">
-                            <span class="icon is-small"><img src="../resources/svg/upload.svg" alt=""></span>
+                            <span class="icon is-small"><img data-icon="upload" data-size="16" src="../resources/img/upload-light-16.png" alt=""></span>
                             <span>Import Data</span>
                         </button>
                         <input class="is-hidden" type="file" id="import-file" accept="application/json">

@@ -16,6 +16,7 @@ message meets a specified criterion.
 - **Advanced parameters** – tune generation settings like temperature, top‑p and more from the options page.
 - **Markdown conversion** – optionally convert HTML bodies to Markdown before sending them to the AI service.
 - **Debug logging** – optional colorized logs help troubleshoot interactions with the AI service.
+- **Light/Dark themes** – automatically match Thunderbird's appearance with optional manual override.
 - **Automatic rules** – create rules that tag or move new messages based on AI classification.
 - **Rule ordering** – drag rules to prioritize them and optionally stop processing after a match.
 - **Context menu** – apply AI rules from the message list or the message display action button.

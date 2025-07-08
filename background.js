@@ -27,24 +27,41 @@ let stripUrlParams = false;
 let altTextImages = false;
 let collapseWhitespace = false;
 let TurndownService = null;
+let userTheme = 'auto';
+let currentTheme = 'light';
+
+function iconPaths(name) {
+    return {
+        16: `resources/img/${name}-${currentTheme}-16.png`,
+        32: `resources/img/${name}-${currentTheme}-32.png`,
+        64: `resources/img/${name}-${currentTheme}-64.png`
+    };
+}
+
+async function detectSystemTheme() {
+    try {
+        const t = await browser.theme.getCurrent();
+        const scheme = t?.properties?.color_scheme;
+        if (scheme === 'dark' || scheme === 'light') {
+            return scheme;
+        }
+        const color = t?.colors?.frame || t?.colors?.toolbar;
+        if (color && /^#/.test(color)) {
+            const r = parseInt(color.slice(1, 3), 16);
+            const g = parseInt(color.slice(3, 5), 16);
+            const b = parseInt(color.slice(5, 7), 16);
+            const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+            return lum < 0.5 ? 'dark' : 'light';
+        }
+    } catch {}
+    return 'light';
+}
 
 const ICONS = {
-    logo: "resources/img/logo.png",
-    circledots: {
-        16: "resources/img/circledots-16.png",
-        32: "resources/img/circledots-32.png",
-        64: "resources/img/circledots-64.png"
-    },
-    circle: {
-        16: "resources/img/circle-16.png",
-        32: "resources/img/circle-32.png",
-        64: "resources/img/circle-64.png"
-    },
-    average: {
-        16: "resources/img/average-16.png",
-        32: "resources/img/average-32.png",
-        64: "resources/img/average-64.png"
-    }
+    logo: () => 'resources/img/logo.png',
+    circledots: () => iconPaths('circledots'),
+    circle: () => iconPaths('circle'),
+    average: () => iconPaths('average')
 };
 
 function setIcon(path) {
@@ -57,17 +74,27 @@ function setIcon(path) {
 }
 
 function updateActionIcon() {
-    let path = ICONS.logo;
+    let path = ICONS.logo();
     if (processing || queuedCount > 0) {
-        path = ICONS.circledots;
+        path = ICONS.circledots();
     }
     setIcon(path);
 }
 
-function showTransientIcon(path, delay = 1500) {
+function showTransientIcon(factory, delay = 1500) {
     clearTimeout(iconTimer);
+    const path = typeof factory === 'function' ? factory() : factory;
     setIcon(path);
     iconTimer = setTimeout(updateActionIcon, delay);
+}
+
+function refreshMenuIcons() {
+    browser.menus.update('apply-ai-rules-list', { icons: iconPaths('eye') });
+    browser.menus.update('apply-ai-rules-display', { icons: iconPaths('eye') });
+    browser.menus.update('clear-ai-cache-list', { icons: iconPaths('trash') });
+    browser.menus.update('clear-ai-cache-display', { icons: iconPaths('trash') });
+    browser.menus.update('view-ai-reason-list', { icons: iconPaths('clipboarddata') });
+    browser.menus.update('view-ai-reason-display', { icons: iconPaths('clipboarddata') });
 }
 
 
@@ -286,9 +313,11 @@ async function clearCacheForMessages(idsInput) {
     }
 
     try {
-        const store = await storage.local.get(["endpoint", "templateName", "customTemplate", "customSystemPrompt", "aiParams", "debugLogging", "htmlToMarkdown", "stripUrlParams", "altTextImages", "collapseWhitespace", "aiRules"]);
+        const store = await storage.local.get(["endpoint", "templateName", "customTemplate", "customSystemPrompt", "aiParams", "debugLogging", "htmlToMarkdown", "stripUrlParams", "altTextImages", "collapseWhitespace", "aiRules", "theme"]);
         logger.setDebug(store.debugLogging);
         await AiClassifier.setConfig(store);
+        userTheme = store.theme || 'auto';
+        currentTheme = userTheme === 'auto' ? await detectSystemTheme() : userTheme;
         await AiClassifier.init();
         htmlToMarkdown = store.htmlToMarkdown === true;
         stripUrlParams = store.stripUrlParams === true;
@@ -341,12 +370,19 @@ async function clearCacheForMessages(idsInput) {
                 collapseWhitespace = changes.collapseWhitespace.newValue === true;
                 logger.aiLog("collapseWhitespace updated from storage change", { debug: true }, collapseWhitespace);
             }
+            if (changes.theme) {
+                userTheme = changes.theme.newValue || 'auto';
+                currentTheme = userTheme === 'auto' ? await detectSystemTheme() : userTheme;
+                updateActionIcon();
+                refreshMenuIcons();
+            }
         });
     } catch (err) {
         logger.aiLog("failed to load config", { level: 'error' }, err);
     }
 
     logger.aiLog("background.js loaded – ready to classify", { debug: true });
+    updateActionIcon();
     if (browser.messageDisplayAction) {
         browser.messageDisplayAction.setTitle({ title: "Details" });
         if (browser.messageDisplayAction.setLabel) {
@@ -359,62 +395,39 @@ async function clearCacheForMessages(idsInput) {
         id: "apply-ai-rules-list",
         title: "Apply AI Rules",
         contexts: ["message_list"],
-        icons: {
-            16: "resources/img/eye-16.png",
-            32: "resources/img/eye-32.png",
-            64: "resources/img/eye-64.png"
-        }
+        icons: iconPaths('eye')
     });
     browser.menus.create({
         id: "apply-ai-rules-display",
         title: "Apply AI Rules",
         contexts: ["message_display_action"],
-        icons: {
-            16: "resources/img/eye-16.png",
-            32: "resources/img/eye-32.png",
-            64: "resources/img/eye-64.png"
-        }
+        icons: iconPaths('eye')
     });
     browser.menus.create({
         id: "clear-ai-cache-list",
         title: "Clear AI Cache",
         contexts: ["message_list"],
-        icons: {
-            16: "resources/img/trash-16.png",
-            32: "resources/img/trash-32.png",
-            64: "resources/img/trash-64.png"
-        }
+        icons: iconPaths('trash')
     });
     browser.menus.create({
         id: "clear-ai-cache-display",
         title: "Clear AI Cache",
         contexts: ["message_display_action"],
-        icons: {
-            16: "resources/img/trash-16.png",
-            32: "resources/img/trash-32.png",
-            64: "resources/img/trash-64.png"
-        }
+        icons: iconPaths('trash')
     });
     browser.menus.create({
         id: "view-ai-reason-list",
         title: "View Reasoning",
         contexts: ["message_list"],
-        icons: {
-            16: "resources/img/clipboarddata-16.png",
-            32: "resources/img/clipboarddata-32.png",
-            64: "resources/img/clipboarddata-64.png"
-        }
+        icons: iconPaths('clipboarddata')
     });
     browser.menus.create({
         id: "view-ai-reason-display",
         title: "View Reasoning",
         contexts: ["message_display_action"],
-        icons: {
-            16: "resources/img/clipboarddata-16.png",
-            32: "resources/img/clipboarddata-32.png",
-            64: "resources/img/clipboarddata-64.png"
-        }
+        icons: iconPaths('clipboarddata')
     });
+    refreshMenuIcons();
 
     browser.menus.onClicked.addListener(async (info, tab) => {
         if (info.menuItemId === "apply-ai-rules-list" || info.menuItemId === "apply-ai-rules-display") {
