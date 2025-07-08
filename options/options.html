@@ -207,6 +207,23 @@
                     </tbody>
                 </table>
                 <button class="button is-danger" id="clear-cache" type="button">Clear Cache</button>
+                <div class="field mt-4">
+                    <label class="label">Data categories</label>
+                    <div class="control">
+                        <label class="checkbox mr-3"><input class="transfer-category" type="checkbox" value="settings" checked> Settings</label>
+                        <label class="checkbox mr-3"><input class="transfer-category" type="checkbox" value="rules" checked> Rules</label>
+                        <label class="checkbox"><input class="transfer-category" type="checkbox" value="cache" checked> Cache</label>
+                    </div>
+                </div>
+                <div class="field is-grouped mt-4">
+                    <p class="control">
+                        <button class="button" id="export-data" type="button">Export Data</button>
+                    </p>
+                    <p class="control">
+                        <button class="button" id="import-data" type="button">Import Data</button>
+                        <input class="is-hidden" type="file" id="import-file" accept="application/json">
+                    </p>
+                </div>
             </div>
         </div>
     </section>
