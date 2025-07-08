@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const storage = (globalThis.messenger ?? browser).storage;
     const logger = await import(browser.runtime.getURL('logger.js'));
     const AiClassifier = await import(browser.runtime.getURL('modules/AiClassifier.js'));
+    const dataTransfer = await import(browser.runtime.getURL('options/dataTransfer.js'));
     const defaults = await storage.local.get([
         'endpoint',
         'templateName',
@@ -395,6 +396,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         await AiClassifier.clearCache();
         cacheCountEl.textContent = '0';
     });
+
+    function selectedCategories() {
+        return [...document.querySelectorAll('.transfer-category:checked')].map(el => el.value);
+    }
+
+    document.getElementById('export-data').addEventListener('click', () => {
+        dataTransfer.exportData(selectedCategories());
+    });
+
+    const importInput = document.getElementById('import-file');
+    document.getElementById('import-data').addEventListener('click', () => importInput.click());
+    importInput.addEventListener('change', async () => {
+        if (importInput.files.length) {
+            await dataTransfer.importData(importInput.files[0], selectedCategories());
+            location.reload();
+        }
+    });
+
     initialized = true;
 
     document.getElementById('save').addEventListener('click', async () => {
