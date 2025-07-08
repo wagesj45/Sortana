@@ -41,6 +41,7 @@
     "accountsRead",
     "menus",
     "scripting",
-    "tabs"
+    "tabs",
+    "theme"
   ]
 }
