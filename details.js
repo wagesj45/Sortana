@@ -1,8 +1,9 @@
 const aiLog = (await import(browser.runtime.getURL("logger.js"))).aiLog;
 const storage = (globalThis.messenger ?? browser).storage;
+const { detectSystemTheme } = await import(browser.runtime.getURL('modules/themeUtils.js'));
 const { theme } = await storage.local.get('theme');
 const mode = (theme || 'auto') === 'auto'
-  ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+  ? await detectSystemTheme()
   : theme;
 document.documentElement.dataset.theme = mode;
 

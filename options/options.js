@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const logger = await import(browser.runtime.getURL('logger.js'));
     const AiClassifier = await import(browser.runtime.getURL('modules/AiClassifier.js'));
     const dataTransfer = await import(browser.runtime.getURL('options/dataTransfer.js'));
+    const { detectSystemTheme } = await import(browser.runtime.getURL('modules/themeUtils.js'));
     const defaults = await storage.local.get([
         'endpoint',
         'templateName',
@@ -42,10 +43,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const themeSelect = document.getElementById('theme-select');
     themeSelect.value = defaults.theme || 'auto';
 
-    function systemTheme() {
-        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    }
-
     function updateIcons(theme) {
         document.querySelectorAll('img[data-icon]').forEach(img => {
             const name = img.dataset.icon;
@@ -58,16 +55,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    function applyTheme(setting) {
-        const mode = setting === 'auto' ? systemTheme() : setting;
+    async function applyTheme(setting) {
+        const mode = setting === 'auto' ? await detectSystemTheme() : setting;
         document.documentElement.dataset.theme = mode;
         updateIcons(mode);
     }
 
-    applyTheme(themeSelect.value);
-    themeSelect.addEventListener('change', () => {
+    await applyTheme(themeSelect.value);
+    themeSelect.addEventListener('change', async () => {
         markDirty();
-        applyTheme(themeSelect.value);
+        await applyTheme(themeSelect.value);
     });
     const DEFAULT_AI_PARAMS = {
         max_tokens: 4096,
@@ -486,7 +483,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const collapseWhitespace = collapseWhitespaceToggle.checked;
         const theme = themeSelect.value;
         await storage.local.set({ endpoint, templateName, customTemplate: customTemplateText, customSystemPrompt, aiParams: aiParamsSave, debugLogging, htmlToMarkdown, stripUrlParams, altTextImages, collapseWhitespace, aiRules: rules, theme });
-        applyTheme(theme);
+        await applyTheme(theme);
         try {
             await AiClassifier.setConfig({ endpoint, templateName, customTemplate: customTemplateText, customSystemPrompt, aiParams: aiParamsSave, debugLogging });
             logger.setDebug(debugLogging);
