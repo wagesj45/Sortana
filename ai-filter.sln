@@ -47,13 +47,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "prompt_templates", "prompt_
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "resources", "resources", "{68A87938-5C2B-49F5-8AAA-8A34FBBFD854}"
+	ProjectSection(SolutionItems) = preProject
+		resources\svg2img.ps1 = resources\svg2img.ps1
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "img", "img", "{F266602F-1755-4A95-A11B-6C90C701C5BF}"
 	ProjectSection(SolutionItems) = preProject
-		resources\img\brain.png = resources\img\brain.png
-		resources\img\busy.png = resources\img\busy.png
-		resources\img\done.png = resources\img\done.png
-		resources\img\error.png = resources\img\error.png
 		resources\img\full-logo.png = resources\img\full-logo.png
 		resources\img\logo.png = resources\img\logo.png
 		resources\img\logo128.png = resources\img\logo128.png
