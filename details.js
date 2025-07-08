@@ -10,7 +10,16 @@ if (!isNaN(qMid)) {
   if (messages && messages[0]) {
     loadMessage(messages[0].id);
   } else {
-    aiLog("Details popup: no displayed message found");
+      const tabs = await browser.tabs.query({ active: true, currentWindow: true });
+      const tabId = tabs[0]?.id;
+      const msgs = tabId ? await browser.messageDisplay.getDisplayedMessages(tabId) : [];
+      let id = msgs[0]?.id;
+      if (id) {
+          loadMessage(id);
+      }
+      else {
+          aiLog("Details popup: no displayed message found");
+      }
   }
 }
 

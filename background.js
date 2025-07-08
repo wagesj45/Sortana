@@ -126,7 +126,7 @@ function buildEmailText(full) {
     const attachments = [];
     collectText(full, bodyParts, attachments);
     const headers = Object.entries(full.headers || {})
-        .map(([k,v]) => `${k}: ${v.join(' ')}`)
+        .map(([k, v]) => `${k}: ${v.join(' ')}`)
         .join('\n');
     const attachInfo = `Attachments: ${attachments.length}` + (attachments.length ? "\n" + attachments.map(a => ` - ${a}`).join('\n') : "");
     const combined = `${headers}\n${attachInfo}\n\n${bodyParts.join('\n')}`.trim();
@@ -369,35 +369,14 @@ async function clearCacheForMessages(idsInput) {
         icons: { "16": "resources/img/brain.png" }
     });
 
-    //for the love of god work please
-    browser.messageDisplayAction.onClicked.addListener(async (tab, info) => {
-        try {
-            let header = await browser.messageDisplay.getDisplayedMessages(tab.id);
-            if (!header) {
-                logger.aiLog("No header, no message loaded?", { debug: true });
-                return;
-            }
-
-            const url = browser.runtime.getURL(`details.html?mid=${header.id}`);
-            await browser.messageDisplayAction.setPopup({ tabId: tab.id, popup: url });
-            await browser.messageDisplayAction.openPopup({ tabId: tab.id });
-        } catch (err) {
-            logger.aiLog("Failed to open details popup", { debug: true });
-        }
-    });
-
-    browser.messageDisplay.onMessagesDisplayed.addListener(async (tab, displayedMessages) => {
-        logger.aiLog("Messages displayed!", { debug: true }, displayedMessages);
-    });
-
     browser.menus.onClicked.addListener(async (info, tab) => {
         if (info.menuItemId === "apply-ai-rules-list" || info.menuItemId === "apply-ai-rules-display") {
             const ids = info.selectedMessages?.messages?.map(m => m.id) ||
-                         (info.messageId ? [info.messageId] : []);
+                (info.messageId ? [info.messageId] : []);
             await applyAiRules(ids);
         } else if (info.menuItemId === "clear-ai-cache-list" || info.menuItemId === "clear-ai-cache-display") {
             const ids = info.selectedMessages?.messages?.map(m => m.id) ||
-                         (info.messageId ? [info.messageId] : []);
+                (info.messageId ? [info.messageId] : []);
             await clearCacheForMessages(ids);
         } else if (info.menuItemId === "view-ai-reason-list" || info.menuItemId === "view-ai-reason-display") {
             const [header] = await browser.messageDisplay.getDisplayedMessages(tab.id);
@@ -417,141 +396,143 @@ async function clearCacheForMessages(idsInput) {
         }
 
         if (msg?.type === "sortana:test") {
-        const { text = "", criterion = "" } = msg;
-            logger.aiLog("sortana:test – text", {debug: true}, text);
-            logger.aiLog("sortana:test – criterion", {debug: true}, criterion);
+            const { text = "", criterion = "" } = msg;
+            logger.aiLog("sortana:test – text", { debug: true }, text);
+            logger.aiLog("sortana:test – criterion", { debug: true }, criterion);
 
-        try {
-            logger.aiLog("Calling AiClassifier.classifyText()", {debug: true});
-            const result = await AiClassifier.classifyText(text, criterion);
-            logger.aiLog("classify() returned", {debug: true}, result);
-            return { match: result };
-        }
-        catch (err) {
-            logger.aiLog("Error in classify()", {level: 'error'}, err);
-            // rethrow so the caller sees the failure
-            throw err;
-        }
-    } else if (msg?.type === "sortana:clearCacheForDisplayed") {
-        try {
-            const msgs = await browser.messageDisplay.getDisplayedMessages();
-            const ids = msgs.map(m => m.id);
-            await clearCacheForMessages(ids);
-        } catch (e) {
-            logger.aiLog("failed to clear cache from message script", { level: 'error' }, e);
-        }
-    } else if (msg?.type === "sortana:getReasons") {
-        try {
-            const id = msg.id;
-            const hdr = await messenger.messages.get(id);
-            const subject = hdr?.subject || "";
-            if (!aiRules.length) {
-                const { aiRules: stored } = await storage.local.get("aiRules");
-                aiRules = Array.isArray(stored) ? stored.map(r => {
-                    if (r.actions) return r;
-                    const actions = [];
-                    if (r.tag) actions.push({ type: 'tag', tagKey: r.tag });
-                    if (r.moveTo) actions.push({ type: 'move', folder: r.moveTo });
-                    const rule = { criterion: r.criterion, actions };
-                    if (r.stopProcessing) rule.stopProcessing = true;
-                    return rule;
-                }) : [];
+            try {
+                logger.aiLog("Calling AiClassifier.classifyText()", { debug: true });
+                const result = await AiClassifier.classifyText(text, criterion);
+                logger.aiLog("classify() returned", { debug: true }, result);
+                return { match: result };
             }
-            const reasons = [];
-            for (const rule of aiRules) {
-                const key = await AiClassifier.buildCacheKey(id, rule.criterion);
-                const reason = AiClassifier.getReason(key);
-                if (reason) {
-                    reasons.push({ criterion: rule.criterion, reason });
+            catch (err) {
+                logger.aiLog("Error in classify()", { level: 'error' }, err);
+                // rethrow so the caller sees the failure
+                throw err;
+            }
+        } else if (msg?.type === "sortana:clearCacheForDisplayed") {
+            try {
+                const msgs = await browser.messageDisplay.getDisplayedMessages();
+                const ids = msgs.map(m => m.id);
+                await clearCacheForMessages(ids);
+            } catch (e) {
+                logger.aiLog("failed to clear cache from message script", { level: 'error' }, e);
+            }
+        } else if (msg?.type === "sortana:getReasons") {
+            try {
+                const id = msg.id;
+                const hdr = await messenger.messages.get(id);
+                const subject = hdr?.subject || "";
+                if (!aiRules.length) {
+                    const { aiRules: stored } = await storage.local.get("aiRules");
+                    aiRules = Array.isArray(stored) ? stored.map(r => {
+                        if (r.actions) return r;
+                        const actions = [];
+                        if (r.tag) actions.push({ type: 'tag', tagKey: r.tag });
+                        if (r.moveTo) actions.push({ type: 'move', folder: r.moveTo });
+                        const rule = { criterion: r.criterion, actions };
+                        if (r.stopProcessing) rule.stopProcessing = true;
+                        return rule;
+                    }) : [];
                 }
-            }
-            return { subject, reasons };
-        } catch (e) {
-            logger.aiLog("failed to collect reasons", { level: 'error' }, e);
-            return { subject: '', reasons: [] };
-        }
-    } else if (msg?.type === "sortana:getDetails") {
-        try {
-            const id = msg.id;
-            const hdr = await messenger.messages.get(id);
-            const subject = hdr?.subject || "";
-            if (!aiRules.length) {
-                const { aiRules: stored } = await storage.local.get("aiRules");
-                aiRules = Array.isArray(stored) ? stored.map(r => {
-                    if (r.actions) return r;
-                    const actions = [];
-                    if (r.tag) actions.push({ type: 'tag', tagKey: r.tag });
-                    if (r.moveTo) actions.push({ type: 'move', folder: r.moveTo });
-                    const rule = { criterion: r.criterion, actions };
-                    if (r.stopProcessing) rule.stopProcessing = true;
-                    return rule;
-                }) : [];
-            }
-            const results = [];
-            for (const rule of aiRules) {
-                const key = await AiClassifier.buildCacheKey(id, rule.criterion);
-                const matched = AiClassifier.getCachedResult(key);
-                const reason = AiClassifier.getReason(key);
-                if (matched !== null || reason) {
-                    results.push({ criterion: rule.criterion, matched, reason });
+                const reasons = [];
+                for (const rule of aiRules) {
+                    const key = await AiClassifier.buildCacheKey(id, rule.criterion);
+                    const reason = AiClassifier.getReason(key);
+                    if (reason) {
+                        reasons.push({ criterion: rule.criterion, reason });
+                    }
                 }
+                return { subject, reasons };
+            } catch (e) {
+                logger.aiLog("failed to collect reasons", { level: 'error' }, e);
+                return { subject: '', reasons: [] };
             }
-            return { subject, results };
-        } catch (e) {
-            logger.aiLog("failed to collect details", { level: 'error' }, e);
-            return { subject: '', results: [] };
-        }
-    } else if (msg?.type === "sortana:getDisplayedMessages") {
-        try {
-            const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
-            const messages = await browser.messageDisplay.getDisplayedMessages(tab?.id);
-            return { messages };
-        } catch (e) {
-            logger.aiLog("failed to get displayed messages", { level: 'error' }, e);
-            return { messages: [] };
-        }
-    } else if (msg?.type === "sortana:clearCacheForMessage") {
-        try {
-            await clearCacheForMessages([msg.id]);
-            return { ok: true };
-        } catch (e) {
-            logger.aiLog("failed to clear cache for message", { level: 'error' }, e);
-            return { ok: false };
-        }
-    } else if (msg?.type === "sortana:getQueueCount") {
-        return { count: queuedCount + (processing ? 1 : 0) };
-    } else if (msg?.type === "sortana:getTiming") {
-        const t = timingStats;
-        const std = t.count > 1 ? Math.sqrt(t.m2 / (t.count - 1)) : 0;
-        return {
-            count: queuedCount + (processing ? 1 : 0),
-            current: currentStart ? Date.now() - currentStart : -1,
-            last: t.last,
-            runs: t.count,
-            average: t.mean,
-            total: t.total,
-            stddev: std
-        };
-    } else {
-        logger.aiLog("Unknown message type, ignoring", {level: 'warn'}, msg?.type);
-    }
-});
+        } else if (msg?.type === "sortana:getDetails") {
+            try {
+                const id = msg.id;
+                const hdr = await messenger.messages.get(id);
+                const subject = hdr?.subject || "";
+                if (!aiRules.length) {
+                    const { aiRules: stored } = await storage.local.get("aiRules");
+                    aiRules = Array.isArray(stored) ? stored.map(r => {
+                        if (r.actions) return r;
+                        const actions = [];
+                        if (r.tag) actions.push({ type: 'tag', tagKey: r.tag });
+                        if (r.moveTo) actions.push({ type: 'move', folder: r.moveTo });
+                        const rule = { criterion: r.criterion, actions };
+                        if (r.stopProcessing) rule.stopProcessing = true;
+                        return rule;
+                    }) : [];
+                }
+                const results = [];
+                for (const rule of aiRules) {
+                    const key = await AiClassifier.buildCacheKey(id, rule.criterion);
+                    const matched = AiClassifier.getCachedResult(key);
+                    const reason = AiClassifier.getReason(key);
+                    if (matched !== null || reason) {
+                        results.push({ criterion: rule.criterion, matched, reason });
+                    }
+                }
+                return { subject, results };
+            } catch (e) {
+                logger.aiLog("failed to collect details", { level: 'error' }, e);
+                return { subject: '', results: [] };
+            }
+        } else if (msg?.type === "sortana:getDisplayedMessages") {
+            try {
+                const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
+                const messages = await browser.messageDisplay.getDisplayedMessages(tab?.id);
+                const ids = messages.map(hdr => hdr.id);
 
-// Automatically classify new messages
-if (typeof messenger !== "undefined" && messenger.messages?.onNewMailReceived) {
-    messenger.messages.onNewMailReceived.addListener(async (folder, messages) => {
-        logger.aiLog("onNewMailReceived", {debug: true}, messages);
-        const ids = (messages?.messages || messages || []).map(m => m.id ?? m);
-        await applyAiRules(ids);
+                return { ids };
+            } catch (e) {
+                logger.aiLog("failed to get displayed messages", { level: 'error' }, e);
+                return { messages: [] };
+            }
+        } else if (msg?.type === "sortana:clearCacheForMessage") {
+            try {
+                await clearCacheForMessages([msg.id]);
+                return { ok: true };
+            } catch (e) {
+                logger.aiLog("failed to clear cache for message", { level: 'error' }, e);
+                return { ok: false };
+            }
+        } else if (msg?.type === "sortana:getQueueCount") {
+            return { count: queuedCount + (processing ? 1 : 0) };
+        } else if (msg?.type === "sortana:getTiming") {
+            const t = timingStats;
+            const std = t.count > 1 ? Math.sqrt(t.m2 / (t.count - 1)) : 0;
+            return {
+                count: queuedCount + (processing ? 1 : 0),
+                current: currentStart ? Date.now() - currentStart : -1,
+                last: t.last,
+                runs: t.count,
+                average: t.mean,
+                total: t.total,
+                stddev: std
+            };
+        } else {
+            logger.aiLog("Unknown message type, ignoring", { level: 'warn' }, msg?.type);
+        }
     });
-} else {
-    logger.aiLog("messenger.messages API unavailable, skipping new mail listener", { level: 'warn' });
-}
 
-// Catch any unhandled rejections
-window.addEventListener("unhandledrejection", ev => {
-    logger.aiLog("Unhandled promise rejection", {level: 'error'}, ev.reason);
-});
+    // Automatically classify new messages
+    if (typeof messenger !== "undefined" && messenger.messages?.onNewMailReceived) {
+        messenger.messages.onNewMailReceived.addListener(async (folder, messages) => {
+            logger.aiLog("onNewMailReceived", { debug: true }, messages);
+            const ids = (messages?.messages || messages || []).map(m => m.id ?? m);
+            await applyAiRules(ids);
+        });
+    } else {
+        logger.aiLog("messenger.messages API unavailable, skipping new mail listener", { level: 'warn' });
+    }
+
+    // Catch any unhandled rejections
+    window.addEventListener("unhandledrejection", ev => {
+        logger.aiLog("Unhandled promise rejection", { level: 'error' }, ev.reason);
+    });
 
     browser.runtime.onInstalled.addListener(async ({ reason }) => {
         if (reason === "install") {
