@@ -59,12 +59,12 @@ Sortana is implemented entirely with standard WebExtension scripts—no custom e
 
 1. Ensure PowerShell is available (for Windows) or adapt the script for other
    environments.
-2. Ensure the Bulma stylesheet (v1.0.4) is saved as `options/bulma.css`. You can
-   download it from <https://github.com/jgthms/bulma/blob/1.0.4/css/bulma.css>.
+2. The Bulma stylesheet (v1.0.3) is already included as `options/bulma.css`.
 3. Run `powershell ./build-xpi.ps1` from the repository root. The script reads
    the version from `manifest.json` and creates an XPI in the `release` folder.
 4. Install the generated XPI in Thunderbird via the Add-ons Manager. During
    development you can also load the directory as a temporary add-on.
+5. To regenerate PNG icons from the SVG sources, run `resources/svg2img.ps1`.
 
 ## Usage
 
@@ -124,7 +124,7 @@ requires disclosure of third party libraries that are included in the add-on. Ev
 the disclosure is only required for add-on review, they'll be listed here as well. Sortana
 uses the following third party libraries:
 
-- [Bulma.css v1.0.4](https://github.com/jgthms/bulma/blob/1.0.4/css/bulma.css)
+- [Bulma.css v1.0.3](https://github.com/jgthms/bulma/blob/1.0.3/css/bulma.css)
   - MIT License
 - [turndown v7.2.0](https://github.com/mixmark-io/turndown/tree/v7.2.0)
   - MIT License
