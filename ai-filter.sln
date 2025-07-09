@@ -56,9 +56,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "img", "img", "{F266602F-175
 		resources\img\average-16.png = resources\img\average-16.png
 		resources\img\average-32.png = resources\img\average-32.png
 		resources\img\average-64.png = resources\img\average-64.png
+		resources\img\check-16.png = resources\img\check-16.png
+		resources\img\check-32.png = resources\img\check-32.png
+		resources\img\check-64.png = resources\img\check-64.png
 		resources\img\circle-16.png = resources\img\circle-16.png
 		resources\img\circle-32.png = resources\img\circle-32.png
 		resources\img\circle-64.png = resources\img\circle-64.png
+		resources\img\circledots-16.png = resources\img\circledots-16.png
+		resources\img\circledots-32.png = resources\img\circledots-32.png
+		resources\img\circledots-64.png = resources\img\circledots-64.png
 		resources\img\clipboarddata-16.png = resources\img\clipboarddata-16.png
 		resources\img\clipboarddata-32.png = resources\img\clipboarddata-32.png
 		resources\img\clipboarddata-64.png = resources\img\clipboarddata-64.png
@@ -95,11 +101,32 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "img", "img", "{F266602F-175
 		resources\img\upload-16.png = resources\img\upload-16.png
 		resources\img\upload-32.png = resources\img\upload-32.png
 		resources\img\upload-64.png = resources\img\upload-64.png
+		resources\img\x-16.png = resources\img\x-16.png
+		resources\img\x-32.png = resources\img\x-32.png
+		resources\img\x-64.png = resources\img\x-64.png
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "js", "js", "{21D2A42C-3F85-465C-9141-C106AFD92B68}"
 	ProjectSection(SolutionItems) = preProject
 		resources\js\turndown.js = resources\js\turndown.js
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "svg", "svg", "{D4E9C905-4884-488E-B763-5BD39049C1B1}"
+	ProjectSection(SolutionItems) = preProject
+		resources\svg\average.svg = resources\svg\average.svg
+		resources\svg\check.svg = resources\svg\check.svg
+		resources\svg\circle.svg = resources\svg\circle.svg
+		resources\svg\circledots.svg = resources\svg\circledots.svg
+		resources\svg\clipboarddata.svg = resources\svg\clipboarddata.svg
+		resources\svg\download.svg = resources\svg\download.svg
+		resources\svg\eye.svg = resources\svg\eye.svg
+		resources\svg\flag.svg = resources\svg\flag.svg
+		resources\svg\gear.svg = resources\svg\gear.svg
+		resources\svg\reply.svg = resources\svg\reply.svg
+		resources\svg\settings.svg = resources\svg\settings.svg
+		resources\svg\trash.svg = resources\svg\trash.svg
+		resources\svg\upload.svg = resources\svg\upload.svg
+		resources\svg\x.svg = resources\svg\x.svg
 	EndProjectSection
 EndProject
 Global
@@ -115,5 +142,6 @@ Global
 		{68A87938-5C2B-49F5-8AAA-8A34FBBFD854} = {BCC6E6D2-343B-4C48-854D-5FE3BBC3CB70}
 		{F266602F-1755-4A95-A11B-6C90C701C5BF} = {68A87938-5C2B-49F5-8AAA-8A34FBBFD854}
 		{21D2A42C-3F85-465C-9141-C106AFD92B68} = {68A87938-5C2B-49F5-8AAA-8A34FBBFD854}
+		{D4E9C905-4884-488E-B763-5BD39049C1B1} = {68A87938-5C2B-49F5-8AAA-8A34FBBFD854}
 	EndGlobalSection
 EndGlobal
