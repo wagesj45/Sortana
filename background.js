@@ -169,9 +169,74 @@ function buildEmailText(full) {
     const headers = Object.entries(full.headers || {})
         .map(([k, v]) => `${k}: ${v.join(' ')}`)
         .join('\n');
-    const attachInfo = `Attachments: ${attachments.length}` + (attachments.length ? "\n" + attachments.map(a => ` - ${a}`).join('\n') : "");
+    const attachInfo = `Attachments: ${attachments.length}` +
+        (attachments.length ? "\n" + attachments.map(a => ` - ${a}`).join('\n') : "");
     const combined = `${headers}\n${attachInfo}\n\n${bodyParts.join('\n')}`.trim();
     return sanitizeString(combined);
+}
+
+function updateTimingStats(elapsed) {
+    const t = timingStats;
+    t.count += 1;
+    t.total += elapsed;
+    t.last = elapsed;
+    const delta = elapsed - t.mean;
+    t.mean += delta / t.count;
+    t.m2 += delta * (elapsed - t.mean);
+}
+
+async function processMessage(id) {
+    processing = true;
+    currentStart = Date.now();
+    queuedCount--;
+    updateActionIcon();
+    try {
+        const full = await messenger.messages.getFull(id);
+        const text = buildEmailText(full);
+        let currentTags = [];
+        try {
+            const hdr = await messenger.messages.get(id);
+            currentTags = Array.isArray(hdr.tags) ? [...hdr.tags] : [];
+        } catch (e) {
+            currentTags = [];
+        }
+
+        for (const rule of aiRules) {
+            const cacheKey = await AiClassifier.buildCacheKey(id, rule.criterion);
+            const matched = await AiClassifier.classifyText(text, rule.criterion, cacheKey);
+            if (matched) {
+                for (const act of (rule.actions || [])) {
+                    if (act.type === 'tag' && act.tagKey) {
+                        if (!currentTags.includes(act.tagKey)) {
+                            currentTags.push(act.tagKey);
+                            await messenger.messages.update(id, { tags: currentTags });
+                        }
+                    } else if (act.type === 'move' && act.folder) {
+                        await messenger.messages.move([id], act.folder);
+                    } else if (act.type === 'junk') {
+                        await messenger.messages.update(id, { junk: !!act.junk });
+                    }
+                }
+                if (rule.stopProcessing) {
+                    break;
+                }
+            }
+        }
+        processing = false;
+        const elapsed = Date.now() - currentStart;
+        currentStart = 0;
+        updateTimingStats(elapsed);
+        await storage.local.set({ classifyStats: timingStats });
+        showTransientIcon(ICONS.circle);
+    } catch (e) {
+        processing = false;
+        const elapsed = Date.now() - currentStart;
+        currentStart = 0;
+        updateTimingStats(elapsed);
+        await storage.local.set({ classifyStats: timingStats });
+        logger.aiLog("failed to apply AI rules", { level: 'error' }, e);
+        showTransientIcon(ICONS.average);
+    }
 }
 async function applyAiRules(idsInput) {
     const ids = Array.isArray(idsInput) ? idsInput : [idsInput];
@@ -186,71 +251,7 @@ async function applyAiRules(idsInput) {
         const id = msg?.id ?? msg;
         queuedCount++;
         updateActionIcon();
-        queue = queue.then(async () => {
-            processing = true;
-            currentStart = Date.now();
-            queuedCount--;
-            updateActionIcon();
-            try {
-                const full = await messenger.messages.getFull(id);
-                const text = buildEmailText(full);
-                let currentTags = [];
-                try {
-                    const hdr = await messenger.messages.get(id);
-                    currentTags = Array.isArray(hdr.tags) ? [...hdr.tags] : [];
-                } catch (e) {
-                    currentTags = [];
-                }
-
-                for (const rule of aiRules) {
-                    const cacheKey = await AiClassifier.buildCacheKey(id, rule.criterion);
-                    const matched = await AiClassifier.classifyText(text, rule.criterion, cacheKey);
-                    if (matched) {
-                        for (const act of (rule.actions || [])) {
-                            if (act.type === 'tag' && act.tagKey) {
-                                if (!currentTags.includes(act.tagKey)) {
-                                    currentTags.push(act.tagKey);
-                                    await messenger.messages.update(id, { tags: currentTags });
-                                }
-                            } else if (act.type === 'move' && act.folder) {
-                                await messenger.messages.move([id], act.folder);
-                            } else if (act.type === 'junk') {
-                                await messenger.messages.update(id, { junk: !!act.junk });
-                            }
-                        }
-                        if (rule.stopProcessing) {
-                            break;
-                        }
-                    }
-                }
-                processing = false;
-                const elapsed = Date.now() - currentStart;
-                currentStart = 0;
-                const t = timingStats;
-                t.count += 1;
-                t.total += elapsed;
-                t.last = elapsed;
-                const delta = elapsed - t.mean;
-                t.mean += delta / t.count;
-                t.m2 += delta * (elapsed - t.mean);
-                await storage.local.set({ classifyStats: t });
-                showTransientIcon(ICONS.circle);
-            } catch (e) {
-                processing = false;
-                const elapsed = Date.now() - currentStart;
-                currentStart = 0;
-                const t = timingStats;
-                t.count += 1;
-                t.total += elapsed;
-                t.last = elapsed;
-                const delta = elapsed - t.mean;
-                t.mean += delta / t.count;
-                t.m2 += delta * (elapsed - t.mean);
-                await storage.local.set({ classifyStats: t });
-                logger.aiLog("failed to apply AI rules", { level: 'error' }, e);
-                showTransientIcon(ICONS.average);
-            }
-        });
+        queue = queue.then(() => processMessage(id));
     }
 
     return queue;
