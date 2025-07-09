@@ -5,8 +5,9 @@ This file provides guidelines for codex agents contributing to the Sortana proje
 ## Repository Overview
 
 - `background.js`: Handles startup tasks and coordinates message passing within the extension.
-- `modules/`: Contains reusable JavaScript modules such as `AiClassifier.js`.
-- `options/`: The options page HTML, JavaScript and Bulma CSS.
+- `modules/`: Contains reusable JavaScript modules such as `AiClassifier.js`,
+  `defaultParams.js` and `themeUtils.js`.
+- `options/`: The options page HTML, JavaScript and bundled Bulma CSS (v1.0.3).
 - `details.html` and `details.js`: View AI reasoning and clear cache for a message.
 - `resources/`: Images and other static files.
 - `prompt_templates/`: Prompt template files for the AI service.
@@ -41,7 +42,7 @@ Additional documentation exists outside this repository.
 - Thunderbird Add-on Store Policies
   - [Third Party Library Usage](https://extensionworkshop.com/documentation/publish/third-party-library-usage/)
 - Third Party Libraries
-  - [Bulma.css](https://github.com/jgthms/bulma)
+  - [Bulma.css v1.0.3](https://github.com/jgthms/bulma/blob/1.0.3/css/bulma.css)
 - Issue tracker: [Thunderbird tracker on Bugzilla](https://bugzilla.mozilla.org/describecomponents.cgi?product=Thunderbird)
 
 
@@ -71,5 +72,5 @@ time the add-on loads after an update.
 Toolbar and menu icons reside under `resources/img` and are provided in 16, 32
 and 64 pixel variants. When changing these icons, pass a dictionary mapping the
 sizes to the paths in `browserAction.setIcon` or `messageDisplayAction.setIcon`.
-Use `resources/svg/svg2img.ps1` to regenerate PNGs from the SVG sources.
+Use `resources/svg2img.ps1` to regenerate PNGs from the SVG sources.
 
