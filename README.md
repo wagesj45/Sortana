@@ -22,7 +22,8 @@ message meets a specified criterion.
 - **Rule enable/disable** – temporarily turn a rule off without removing it.
 - **Account & folder filters** – limit rules to specific accounts or folders.
 - **Context menu** – apply AI rules from the message list or the message display action button.
-- **Status icons** – toolbar icons show when classification is in progress and briefly display success or error states.
+- **Status icons** – toolbar icons show when classification is in progress and briefly display success states. If a failure occurs the icon turns red until you dismiss the notification.
+- **Error notification** – failed classification displays a notification with a button to clear the error and reset the icon.
 - **View reasoning** – inspect why rules matched via the Details popup.
 - **Cache management** – clear cached results from the context menu or options page.
 - **Queue & timing stats** – monitor processing time on the Maintenance tab.
@@ -76,11 +77,12 @@ Sortana is implemented entirely with standard WebExtension scripts—no custom e
    deleting or archiving a message when it matches. Drag rules to
    reorder them, check *Only apply to unread messages* to skip read mail,
    set optional minimum or maximum message age limits, select the accounts or
-  folders a rule should apply to, uncheck *Enabled* to temporarily disable a rule, and
+ folders a rule should apply to, uncheck *Enabled* to temporarily disable a rule, and
   check *Stop after match* to halt further processing. Forward and reply actions
    open a compose window using the account that received the message.
 3. Save your settings. New mail will be evaluated automatically using the
    configured rules.
+4. If the toolbar icon shows a red X, click the notification's **Dismiss** button to clear the error.
 
 ### Example Filters
 

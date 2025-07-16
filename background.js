@@ -30,6 +30,8 @@ let TurndownService = null;
 let userTheme = 'auto';
 let currentTheme = 'light';
 let detectSystemTheme;
+let errorPending = false;
+const ERROR_NOTIFICATION_ID = 'sortana-error';
 
 function normalizeRules(rules) {
     return Array.isArray(rules) ? rules.map(r => {
@@ -68,7 +70,8 @@ const ICONS = {
     logo: () => 'resources/img/logo.png',
     circledots: () => iconPaths('circledots'),
     circle: () => iconPaths('circle'),
-    average: () => iconPaths('average')
+    average: () => iconPaths('average'),
+    error: () => iconPaths('x')
 };
 
 function setIcon(path) {
@@ -82,17 +85,29 @@ function setIcon(path) {
 
 function updateActionIcon() {
     let path = ICONS.logo();
-    if (processing || queuedCount > 0) {
+    if (errorPending) {
+        path = ICONS.error();
+    } else if (processing || queuedCount > 0) {
         path = ICONS.circledots();
     }
     setIcon(path);
 }
 
 function showTransientIcon(factory, delay = 1500) {
+    if (errorPending) {
+        return;
+    }
     clearTimeout(iconTimer);
     const path = typeof factory === 'function' ? factory() : factory;
     setIcon(path);
     iconTimer = setTimeout(updateActionIcon, delay);
+}
+
+async function clearError() {
+    errorPending = false;
+    await storage.local.set({ errorPending: false });
+    await browser.notifications.clear(ERROR_NOTIFICATION_ID);
+    updateActionIcon();
 }
 
 function refreshMenuIcons() {
@@ -307,9 +322,17 @@ async function processMessage(id) {
         const elapsed = Date.now() - currentStart;
         currentStart = 0;
         updateTimingStats(elapsed);
-        await storage.local.set({ classifyStats: timingStats });
+        await storage.local.set({ classifyStats: timingStats, errorPending: true });
+        errorPending = true;
         logger.aiLog("failed to apply AI rules", { level: 'error' }, e);
-        showTransientIcon(ICONS.average);
+        setIcon(ICONS.error());
+        browser.notifications.create(ERROR_NOTIFICATION_ID, {
+            type: 'basic',
+            iconUrl: browser.runtime.getURL('resources/img/logo.png'),
+            title: 'Sortana Error',
+            message: 'Failed to apply AI rules',
+            buttons: [{ title: 'Dismiss' }]
+        });
     }
 }
 async function applyAiRules(idsInput) {
@@ -368,7 +391,7 @@ async function clearCacheForMessages(idsInput) {
     }
 
     try {
-        const store = await storage.local.get(["endpoint", "templateName", "customTemplate", "customSystemPrompt", "aiParams", "debugLogging", "htmlToMarkdown", "stripUrlParams", "altTextImages", "collapseWhitespace", "aiRules", "theme"]);
+        const store = await storage.local.get(["endpoint", "templateName", "customTemplate", "customSystemPrompt", "aiParams", "debugLogging", "htmlToMarkdown", "stripUrlParams", "altTextImages", "collapseWhitespace", "aiRules", "theme", "errorPending"]);
         logger.setDebug(store.debugLogging);
         await AiClassifier.setConfig(store);
         userTheme = store.theme || 'auto';
@@ -378,6 +401,7 @@ async function clearCacheForMessages(idsInput) {
         stripUrlParams = store.stripUrlParams === true;
         altTextImages = store.altTextImages === true;
         collapseWhitespace = store.collapseWhitespace === true;
+        errorPending = store.errorPending === true;
         const savedStats = await storage.local.get('classifyStats');
         if (savedStats.classifyStats && typeof savedStats.classifyStats === 'object') {
             Object.assign(timingStats, savedStats.classifyStats);
@@ -408,6 +432,10 @@ async function clearCacheForMessages(idsInput) {
             if (changes.collapseWhitespace) {
                 collapseWhitespace = changes.collapseWhitespace.newValue === true;
                 logger.aiLog("collapseWhitespace updated from storage change", { debug: true }, collapseWhitespace);
+            }
+            if (changes.errorPending) {
+                errorPending = changes.errorPending.newValue === true;
+                updateActionIcon();
             }
             if (changes.theme) {
                 userTheme = changes.theme.newValue || 'auto';
@@ -632,6 +660,18 @@ async function clearCacheForMessages(idsInput) {
     // Catch any unhandled rejections
     window.addEventListener("unhandledrejection", ev => {
         logger.aiLog("Unhandled promise rejection", { level: 'error' }, ev.reason);
+    });
+
+    browser.notifications.onClicked.addListener(id => {
+        if (id === ERROR_NOTIFICATION_ID) {
+            clearError();
+        }
+    });
+
+    browser.notifications.onButtonClicked.addListener((id) => {
+        if (id === ERROR_NOTIFICATION_ID) {
+            clearError();
+        }
     });
 
     browser.runtime.onInstalled.addListener(async ({ reason }) => {
