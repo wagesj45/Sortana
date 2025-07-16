@@ -282,6 +282,30 @@ document.addEventListener('DOMContentLoaded', async () => {
         return row;
     }
 
+    function createConditionButton(label, sectionEl, checkbox) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'button is-small is-light';
+        btn.textContent = label;
+
+        let active = checkbox ? checkbox.checked : sectionEl && !sectionEl.classList.contains('is-hidden');
+
+        function update() {
+            btn.classList.toggle('is-info', active);
+            if (sectionEl) sectionEl.classList.toggle('is-hidden', !active);
+            if (checkbox) checkbox.checked = active;
+        }
+
+        btn.addEventListener('click', () => {
+            active = !active;
+            markDirty();
+            update();
+        });
+
+        update();
+        return btn;
+    }
+
     function renderRules(rules = []) {
         ruleCountEl.textContent = rules.length;
         rulesContainer.innerHTML = '';
@@ -391,7 +415,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             addAction.addEventListener('click', () => actionsContainer.appendChild(createActionRow()));
 
            const stopLabel = document.createElement('label');
-           stopLabel.className = 'checkbox mt-2';
+           stopLabel.className = 'checkbox mt-2 is-hidden';
            const stopCheck = document.createElement('input');
            stopCheck.type = 'checkbox';
            stopCheck.className = 'stop-processing';
@@ -400,7 +424,7 @@ document.addEventListener('DOMContentLoaded', async () => {
            stopLabel.append(' Stop after match');
 
             const unreadLabel = document.createElement('label');
-            unreadLabel.className = 'checkbox mt-2 ml-4';
+            unreadLabel.className = 'checkbox mt-2 ml-4 is-hidden';
             const unreadCheck = document.createElement('input');
             unreadCheck.type = 'checkbox';
             unreadCheck.className = 'unread-only';
@@ -409,7 +433,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             unreadLabel.append(' Only apply to unread messages');
 
             const ageBox = document.createElement('div');
-            ageBox.className = 'field is-grouped mt-2';
+            ageBox.className = 'field is-grouped mt-2 is-hidden';
             const minInput = document.createElement('input');
             minInput.type = 'number';
             minInput.placeholder = 'Min days';
@@ -426,7 +450,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             ageBox.appendChild(maxInput);
 
             const acctBox = document.createElement('div');
-            acctBox.className = 'field mt-2';
+            acctBox.className = 'field mt-2 is-hidden';
             const acctLabel = document.createElement('label');
             acctLabel.className = 'label';
             acctLabel.textContent = 'Accounts';
@@ -450,7 +474,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             acctBox.appendChild(acctControl);
 
             const folderBox = document.createElement('div');
-            folderBox.className = 'field mt-2';
+            folderBox.className = 'field mt-2 is-hidden';
             const folderLabel = document.createElement('label');
             folderLabel.className = 'label';
             folderLabel.textContent = 'Folders';
@@ -473,10 +497,37 @@ document.addEventListener('DOMContentLoaded', async () => {
             folderBox.appendChild(folderLabel);
             folderBox.appendChild(folderControl);
 
+            if (typeof rule.minAgeDays === 'number' || typeof rule.maxAgeDays === 'number') {
+                ageBox.classList.remove('is-hidden');
+            }
+            if ((rule.accounts || []).length) {
+                acctBox.classList.remove('is-hidden');
+            }
+            if ((rule.folders || []).length) {
+                folderBox.classList.remove('is-hidden');
+            }
+
+            const condButtons = document.createElement('div');
+            condButtons.className = 'field is-grouped is-grouped-multiline mb-2';
+
+            function addCond(btn) {
+                const p = document.createElement('p');
+                p.className = 'control';
+                p.appendChild(btn);
+                condButtons.appendChild(p);
+            }
+
+            addCond(createConditionButton('Stop', null, stopCheck));
+            addCond(createConditionButton('Unread', null, unreadCheck));
+            addCond(createConditionButton('Age', ageBox));
+            addCond(createConditionButton('Accounts', acctBox));
+            addCond(createConditionButton('Folders', folderBox));
+
             const body = document.createElement('div');
             body.className = 'message-body';
             body.appendChild(actionsContainer);
             body.appendChild(addAction);
+            body.appendChild(condButtons);
             body.appendChild(stopLabel);
             body.appendChild(unreadLabel);
             body.appendChild(ageBox);
