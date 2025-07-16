@@ -151,6 +151,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     const rulesContainer = document.getElementById('rules-container');
     const addRuleBtn = document.getElementById('add-rule');
 
+    const ruleCountEl = document.getElementById('rule-count');
+    const cacheCountEl = document.getElementById('cache-count');
+    const queueCountEl = document.getElementById('queue-count');
+    const currentTimeEl = document.getElementById('current-time');
+    const lastTimeEl = document.getElementById('last-time');
+    const averageTimeEl = document.getElementById('average-time');
+    const totalTimeEl = document.getElementById('total-time');
+    const perHourEl = document.getElementById('per-hour');
+    const perDayEl = document.getElementById('per-day');
+    let timingLogged = false;
+    ruleCountEl.textContent = (defaults.aiRules || []).length;
+    cacheCountEl.textContent = defaults.aiCache ? Object.keys(defaults.aiCache).length : 0;
+
     function createActionRow(action = {type: 'tag'}) {
         const row = document.createElement('div');
         row.className = 'action-row field is-grouped mb-2';
@@ -340,18 +353,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         return rule;
     }));
 
-    const ruleCountEl = document.getElementById('rule-count');
-    const cacheCountEl = document.getElementById('cache-count');
-    const queueCountEl = document.getElementById('queue-count');
-    const currentTimeEl = document.getElementById('current-time');
-    const lastTimeEl = document.getElementById('last-time');
-    const averageTimeEl = document.getElementById('average-time');
-    const totalTimeEl = document.getElementById('total-time');
-    const perHourEl = document.getElementById('per-hour');
-    const perDayEl = document.getElementById('per-day');
-    let timingLogged = false;
-    ruleCountEl.textContent = (defaults.aiRules || []).length;
-    cacheCountEl.textContent = defaults.aiCache ? Object.keys(defaults.aiCache).length : 0;
 
     function format(ms) {
         if (ms < 0) return '--:--:--';
