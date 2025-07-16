@@ -318,20 +318,30 @@ document.addEventListener('DOMContentLoaded', async () => {
             addAction.className = 'button is-small mb-2';
             addAction.addEventListener('click', () => actionsContainer.appendChild(createActionRow()));
 
-            const stopLabel = document.createElement('label');
-            stopLabel.className = 'checkbox mt-2';
-            const stopCheck = document.createElement('input');
-            stopCheck.type = 'checkbox';
-            stopCheck.className = 'stop-processing';
-            stopCheck.checked = rule.stopProcessing === true;
-            stopLabel.appendChild(stopCheck);
-            stopLabel.append(' Stop after match');
+           const stopLabel = document.createElement('label');
+           stopLabel.className = 'checkbox mt-2';
+           const stopCheck = document.createElement('input');
+           stopCheck.type = 'checkbox';
+           stopCheck.className = 'stop-processing';
+           stopCheck.checked = rule.stopProcessing === true;
+           stopLabel.appendChild(stopCheck);
+           stopLabel.append(' Stop after match');
+
+            const unreadLabel = document.createElement('label');
+            unreadLabel.className = 'checkbox mt-2 ml-4';
+            const unreadCheck = document.createElement('input');
+            unreadCheck.type = 'checkbox';
+            unreadCheck.className = 'unread-only';
+            unreadCheck.checked = rule.unreadOnly === true;
+            unreadLabel.appendChild(unreadCheck);
+            unreadLabel.append(' Only apply to unread messages');
 
             const body = document.createElement('div');
             body.className = 'message-body';
             body.appendChild(actionsContainer);
             body.appendChild(addAction);
             body.appendChild(stopLabel);
+            body.appendChild(unreadLabel);
 
             article.appendChild(header);
             article.appendChild(body);
@@ -363,9 +373,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return { type };
             });
             const stopProcessing = ruleEl.querySelector('.stop-processing')?.checked;
-            return { criterion, actions, stopProcessing };
+            const unreadOnly = ruleEl.querySelector('.unread-only')?.checked;
+            return { criterion, actions, unreadOnly, stopProcessing };
         });
-        data.push({ criterion: '', actions: [], stopProcessing: false });
+        data.push({ criterion: '', actions: [], unreadOnly: false, stopProcessing: false });
         renderRules(data);
     });
 
@@ -376,6 +387,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (r.moveTo) actions.push({ type: 'move', folder: r.moveTo });
         const rule = { criterion: r.criterion, actions };
         if (r.stopProcessing) rule.stopProcessing = true;
+        if (r.unreadOnly) rule.unreadOnly = true;
         return rule;
     }));
 
@@ -509,7 +521,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return { type };
             });
             const stopProcessing = ruleEl.querySelector('.stop-processing')?.checked;
-            return { criterion, actions, stopProcessing };
+            const unreadOnly = ruleEl.querySelector('.unread-only')?.checked;
+            return { criterion, actions, unreadOnly, stopProcessing };
         }).filter(r => r.criterion);
         const stripUrlParams = stripUrlToggle.checked;
         const altTextImages = altTextToggle.checked;
