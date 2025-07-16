@@ -336,7 +336,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             const toggleBtn = document.createElement('button');
             toggleBtn.type = 'button';
-            toggleBtn.className = 'button is-small rule-toggle';
+            toggleBtn.className = 'button is-small is-light rule-toggle';
             const toggleIcon = document.createElement('img');
             toggleIcon.width = 16;
             toggleIcon.height = 16;
