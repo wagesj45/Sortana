@@ -171,7 +171,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const typeWrapper = document.createElement('div');
         typeWrapper.className = 'select is-small mr-2';
         const typeSelect = document.createElement('select');
-        ['tag','move','junk','read','flag'].forEach(t => {
+        ['tag','move','copy','junk','read','flag'].forEach(t => {
             const opt = document.createElement('option');
             opt.value = t;
             opt.textContent = t;
@@ -198,7 +198,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 sel.value = action.tagKey || '';
                 wrap.appendChild(sel);
                 paramSpan.appendChild(wrap);
-            } else if (typeSelect.value === 'move') {
+            } else if (typeSelect.value === 'move' || typeSelect.value === 'copy') {
                 const wrap = document.createElement('div');
                 wrap.className = 'select is-small';
                 const sel = document.createElement('select');
@@ -209,7 +209,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     opt.textContent = f.name;
                     sel.appendChild(opt);
                 }
-                sel.value = action.folder || '';
+                sel.value = action.folder || action.copyTarget || '';
                 wrap.appendChild(sel);
                 paramSpan.appendChild(wrap);
             } else if (typeSelect.value === 'junk') {
@@ -361,6 +361,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (type === 'move') {
                     return { type, folder: row.querySelector('.folder-select').value };
                 }
+                if (type === 'copy') {
+                    return { type, copyTarget: row.querySelector('.folder-select').value };
+                }
                 if (type === 'junk') {
                     return { type, junk: row.querySelector('.junk-select').value === 'true' };
                 }
@@ -385,6 +388,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const actions = [];
         if (r.tag) actions.push({ type: 'tag', tagKey: r.tag });
         if (r.moveTo) actions.push({ type: 'move', folder: r.moveTo });
+        if (r.copyTarget || r.copyTo) actions.push({ type: 'copy', copyTarget: r.copyTarget || r.copyTo });
         const rule = { criterion: r.criterion, actions };
         if (r.stopProcessing) rule.stopProcessing = true;
         if (r.unreadOnly) rule.unreadOnly = true;
@@ -508,6 +512,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
                 if (type === 'move') {
                     return { type, folder: row.querySelector('.folder-select').value };
+                }
+                if (type === 'copy') {
+                    return { type, copyTarget: row.querySelector('.folder-select').value };
                 }
                 if (type === 'junk') {
                     return { type, junk: row.querySelector('.junk-select').value === 'true' };

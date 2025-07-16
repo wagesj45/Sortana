@@ -37,6 +37,7 @@ function normalizeRules(rules) {
         const actions = [];
         if (r.tag) actions.push({ type: 'tag', tagKey: r.tag });
         if (r.moveTo) actions.push({ type: 'move', folder: r.moveTo });
+        if (r.copyTarget || r.copyTo) actions.push({ type: 'copy', copyTarget: r.copyTarget || r.copyTo });
         const rule = { criterion: r.criterion, actions };
         if (r.stopProcessing) rule.stopProcessing = true;
         if (r.unreadOnly) rule.unreadOnly = true;
@@ -234,6 +235,8 @@ async function processMessage(id) {
                         }
                     } else if (act.type === 'move' && act.folder) {
                         await messenger.messages.move([id], act.folder);
+                    } else if (act.type === 'copy' && act.copyTarget) {
+                        await messenger.messages.copy([id], act.copyTarget);
                     } else if (act.type === 'junk') {
                         await messenger.messages.update(id, { junk: !!act.junk });
                     } else if (act.type === 'read') {
