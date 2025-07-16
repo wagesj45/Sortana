@@ -123,6 +123,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     let tagList = [];
     let folderList = [];
+    let accountList = [];
     try {
         tagList = await messenger.messages.tags.list();
     } catch (e) {
@@ -130,6 +131,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     try {
         const accounts = await messenger.accounts.list(true);
+        accountList = accounts.map(a => ({ id: a.id, name: a.name }));
         const collect = (f, prefix='') => {
             folderList.push({ id: f.id ?? f.path, name: prefix + f.name });
             (f.subFolders || []).forEach(sf => collect(sf, prefix + f.name + '/'));
@@ -372,6 +374,54 @@ document.addEventListener('DOMContentLoaded', async () => {
             ageBox.appendChild(minInput);
             ageBox.appendChild(maxInput);
 
+            const acctBox = document.createElement('div');
+            acctBox.className = 'field mt-2';
+            const acctLabel = document.createElement('label');
+            acctLabel.className = 'label';
+            acctLabel.textContent = 'Accounts';
+            const acctControl = document.createElement('div');
+            const acctWrap = document.createElement('div');
+            acctWrap.className = 'select is-multiple is-small';
+            const acctSel = document.createElement('select');
+            acctSel.className = 'account-select';
+            acctSel.multiple = true;
+            acctSel.size = Math.min(accountList.length, 4) || 1;
+            for (const a of accountList) {
+                const opt = document.createElement('option');
+                opt.value = a.id;
+                opt.textContent = a.name;
+                if ((rule.accounts || []).includes(a.id)) opt.selected = true;
+                acctSel.appendChild(opt);
+            }
+            acctWrap.appendChild(acctSel);
+            acctControl.appendChild(acctWrap);
+            acctBox.appendChild(acctLabel);
+            acctBox.appendChild(acctControl);
+
+            const folderBox = document.createElement('div');
+            folderBox.className = 'field mt-2';
+            const folderLabel = document.createElement('label');
+            folderLabel.className = 'label';
+            folderLabel.textContent = 'Folders';
+            const folderControl = document.createElement('div');
+            const folderWrap = document.createElement('div');
+            folderWrap.className = 'select is-multiple is-small';
+            const folderSel = document.createElement('select');
+            folderSel.className = 'folder-filter-select';
+            folderSel.multiple = true;
+            folderSel.size = Math.min(folderList.length, 6) || 1;
+            for (const f of folderList) {
+                const opt = document.createElement('option');
+                opt.value = f.id;
+                opt.textContent = f.name;
+                if ((rule.folders || []).includes(f.id)) opt.selected = true;
+                folderSel.appendChild(opt);
+            }
+            folderWrap.appendChild(folderSel);
+            folderControl.appendChild(folderWrap);
+            folderBox.appendChild(folderLabel);
+            folderBox.appendChild(folderControl);
+
             const body = document.createElement('div');
             body.className = 'message-body';
             body.appendChild(actionsContainer);
@@ -379,6 +429,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             body.appendChild(stopLabel);
             body.appendChild(unreadLabel);
             body.appendChild(ageBox);
+            body.appendChild(acctBox);
+            body.appendChild(folderBox);
 
             article.appendChild(header);
             article.appendChild(body);
@@ -419,17 +471,25 @@ document.addEventListener('DOMContentLoaded', async () => {
             const unreadOnly = ruleEl.querySelector('.unread-only')?.checked;
             const minAgeDays = parseFloat(ruleEl.querySelector('.min-age')?.value);
             const maxAgeDays = parseFloat(ruleEl.querySelector('.max-age')?.value);
+            const accounts = [...(ruleEl.querySelector('.account-select')?.selectedOptions || [])].map(o => o.value);
+            const folders = [...(ruleEl.querySelector('.folder-filter-select')?.selectedOptions || [])].map(o => o.value);
             const rule = { criterion, actions, unreadOnly, stopProcessing };
             if (!isNaN(minAgeDays)) rule.minAgeDays = minAgeDays;
             if (!isNaN(maxAgeDays)) rule.maxAgeDays = maxAgeDays;
+            if (accounts.length) rule.accounts = accounts;
+            if (folders.length) rule.folders = folders;
             return rule;
         });
-        data.push({ criterion: '', actions: [], unreadOnly: false, stopProcessing: false });
+        data.push({ criterion: '', actions: [], unreadOnly: false, stopProcessing: false, accounts: [], folders: [] });
         renderRules(data);
     });
 
     renderRules((defaults.aiRules || []).map(r => {
-        if (r.actions) return r;
+        if (r.actions) {
+            if (!Array.isArray(r.accounts)) r.accounts = [];
+            if (!Array.isArray(r.folders)) r.folders = [];
+            return r;
+        }
         const actions = [];
         if (r.tag) actions.push({ type: 'tag', tagKey: r.tag });
         if (r.moveTo) actions.push({ type: 'move', folder: r.moveTo });
@@ -439,6 +499,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (r.unreadOnly) rule.unreadOnly = true;
         if (typeof r.minAgeDays === 'number') rule.minAgeDays = r.minAgeDays;
         if (typeof r.maxAgeDays === 'number') rule.maxAgeDays = r.maxAgeDays;
+        if (Array.isArray(r.accounts)) rule.accounts = r.accounts;
+        if (Array.isArray(r.folders)) rule.folders = r.folders;
         return rule;
     }));
 
@@ -584,9 +646,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             const unreadOnly = ruleEl.querySelector('.unread-only')?.checked;
             const minAgeDays = parseFloat(ruleEl.querySelector('.min-age')?.value);
             const maxAgeDays = parseFloat(ruleEl.querySelector('.max-age')?.value);
+            const accounts = [...(ruleEl.querySelector('.account-select')?.selectedOptions || [])].map(o => o.value);
+            const folders = [...(ruleEl.querySelector('.folder-filter-select')?.selectedOptions || [])].map(o => o.value);
             const rule = { criterion, actions, unreadOnly, stopProcessing };
             if (!isNaN(minAgeDays)) rule.minAgeDays = minAgeDays;
             if (!isNaN(maxAgeDays)) rule.maxAgeDays = maxAgeDays;
+            if (accounts.length) rule.accounts = accounts;
+            if (folders.length) rule.folders = folders;
             return rule;
         }).filter(r => r.criterion);
         const stripUrlParams = stripUrlToggle.checked;

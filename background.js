@@ -33,7 +33,11 @@ let detectSystemTheme;
 
 function normalizeRules(rules) {
     return Array.isArray(rules) ? rules.map(r => {
-        if (r.actions) return r;
+        if (r.actions) {
+            if (!Array.isArray(r.accounts)) r.accounts = [];
+            if (!Array.isArray(r.folders)) r.folders = [];
+            return r;
+        }
         const actions = [];
         if (r.tag) actions.push({ type: 'tag', tagKey: r.tag });
         if (r.moveTo) actions.push({ type: 'move', folder: r.moveTo });
@@ -43,6 +47,8 @@ function normalizeRules(rules) {
         if (r.unreadOnly) rule.unreadOnly = true;
         if (typeof r.minAgeDays === 'number') rule.minAgeDays = r.minAgeDays;
         if (typeof r.maxAgeDays === 'number') rule.maxAgeDays = r.maxAgeDays;
+        if (Array.isArray(r.accounts)) rule.accounts = r.accounts;
+        if (Array.isArray(r.folders)) rule.folders = r.folders;
         return rule;
     }) : [];
 }
@@ -228,6 +234,14 @@ async function processMessage(id) {
         }
 
         for (const rule of aiRules) {
+            if (hdr && Array.isArray(rule.accounts) && rule.accounts.length &&
+                !rule.accounts.includes(hdr.folder.accountId)) {
+                continue;
+            }
+            if (hdr && Array.isArray(rule.folders) && rule.folders.length &&
+                !rule.folders.includes(hdr.folder.path)) {
+                continue;
+            }
             if (rule.unreadOnly && alreadyRead) {
                 continue;
             }
