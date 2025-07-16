@@ -36,6 +36,7 @@ function normalizeRules(rules) {
         if (r.actions) {
             if (!Array.isArray(r.accounts)) r.accounts = [];
             if (!Array.isArray(r.folders)) r.folders = [];
+            r.enabled = r.enabled !== false;
             return r;
         }
         const actions = [];
@@ -49,6 +50,7 @@ function normalizeRules(rules) {
         if (typeof r.maxAgeDays === 'number') rule.maxAgeDays = r.maxAgeDays;
         if (Array.isArray(r.accounts)) rule.accounts = r.accounts;
         if (Array.isArray(r.folders)) rule.folders = r.folders;
+        rule.enabled = r.enabled !== false;
         return rule;
     }) : [];
 }
@@ -234,6 +236,9 @@ async function processMessage(id) {
         }
 
         for (const rule of aiRules) {
+            if (rule.enabled === false) {
+                continue;
+            }
             if (hdr && Array.isArray(rule.accounts) && rule.accounts.length &&
                 !rule.accounts.includes(hdr.folder.accountId)) {
                 continue;
