@@ -21,7 +21,9 @@
   "options.collapseWhitespace": { "message": "Collapse long whitespace" }
   ,"action.read": { "message": "read" }
   ,"action.flag": { "message": "flag" }
-  ,"action.copy": { "message": "copy" }
+    ,"action.copy": { "message": "copy" }
+    ,"action.delete": { "message": "delete" }
+    ,"action.archive": { "message": "archive" }
   ,"param.markRead": { "message": "mark read" }
   ,"param.markUnread": { "message": "mark unread" }
   ,"param.flag": { "message": "flag" }
