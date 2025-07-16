@@ -282,7 +282,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         return row;
     }
 
-    function createConditionButton(label, sectionEl, checkbox) {
+    function createConditionButton(label, sectionEl, checkbox, clearFn) {
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'button is-small is-light';
@@ -300,6 +300,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             icon.src = browser.runtime.getURL(`resources/svg/${active ? 'circledot' : 'circle'}.svg`);
             if (sectionEl) sectionEl.classList.toggle('is-hidden', !active);
             if (checkbox) checkbox.checked = active;
+            if (!active && typeof clearFn === 'function') {
+                clearFn();
+            }
         }
 
         btn.addEventListener('click', () => {
@@ -523,16 +526,30 @@ document.addEventListener('DOMContentLoaded', async () => {
                 condButtons.appendChild(p);
             }
 
-            addCond(createConditionButton('Stop', null, stopCheck));
-            addCond(createConditionButton('Unread', null, unreadCheck));
-            addCond(createConditionButton('Age', ageBox));
-            addCond(createConditionButton('Accounts', acctBox));
-            addCond(createConditionButton('Folders', folderBox));
+            addCond(createConditionButton('Stop', null, stopCheck, () => {
+                stopCheck.checked = false;
+            }));
+            addCond(createConditionButton('Unread', null, unreadCheck, () => {
+                unreadCheck.checked = false;
+            }));
+            addCond(createConditionButton('Age', ageBox, null, () => {
+                minInput.value = '';
+                maxInput.value = '';
+            }));
+            addCond(createConditionButton('Accounts', acctBox, null, () => {
+                for (const opt of acctSel.options) opt.selected = false;
+            }));
+            addCond(createConditionButton('Folders', folderBox, null, () => {
+                for (const opt of folderSel.options) opt.selected = false;
+            }));
 
             const body = document.createElement('div');
             body.className = 'message-body';
             body.appendChild(actionsContainer);
             body.appendChild(addAction);
+            const condDivider = document.createElement('hr');
+            condDivider.className = 'mt-3 mb-2';
+            body.appendChild(condDivider);
             body.appendChild(condButtons);
             body.appendChild(stopLabel);
             body.appendChild(unreadLabel);
@@ -582,7 +599,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             const maxAgeDays = parseFloat(ruleEl.querySelector('.max-age')?.value);
             const accounts = [...(ruleEl.querySelector('.account-select')?.selectedOptions || [])].map(o => o.value);
             const folders = [...(ruleEl.querySelector('.folder-filter-select')?.selectedOptions || [])].map(o => o.value);
-            const rule = { criterion, actions, unreadOnly, stopProcessing, enabled };
+            const rule = { criterion, actions, enabled };
+            if (unreadOnly) rule.unreadOnly = true;
+            if (stopProcessing) rule.stopProcessing = true;
             if (!isNaN(minAgeDays)) rule.minAgeDays = minAgeDays;
             if (!isNaN(maxAgeDays)) rule.maxAgeDays = maxAgeDays;
             if (accounts.length) rule.accounts = accounts;
@@ -760,7 +779,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             const maxAgeDays = parseFloat(ruleEl.querySelector('.max-age')?.value);
             const accounts = [...(ruleEl.querySelector('.account-select')?.selectedOptions || [])].map(o => o.value);
             const folders = [...(ruleEl.querySelector('.folder-filter-select')?.selectedOptions || [])].map(o => o.value);
-            const rule = { criterion, actions, unreadOnly, stopProcessing, enabled };
+            const rule = { criterion, actions, enabled };
+            if (unreadOnly) rule.unreadOnly = true;
+            if (stopProcessing) rule.stopProcessing = true;
             if (!isNaN(minAgeDays)) rule.minAgeDays = minAgeDays;
             if (!isNaN(maxAgeDays)) rule.maxAgeDays = maxAgeDays;
             if (accounts.length) rule.accounts = accounts;
