@@ -315,26 +315,67 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             const header = document.createElement('div');
             header.className = 'message-header';
-            header.appendChild(critInput);
+
+            const leftWrap = document.createElement('div');
+            leftWrap.style.display = 'flex';
+            leftWrap.style.alignItems = 'center';
+            leftWrap.style.flexGrow = '1';
+
+            const statusSpan = document.createElement('span');
+            statusSpan.className = 'rule-status has-text-weight-semibold mr-2';
+
+            leftWrap.appendChild(statusSpan);
+            leftWrap.appendChild(critInput);
+            header.appendChild(leftWrap);
+
+            const btnWrap = document.createElement('div');
+            btnWrap.style.display = 'flex';
+            btnWrap.style.gap = '0.25em';
+
+            let enabled = rule.enabled !== false;
+
+            const toggleBtn = document.createElement('button');
+            toggleBtn.type = 'button';
+            toggleBtn.className = 'button is-small rule-toggle';
+            const toggleIcon = document.createElement('img');
+            toggleIcon.width = 16;
+            toggleIcon.height = 16;
+            toggleBtn.appendChild(toggleIcon);
 
             const delBtn = document.createElement('button');
-            delBtn.className = 'delete';
-            delBtn.setAttribute('aria-label', 'delete');
+            delBtn.type = 'button';
+            delBtn.className = 'button is-small is-danger is-light rule-delete';
+            const delIcon = document.createElement('img');
+            delIcon.src = browser.runtime.getURL('resources/svg/trash.svg');
+            delIcon.width = 16;
+            delIcon.height = 16;
+            delBtn.appendChild(delIcon);
+
+            function updateToggle() {
+                toggleIcon.src = browser.runtime.getURL(
+                    `resources/svg/${enabled ? 'circleslash' : 'check'}.svg`
+                );
+                statusSpan.textContent = enabled ? '' : '(Disabled)';
+                article.dataset.enabled = String(enabled);
+            }
+
+            toggleBtn.addEventListener('click', () => {
+                enabled = !enabled;
+                markDirty();
+                updateToggle();
+            });
+
             delBtn.addEventListener('click', () => {
                 article.remove();
                 ruleCountEl.textContent = rulesContainer.querySelectorAll('.rule').length;
+                markDirty();
             });
-            header.appendChild(delBtn);
 
-            const enabledLabel = document.createElement('label');
-            enabledLabel.className = 'checkbox ml-2';
-            const enabledCheck = document.createElement('input');
-            enabledCheck.type = 'checkbox';
-            enabledCheck.className = 'rule-enabled';
-            enabledCheck.checked = rule.enabled !== false;
-            enabledLabel.appendChild(enabledCheck);
-            enabledLabel.append(' Enabled');
-            header.appendChild(enabledLabel);
+            btnWrap.appendChild(toggleBtn);
+            btnWrap.appendChild(delBtn);
+            header.appendChild(btnWrap);
+
+            updateToggle();
 
             const actionsContainer = document.createElement('div');
             actionsContainer.className = 'rule-actions mb-2';
@@ -479,7 +520,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
             const stopProcessing = ruleEl.querySelector('.stop-processing')?.checked;
             const unreadOnly = ruleEl.querySelector('.unread-only')?.checked;
-            const enabled = ruleEl.querySelector('.rule-enabled')?.checked !== false;
+            const enabled = ruleEl.dataset.enabled !== 'false';
             const minAgeDays = parseFloat(ruleEl.querySelector('.min-age')?.value);
             const maxAgeDays = parseFloat(ruleEl.querySelector('.max-age')?.value);
             const accounts = [...(ruleEl.querySelector('.account-select')?.selectedOptions || [])].map(o => o.value);
@@ -657,7 +698,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
             const stopProcessing = ruleEl.querySelector('.stop-processing')?.checked;
             const unreadOnly = ruleEl.querySelector('.unread-only')?.checked;
-            const enabled = ruleEl.querySelector('.rule-enabled')?.checked !== false;
+            const enabled = ruleEl.dataset.enabled !== 'false';
             const minAgeDays = parseFloat(ruleEl.querySelector('.min-age')?.value);
             const maxAgeDays = parseFloat(ruleEl.querySelector('.max-age')?.value);
             const accounts = [...(ruleEl.querySelector('.account-select')?.selectedOptions || [])].map(o => o.value);

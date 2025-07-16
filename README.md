@@ -77,7 +77,8 @@ Sortana is implemented entirely with standard WebExtension scripts—no custom e
    deleting or archiving a message when it matches. Drag rules to
    reorder them, check *Only apply to unread messages* to skip read mail,
    set optional minimum or maximum message age limits, select the accounts or
- folders a rule should apply to, uncheck *Enabled* to temporarily disable a rule, and
+ folders a rule should apply to. Use the
+  slashed-circle/check button to disable or re-enable a rule, and
   check *Stop after match* to halt further processing. Forward and reply actions
    open a compose window using the account that received the message.
 3. Save your settings. New mail will be evaluated automatically using the
