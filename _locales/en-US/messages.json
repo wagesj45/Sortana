@@ -23,9 +23,14 @@
   ,"action.flag": { "message": "flag" }
     ,"action.copy": { "message": "copy" }
     ,"action.delete": { "message": "delete" }
-    ,"action.archive": { "message": "archive" }
+  ,"action.archive": { "message": "archive" }
+  ,"action.forward": { "message": "forward" }
+  ,"action.reply": { "message": "reply" }
   ,"param.markRead": { "message": "mark read" }
   ,"param.markUnread": { "message": "mark unread" }
   ,"param.flag": { "message": "flag" }
   ,"param.unflag": { "message": "unflag" }
+  ,"param.address": { "message": "address" }
+  ,"param.replyAll": { "message": "reply all" }
+  ,"param.replySender": { "message": "reply sender" }
 }

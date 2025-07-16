@@ -171,7 +171,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const typeWrapper = document.createElement('div');
         typeWrapper.className = 'select is-small mr-2';
         const typeSelect = document.createElement('select');
-        ['tag','move','copy','junk','read','flag','delete','archive'].forEach(t => {
+        ['tag','move','copy','junk','read','flag','delete','archive','forward','reply'].forEach(t => {
             const opt = document.createElement('option');
             opt.value = t;
             opt.textContent = t;
@@ -240,6 +240,23 @@ document.addEventListener('DOMContentLoaded', async () => {
                 sel.appendChild(new Option('flag','true'));
                 sel.appendChild(new Option('unflag','false'));
                 sel.value = String(action.flagged ?? true);
+                wrap.appendChild(sel);
+                paramSpan.appendChild(wrap);
+            } else if (typeSelect.value === 'forward') {
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.className = 'input is-small forward-input';
+                input.placeholder = 'address@example.com';
+                input.value = action.address || '';
+                paramSpan.appendChild(input);
+            } else if (typeSelect.value === 'reply') {
+                const wrap = document.createElement('div');
+                wrap.className = 'select is-small';
+                const sel = document.createElement('select');
+                sel.className = 'reply-select';
+                sel.appendChild(new Option('all','all'));
+                sel.appendChild(new Option('sender','sender'));
+                sel.value = action.replyType || 'all';
                 wrap.appendChild(sel);
                 paramSpan.appendChild(wrap);
             } else if (typeSelect.value === 'delete' || typeSelect.value === 'archive') {
@@ -529,6 +546,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
                 if (type === 'flag') {
                     return { type, flagged: row.querySelector('.flag-select').value === 'true' };
+                }
+                if (type === 'forward') {
+                    return { type, address: row.querySelector('.forward-input').value.trim() };
+                }
+                if (type === 'reply') {
+                    return { type, replyType: row.querySelector('.reply-select').value };
                 }
                 return { type };
             });

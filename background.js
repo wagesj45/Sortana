@@ -209,15 +209,20 @@ async function processMessage(id) {
     try {
         const full = await messenger.messages.getFull(id);
         const text = buildEmailText(full);
+        let hdr;
         let currentTags = [];
         let alreadyRead = false;
+        let identityId = null;
         try {
-            const hdr = await messenger.messages.get(id);
+            hdr = await messenger.messages.get(id);
             currentTags = Array.isArray(hdr.tags) ? [...hdr.tags] : [];
             alreadyRead = hdr.read === true;
+            const ids = await messenger.identities.list(hdr.folder.accountId);
+            identityId = ids[0]?.id || null;
         } catch (e) {
             currentTags = [];
             alreadyRead = false;
+            identityId = null;
         }
 
         for (const rule of aiRules) {
@@ -247,6 +252,10 @@ async function processMessage(id) {
                         await messenger.messages.delete([id]);
                     } else if (act.type === 'archive') {
                         await messenger.messages.archive([id]);
+                    } else if (act.type === 'forward' && act.address && identityId) {
+                        await browser.compose.beginForward(id, { to: [act.address], identityId });
+                    } else if (act.type === 'reply' && act.replyType && identityId) {
+                        await browser.compose.beginReply(id, { replyType: act.replyType, identityId });
                     }
                 }
                 if (rule.stopProcessing) {
