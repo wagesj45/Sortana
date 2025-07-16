@@ -39,6 +39,7 @@ function normalizeRules(rules) {
         if (r.moveTo) actions.push({ type: 'move', folder: r.moveTo });
         const rule = { criterion: r.criterion, actions };
         if (r.stopProcessing) rule.stopProcessing = true;
+        if (r.unreadOnly) rule.unreadOnly = true;
         return rule;
     }) : [];
 }
@@ -208,14 +209,20 @@ async function processMessage(id) {
         const full = await messenger.messages.getFull(id);
         const text = buildEmailText(full);
         let currentTags = [];
+        let alreadyRead = false;
         try {
             const hdr = await messenger.messages.get(id);
             currentTags = Array.isArray(hdr.tags) ? [...hdr.tags] : [];
+            alreadyRead = hdr.read === true;
         } catch (e) {
             currentTags = [];
+            alreadyRead = false;
         }
 
         for (const rule of aiRules) {
+            if (rule.unreadOnly && alreadyRead) {
+                continue;
+            }
             const cacheKey = await AiClassifier.buildCacheKey(id, rule.criterion);
             const matched = await AiClassifier.classifyText(text, rule.criterion, cacheKey);
             if (matched) {
