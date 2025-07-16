@@ -171,7 +171,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const typeWrapper = document.createElement('div');
         typeWrapper.className = 'select is-small mr-2';
         const typeSelect = document.createElement('select');
-        ['tag','move','copy','junk','read','flag'].forEach(t => {
+        ['tag','move','copy','junk','read','flag','delete','archive'].forEach(t => {
             const opt = document.createElement('option');
             opt.value = t;
             opt.textContent = t;
@@ -242,6 +242,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 sel.value = String(action.flagged ?? true);
                 wrap.appendChild(sel);
                 paramSpan.appendChild(wrap);
+            } else if (typeSelect.value === 'delete' || typeSelect.value === 'archive') {
+                paramSpan.appendChild(document.createElement('span'));
             }
         }
 
@@ -372,6 +374,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
                 if (type === 'flag') {
                     return { type, flagged: row.querySelector('.flag-select').value === 'true' };
+                }
+                if (type === 'delete' || type === 'archive') {
+                    return { type };
                 }
                 return { type };
             });

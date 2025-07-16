@@ -243,6 +243,10 @@ async function processMessage(id) {
                         await messenger.messages.update(id, { read: !!act.read });
                     } else if (act.type === 'flag') {
                         await messenger.messages.update(id, { flagged: !!act.flagged });
+                    } else if (act.type === 'delete') {
+                        await messenger.messages.delete([id]);
+                    } else if (act.type === 'archive') {
+                        await messenger.messages.archive([id]);
                     }
                 }
                 if (rule.stopProcessing) {
