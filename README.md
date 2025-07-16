@@ -19,6 +19,7 @@ message meets a specified criterion.
 - **Light/Dark themes** – automatically match Thunderbird's appearance with optional manual override.
 - **Automatic rules** – create rules that tag, move, copy, forward, reply, delete, archive, mark read/unread or flag/unflag messages based on AI classification. Rules can optionally apply only to unread messages and can ignore messages outside a chosen age range.
 - **Rule ordering** – drag rules to prioritize them and optionally stop processing after a match.
+- **Account & folder filters** – limit rules to specific accounts or folders.
 - **Context menu** – apply AI rules from the message list or the message display action button.
 - **Status icons** – toolbar icons show when classification is in progress and briefly display success or error states.
 - **View reasoning** – inspect why rules matched via the Details popup.
@@ -69,11 +70,12 @@ Sortana is implemented entirely with standard WebExtension scripts—no custom e
 ## Usage
 
 1. Open the add-on's options and set the URL of your classification service.
-2. Use the **Classification Rules** section to add a criterion and optional
+ 2. Use the **Classification Rules** section to add a criterion and optional
    actions such as tagging, moving, copying, forwarding, replying,
    deleting or archiving a message when it matches. Drag rules to
    reorder them, check *Only apply to unread messages* to skip read mail,
-   set optional minimum or maximum message age limits, and
+   set optional minimum or maximum message age limits, select the accounts or
+   folders a rule should apply to, and
    check *Stop after match* to halt further processing. Forward and reply actions
    open a compose window using the account that received the message.
 3. Save your settings. New mail will be evaluated automatically using the
