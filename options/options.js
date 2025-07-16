@@ -355,12 +355,30 @@ document.addEventListener('DOMContentLoaded', async () => {
             unreadLabel.appendChild(unreadCheck);
             unreadLabel.append(' Only apply to unread messages');
 
+            const ageBox = document.createElement('div');
+            ageBox.className = 'field is-grouped mt-2';
+            const minInput = document.createElement('input');
+            minInput.type = 'number';
+            minInput.placeholder = 'Min days';
+            minInput.className = 'input is-small min-age mr-2';
+            minInput.style.width = '6em';
+            if (typeof rule.minAgeDays === 'number') minInput.value = rule.minAgeDays;
+            const maxInput = document.createElement('input');
+            maxInput.type = 'number';
+            maxInput.placeholder = 'Max days';
+            maxInput.className = 'input is-small max-age';
+            maxInput.style.width = '6em';
+            if (typeof rule.maxAgeDays === 'number') maxInput.value = rule.maxAgeDays;
+            ageBox.appendChild(minInput);
+            ageBox.appendChild(maxInput);
+
             const body = document.createElement('div');
             body.className = 'message-body';
             body.appendChild(actionsContainer);
             body.appendChild(addAction);
             body.appendChild(stopLabel);
             body.appendChild(unreadLabel);
+            body.appendChild(ageBox);
 
             article.appendChild(header);
             article.appendChild(body);
@@ -399,7 +417,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
             const stopProcessing = ruleEl.querySelector('.stop-processing')?.checked;
             const unreadOnly = ruleEl.querySelector('.unread-only')?.checked;
-            return { criterion, actions, unreadOnly, stopProcessing };
+            const minAgeDays = parseFloat(ruleEl.querySelector('.min-age')?.value);
+            const maxAgeDays = parseFloat(ruleEl.querySelector('.max-age')?.value);
+            const rule = { criterion, actions, unreadOnly, stopProcessing };
+            if (!isNaN(minAgeDays)) rule.minAgeDays = minAgeDays;
+            if (!isNaN(maxAgeDays)) rule.maxAgeDays = maxAgeDays;
+            return rule;
         });
         data.push({ criterion: '', actions: [], unreadOnly: false, stopProcessing: false });
         renderRules(data);
@@ -414,6 +437,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         const rule = { criterion: r.criterion, actions };
         if (r.stopProcessing) rule.stopProcessing = true;
         if (r.unreadOnly) rule.unreadOnly = true;
+        if (typeof r.minAgeDays === 'number') rule.minAgeDays = r.minAgeDays;
+        if (typeof r.maxAgeDays === 'number') rule.maxAgeDays = r.maxAgeDays;
         return rule;
     }));
 
@@ -557,7 +582,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
             const stopProcessing = ruleEl.querySelector('.stop-processing')?.checked;
             const unreadOnly = ruleEl.querySelector('.unread-only')?.checked;
-            return { criterion, actions, unreadOnly, stopProcessing };
+            const minAgeDays = parseFloat(ruleEl.querySelector('.min-age')?.value);
+            const maxAgeDays = parseFloat(ruleEl.querySelector('.max-age')?.value);
+            const rule = { criterion, actions, unreadOnly, stopProcessing };
+            if (!isNaN(minAgeDays)) rule.minAgeDays = minAgeDays;
+            if (!isNaN(maxAgeDays)) rule.maxAgeDays = maxAgeDays;
+            return rule;
         }).filter(r => r.criterion);
         const stripUrlParams = stripUrlToggle.checked;
         const altTextImages = altTextToggle.checked;

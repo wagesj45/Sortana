@@ -41,6 +41,8 @@ function normalizeRules(rules) {
         const rule = { criterion: r.criterion, actions };
         if (r.stopProcessing) rule.stopProcessing = true;
         if (r.unreadOnly) rule.unreadOnly = true;
+        if (typeof r.minAgeDays === 'number') rule.minAgeDays = r.minAgeDays;
+        if (typeof r.maxAgeDays === 'number') rule.maxAgeDays = r.maxAgeDays;
         return rule;
     }) : [];
 }
@@ -228,6 +230,18 @@ async function processMessage(id) {
         for (const rule of aiRules) {
             if (rule.unreadOnly && alreadyRead) {
                 continue;
+            }
+            if (hdr && (typeof rule.minAgeDays === 'number' || typeof rule.maxAgeDays === 'number')) {
+                const msgTime = new Date(hdr.date).getTime();
+                if (!isNaN(msgTime)) {
+                    const ageDays = (Date.now() - msgTime) / 86400000;
+                    if (typeof rule.minAgeDays === 'number' && ageDays < rule.minAgeDays) {
+                        continue;
+                    }
+                    if (typeof rule.maxAgeDays === 'number' && ageDays > rule.maxAgeDays) {
+                        continue;
+                    }
+                }
             }
             const cacheKey = await AiClassifier.buildCacheKey(id, rule.criterion);
             const matched = await AiClassifier.classifyText(text, rule.criterion, cacheKey);
