@@ -286,12 +286,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'button is-small is-light';
-        btn.textContent = label;
+        const icon = document.createElement('img');
+        icon.width = 16;
+        icon.height = 16;
+        icon.className = 'mr-1';
+        btn.appendChild(icon);
+        btn.append(label);
 
         let active = checkbox ? checkbox.checked : sectionEl && !sectionEl.classList.contains('is-hidden');
 
         function update() {
-            btn.classList.toggle('is-info', active);
+            btn.classList.toggle('is-active', active);
+            icon.src = browser.runtime.getURL(`resources/svg/${active ? 'circledot' : 'circle'}.svg`);
             if (sectionEl) sectionEl.classList.toggle('is-hidden', !active);
             if (checkbox) checkbox.checked = active;
         }
