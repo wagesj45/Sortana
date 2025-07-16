@@ -229,6 +229,10 @@ async function processMessage(id) {
                         await messenger.messages.move([id], act.folder);
                     } else if (act.type === 'junk') {
                         await messenger.messages.update(id, { junk: !!act.junk });
+                    } else if (act.type === 'read') {
+                        await messenger.messages.update(id, { read: !!act.read });
+                    } else if (act.type === 'flag') {
+                        await messenger.messages.update(id, { flagged: !!act.flagged });
                     }
                 }
                 if (rule.stopProcessing) {

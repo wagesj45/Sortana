@@ -19,4 +19,10 @@
   "options.stripUrlParams": { "message": "Remove URL tracking parameters" },
   "options.altTextImages": { "message": "Replace images with alt text" },
   "options.collapseWhitespace": { "message": "Collapse long whitespace" }
+  ,"action.read": { "message": "read" }
+  ,"action.flag": { "message": "flag" }
+  ,"param.markRead": { "message": "mark read" }
+  ,"param.markUnread": { "message": "mark unread" }
+  ,"param.flag": { "message": "flag" }
+  ,"param.unflag": { "message": "unflag" }
 }

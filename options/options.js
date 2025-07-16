@@ -171,7 +171,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const typeWrapper = document.createElement('div');
         typeWrapper.className = 'select is-small mr-2';
         const typeSelect = document.createElement('select');
-        ['tag','move','junk'].forEach(t => {
+        ['tag','move','junk','read','flag'].forEach(t => {
             const opt = document.createElement('option');
             opt.value = t;
             opt.textContent = t;
@@ -220,6 +220,26 @@ document.addEventListener('DOMContentLoaded', async () => {
                 sel.appendChild(new Option('mark junk','true'));
                 sel.appendChild(new Option('mark not junk','false'));
                 sel.value = String(action.junk ?? true);
+                wrap.appendChild(sel);
+                paramSpan.appendChild(wrap);
+            } else if (typeSelect.value === 'read') {
+                const wrap = document.createElement('div');
+                wrap.className = 'select is-small';
+                const sel = document.createElement('select');
+                sel.className = 'read-select';
+                sel.appendChild(new Option('mark read','true'));
+                sel.appendChild(new Option('mark unread','false'));
+                sel.value = String(action.read ?? true);
+                wrap.appendChild(sel);
+                paramSpan.appendChild(wrap);
+            } else if (typeSelect.value === 'flag') {
+                const wrap = document.createElement('div');
+                wrap.className = 'select is-small';
+                const sel = document.createElement('select');
+                sel.className = 'flag-select';
+                sel.appendChild(new Option('flag','true'));
+                sel.appendChild(new Option('unflag','false'));
+                sel.value = String(action.flagged ?? true);
                 wrap.appendChild(sel);
                 paramSpan.appendChild(wrap);
             }
@@ -333,6 +353,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
                 if (type === 'junk') {
                     return { type, junk: row.querySelector('.junk-select').value === 'true' };
+                }
+                if (type === 'read') {
+                    return { type, read: row.querySelector('.read-select').value === 'true' };
+                }
+                if (type === 'flag') {
+                    return { type, flagged: row.querySelector('.flag-select').value === 'true' };
                 }
                 return { type };
             });
@@ -473,6 +499,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
                 if (type === 'junk') {
                     return { type, junk: row.querySelector('.junk-select').value === 'true' };
+                }
+                if (type === 'read') {
+                    return { type, read: row.querySelector('.read-select').value === 'true' };
+                }
+                if (type === 'flag') {
+                    return { type, flagged: row.querySelector('.flag-select').value === 'true' };
                 }
                 return { type };
             });
