@@ -28,7 +28,7 @@ This file provides guidelines for codex agents contributing to the Sortana proje
 
 ## Testing
 
-There are currently no automated tests for this project. If you add tests in the future, specify the commands to run them here. For now, verification must happen manually in Thunderbird.
+There are currently no automated tests for this project. If you add tests in the future, specify the commands to run them here. For now, verification must happen manually in Thunderbird. Do **not** run the `ps1` build script or the SVG processing script.
 
 ## Documentation
 
