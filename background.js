@@ -185,6 +185,20 @@ function updateTimingStats(elapsed) {
     t.m2 += delta * (elapsed - t.mean);
 }
 
+async function getAllMessageIds(list) {
+    const ids = [];
+    if (!list) {
+        return ids;
+    }
+    let page = list;
+    ids.push(...(page.messages || []).map(m => m.id));
+    while (page.id) {
+        page = await messenger.messages.continueList(page.id);
+        ids.push(...(page.messages || []).map(m => m.id));
+    }
+    return ids;
+}
+
 async function processMessage(id) {
     processing = true;
     currentStart = Date.now();
@@ -409,12 +423,16 @@ async function clearCacheForMessages(idsInput) {
 
     browser.menus.onClicked.addListener(async (info, tab) => {
         if (info.menuItemId === "apply-ai-rules-list" || info.menuItemId === "apply-ai-rules-display") {
-            const ids = info.selectedMessages?.messages?.map(m => m.id) ||
-                (info.messageId ? [info.messageId] : []);
+            let ids = info.messageId ? [info.messageId] : [];
+            if (info.selectedMessages) {
+                ids = await getAllMessageIds(info.selectedMessages);
+            }
             await applyAiRules(ids);
         } else if (info.menuItemId === "clear-ai-cache-list" || info.menuItemId === "clear-ai-cache-display") {
-            const ids = info.selectedMessages?.messages?.map(m => m.id) ||
-                (info.messageId ? [info.messageId] : []);
+            let ids = info.messageId ? [info.messageId] : [];
+            if (info.selectedMessages) {
+                ids = await getAllMessageIds(info.selectedMessages);
+            }
             await clearCacheForMessages(ids);
         } else if (info.menuItemId === "view-ai-reason-list" || info.menuItemId === "view-ai-reason-display") {
             const [header] = await browser.messageDisplay.getDisplayedMessages(tab.id);
