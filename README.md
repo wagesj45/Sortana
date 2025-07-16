@@ -17,7 +17,7 @@ message meets a specified criterion.
 - **Markdown conversion** – optionally convert HTML bodies to Markdown before sending them to the AI service.
 - **Debug logging** – optional colorized logs help troubleshoot interactions with the AI service.
 - **Light/Dark themes** – automatically match Thunderbird's appearance with optional manual override.
-- **Automatic rules** – create rules that tag or move new messages based on AI classification.
+- **Automatic rules** – create rules that tag, move, mark read/unread or flag/unflag messages based on AI classification.
 - **Rule ordering** – drag rules to prioritize them and optionally stop processing after a match.
 - **Context menu** – apply AI rules from the message list or the message display action button.
 - **Status icons** – toolbar icons show when classification is in progress and briefly display success or error states.
@@ -101,7 +101,7 @@ Here are some useful and fun example criteria you can use in your filters. Filte
   For when you're ready to filter based on vibes.
 
 You can define as many filters as you'd like, each using a different prompt and
-triggering tags, moves, or actions based on the model's classification.
+triggering tags, moves, read/unread changes or flag updates based on the model's classification.
 
 ## Required Permissions
 
@@ -110,7 +110,7 @@ Sortana requests the following Thunderbird permissions:
 - `storage` – store configuration and cached classification results.
 - `messagesRead` – read message contents for classification.
 - `messagesMove` – move messages when a rule specifies a target folder.
-- `messagesUpdate` – change message properties such as tags and junk status.
+ - `messagesUpdate` – change message properties such as tags, junk status, read/unread state and flags.
 - `messagesTagsList` – retrieve existing message tags for rule actions.
 - `accountsRead` – list accounts and folders for move actions.
 - `menus` – add context menu commands.
