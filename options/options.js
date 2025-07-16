@@ -326,6 +326,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
             header.appendChild(delBtn);
 
+            const enabledLabel = document.createElement('label');
+            enabledLabel.className = 'checkbox ml-2';
+            const enabledCheck = document.createElement('input');
+            enabledCheck.type = 'checkbox';
+            enabledCheck.className = 'rule-enabled';
+            enabledCheck.checked = rule.enabled !== false;
+            enabledLabel.appendChild(enabledCheck);
+            enabledLabel.append(' Enabled');
+            header.appendChild(enabledLabel);
+
             const actionsContainer = document.createElement('div');
             actionsContainer.className = 'rule-actions mb-2';
 
@@ -469,18 +479,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
             const stopProcessing = ruleEl.querySelector('.stop-processing')?.checked;
             const unreadOnly = ruleEl.querySelector('.unread-only')?.checked;
+            const enabled = ruleEl.querySelector('.rule-enabled')?.checked !== false;
             const minAgeDays = parseFloat(ruleEl.querySelector('.min-age')?.value);
             const maxAgeDays = parseFloat(ruleEl.querySelector('.max-age')?.value);
             const accounts = [...(ruleEl.querySelector('.account-select')?.selectedOptions || [])].map(o => o.value);
             const folders = [...(ruleEl.querySelector('.folder-filter-select')?.selectedOptions || [])].map(o => o.value);
-            const rule = { criterion, actions, unreadOnly, stopProcessing };
+            const rule = { criterion, actions, unreadOnly, stopProcessing, enabled };
             if (!isNaN(minAgeDays)) rule.minAgeDays = minAgeDays;
             if (!isNaN(maxAgeDays)) rule.maxAgeDays = maxAgeDays;
             if (accounts.length) rule.accounts = accounts;
             if (folders.length) rule.folders = folders;
             return rule;
         });
-        data.push({ criterion: '', actions: [], unreadOnly: false, stopProcessing: false, accounts: [], folders: [] });
+        data.push({ criterion: '', actions: [], unreadOnly: false, stopProcessing: false, enabled: true, accounts: [], folders: [] });
         renderRules(data);
     });
 
@@ -488,6 +499,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (r.actions) {
             if (!Array.isArray(r.accounts)) r.accounts = [];
             if (!Array.isArray(r.folders)) r.folders = [];
+            if (r.enabled !== false) r.enabled = true; else r.enabled = false;
             return r;
         }
         const actions = [];
@@ -501,6 +513,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (typeof r.maxAgeDays === 'number') rule.maxAgeDays = r.maxAgeDays;
         if (Array.isArray(r.accounts)) rule.accounts = r.accounts;
         if (Array.isArray(r.folders)) rule.folders = r.folders;
+        rule.enabled = r.enabled !== false;
         return rule;
     }));
 
@@ -644,11 +657,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
             const stopProcessing = ruleEl.querySelector('.stop-processing')?.checked;
             const unreadOnly = ruleEl.querySelector('.unread-only')?.checked;
+            const enabled = ruleEl.querySelector('.rule-enabled')?.checked !== false;
             const minAgeDays = parseFloat(ruleEl.querySelector('.min-age')?.value);
             const maxAgeDays = parseFloat(ruleEl.querySelector('.max-age')?.value);
             const accounts = [...(ruleEl.querySelector('.account-select')?.selectedOptions || [])].map(o => o.value);
             const folders = [...(ruleEl.querySelector('.folder-filter-select')?.selectedOptions || [])].map(o => o.value);
-            const rule = { criterion, actions, unreadOnly, stopProcessing };
+            const rule = { criterion, actions, unreadOnly, stopProcessing, enabled };
             if (!isNaN(minAgeDays)) rule.minAgeDays = minAgeDays;
             if (!isNaN(maxAgeDays)) rule.maxAgeDays = maxAgeDays;
             if (accounts.length) rule.accounts = accounts;
