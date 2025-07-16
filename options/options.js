@@ -229,6 +229,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function renderRules(rules = []) {
+        ruleCountEl.textContent = rules.length;
         rulesContainer.innerHTML = '';
         for (const rule of rules) {
             const article = document.createElement('article');
@@ -265,7 +266,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             const delBtn = document.createElement('button');
             delBtn.className = 'delete';
             delBtn.setAttribute('aria-label', 'delete');
-            delBtn.addEventListener('click', () => article.remove());
+            delBtn.addEventListener('click', () => {
+                article.remove();
+                ruleCountEl.textContent = rulesContainer.querySelectorAll('.rule').length;
+            });
             header.appendChild(delBtn);
 
             const actionsContainer = document.createElement('div');
@@ -343,6 +347,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const lastTimeEl = document.getElementById('last-time');
     const averageTimeEl = document.getElementById('average-time');
     const totalTimeEl = document.getElementById('total-time');
+    const perHourEl = document.getElementById('per-hour');
+    const perDayEl = document.getElementById('per-day');
     let timingLogged = false;
     ruleCountEl.textContent = (defaults.aiRules || []).length;
     cacheCountEl.textContent = defaults.aiCache ? Object.keys(defaults.aiCache).length : 0;
@@ -386,6 +392,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             averageTimeEl.textContent = stats.runs > 0 ? format(stats.average) : '--:--:--';
             totalTimeEl.textContent = format(stats.total);
+            const perHour = stats.average > 0 ? Math.round(3600000 / stats.average) : 0;
+            const perDay = stats.average > 0 ? Math.round(86400000 / stats.average) : 0;
+            perHourEl.textContent = perHour;
+            perDayEl.textContent = perDay;
             if (!timingLogged) {
                 logger.aiLog('retrieved timing stats', {debug: true});
                 timingLogged = true;
@@ -396,11 +406,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             lastTimeEl.textContent = '--:--:--';
             averageTimeEl.textContent = '--:--:--';
             totalTimeEl.textContent = '--:--:--';
+            perHourEl.textContent = '0';
+            perDayEl.textContent = '0';
         }
 
-        ruleCountEl.textContent = document.querySelectorAll('#rules-container .rule').length;
         try {
-            cacheCountEl.textContent = await AiClassifier.getCacheSize();
+            const { aiCache } = await storage.local.get('aiCache');
+            cacheCountEl.textContent = aiCache ? Object.keys(aiCache).length : 0;
         } catch {
             cacheCountEl.textContent = '?';
         }
