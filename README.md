@@ -126,6 +126,7 @@ Sortana requests the following Thunderbird permissions:
 - `accountsRead` – list accounts and folders for move or copy actions.
 - `menus` – add context menu commands.
 - `tabs` – open new tabs and query the active tab.
+- `notifications` – display error notifications.
 - `compose` – create reply and forward compose windows for matching rules.
 
 ## Thunderbird Add-on Store Disclosures

@@ -32,17 +32,18 @@
     "page": "options/options.html",
     "open_in_tab": true
   },
-  "permissions": [
-    "storage",
-    "messagesRead",
-    "messagesMove",
-    "messagesUpdate",
-    "messagesTagsList",
-    "accountsRead",
-    "menus",
-    "scripting",
-    "tabs",
-    "theme",
-    "compose"
-  ]
+    "permissions": [
+      "storage",
+      "messagesRead",
+      "messagesMove",
+      "messagesUpdate",
+      "messagesTagsList",
+      "accountsRead",
+      "menus",
+      "notifications",
+      "scripting",
+      "tabs",
+      "theme",
+      "compose"
+    ]
 }
