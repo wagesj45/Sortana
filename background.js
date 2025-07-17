@@ -417,6 +417,20 @@ async function clearCacheForMessages(idsInput) {
                 aiRules = normalizeRules(newRules);
                 logger.aiLog("aiRules updated from storage change", { debug: true }, aiRules);
             }
+            if (changes.endpoint || changes.templateName || changes.customTemplate || changes.customSystemPrompt || changes.aiParams || changes.debugLogging) {
+                const config = {};
+                if (changes.endpoint) config.endpoint = changes.endpoint.newValue;
+                if (changes.templateName) config.templateName = changes.templateName.newValue;
+                if (changes.customTemplate) config.customTemplate = changes.customTemplate.newValue;
+                if (changes.customSystemPrompt) config.customSystemPrompt = changes.customSystemPrompt.newValue;
+                if (changes.aiParams) config.aiParams = changes.aiParams.newValue;
+                if (changes.debugLogging) {
+                    config.debugLogging = changes.debugLogging.newValue === true;
+                    logger.setDebug(config.debugLogging);
+                }
+                await AiClassifier.setConfig(config);
+                logger.aiLog("AiClassifier config updated from storage change", { debug: true }, config);
+            }
             if (changes.htmlToMarkdown) {
                 htmlToMarkdown = changes.htmlToMarkdown.newValue === true;
                 logger.aiLog("htmlToMarkdown updated from storage change", { debug: true }, htmlToMarkdown);
