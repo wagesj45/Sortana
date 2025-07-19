@@ -18,7 +18,9 @@
   "options.htmlToMarkdown": { "message": "Convert HTML body to Markdown" },
   "options.stripUrlParams": { "message": "Remove URL tracking parameters" },
   "options.altTextImages": { "message": "Replace images with alt text" },
-  "options.collapseWhitespace": { "message": "Collapse long whitespace" }
+  "options.collapseWhitespace": { "message": "Collapse long whitespace" },
+  "options.tokenReduction": { "message": "Aggressive token reduction" },
+  "options.contextLength": { "message": "Context length" }
   ,"action.read": { "message": "read" }
   ,"action.flag": { "message": "flag" }
     ,"action.copy": { "message": "copy" }
