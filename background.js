@@ -27,7 +27,7 @@ let stripUrlParams = false;
 let altTextImages = false;
 let collapseWhitespace = false;
 let tokenReduction = false;
-let contextLength = 16384;
+let maxTokens = 4096;
 let TurndownService = null;
 let userTheme = 'auto';
 let currentTheme = 'light';
@@ -262,8 +262,8 @@ async function processMessage(id) {
     try {
         const full = await messenger.messages.getFull(id);
         let text = buildEmailText(full);
-        if (tokenReduction && contextLength > 0) {
-            const limit = Math.floor(contextLength * 0.9);
+        if (tokenReduction && maxTokens > 0) {
+            const limit = Math.floor(maxTokens * 0.9);
             if (text.length > limit) {
                 text = text.slice(0, limit);
             }
@@ -425,7 +425,7 @@ async function clearCacheForMessages(idsInput) {
     }
 
     try {
-        const store = await storage.local.get(["endpoint", "templateName", "customTemplate", "customSystemPrompt", "aiParams", "debugLogging", "htmlToMarkdown", "stripUrlParams", "altTextImages", "collapseWhitespace", "tokenReduction", "contextLength", "aiRules", "theme", "errorPending"]);
+        const store = await storage.local.get(["endpoint", "templateName", "customTemplate", "customSystemPrompt", "aiParams", "debugLogging", "htmlToMarkdown", "stripUrlParams", "altTextImages", "collapseWhitespace", "tokenReduction", "aiRules", "theme", "errorPending"]);
         logger.setDebug(store.debugLogging);
         await AiClassifier.setConfig(store);
         userTheme = store.theme || 'auto';
@@ -436,7 +436,9 @@ async function clearCacheForMessages(idsInput) {
         altTextImages = store.altTextImages === true;
         collapseWhitespace = store.collapseWhitespace === true;
         tokenReduction = store.tokenReduction === true;
-        contextLength = parseInt(store.contextLength) || contextLength;
+        if (store.aiParams && typeof store.aiParams.max_tokens !== 'undefined') {
+            maxTokens = parseInt(store.aiParams.max_tokens) || maxTokens;
+        }
         errorPending = store.errorPending === true;
         const savedStats = await storage.local.get('classifyStats');
         if (savedStats.classifyStats && typeof savedStats.classifyStats === 'object') {
@@ -459,7 +461,12 @@ async function clearCacheForMessages(idsInput) {
                 if (changes.templateName) config.templateName = changes.templateName.newValue;
                 if (changes.customTemplate) config.customTemplate = changes.customTemplate.newValue;
                 if (changes.customSystemPrompt) config.customSystemPrompt = changes.customSystemPrompt.newValue;
-                if (changes.aiParams) config.aiParams = changes.aiParams.newValue;
+                if (changes.aiParams) {
+                    config.aiParams = changes.aiParams.newValue;
+                    if (changes.aiParams.newValue && typeof changes.aiParams.newValue.max_tokens !== 'undefined') {
+                        maxTokens = parseInt(changes.aiParams.newValue.max_tokens) || maxTokens;
+                    }
+                }
                 if (changes.debugLogging) {
                     config.debugLogging = changes.debugLogging.newValue === true;
                     logger.setDebug(config.debugLogging);
@@ -486,10 +493,6 @@ async function clearCacheForMessages(idsInput) {
             if (changes.tokenReduction) {
                 tokenReduction = changes.tokenReduction.newValue === true;
                 logger.aiLog("tokenReduction updated from storage change", { debug: true }, tokenReduction);
-            }
-            if (changes.contextLength) {
-                contextLength = parseInt(changes.contextLength.newValue) || contextLength;
-                logger.aiLog("contextLength updated from storage change", { debug: true }, contextLength);
             }
             if (changes.errorPending) {
                 errorPending = changes.errorPending.newValue === true;
