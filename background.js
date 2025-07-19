@@ -26,6 +26,8 @@ let htmlToMarkdown = false;
 let stripUrlParams = false;
 let altTextImages = false;
 let collapseWhitespace = false;
+let tokenReduction = false;
+let contextLength = 16384;
 let TurndownService = null;
 let userTheme = 'auto';
 let currentTheme = 'light';
@@ -125,12 +127,16 @@ function byteSize(str) {
 }
 
 function replaceInlineBase64(text) {
-    return text.replace(/[A-Za-z0-9+/]{100,}={0,2}/g,
-        m => `[base64: ${byteSize(m)} bytes]`);
+    return text.replace(/(?:data:[^;]+;base64,)?[A-Za-z0-9+/=\r\n]{100,}/g,
+        m => tokenReduction ? '__BASE64__' : `[base64: ${byteSize(m)} bytes]`);
 }
 
 function sanitizeString(text) {
     let t = String(text);
+    if (tokenReduction) {
+        t = t.replace(/<!--.*?-->/gs, '')
+            .replace(/url\([^\)]*\)/gi, 'url(__IMG__)');
+    }
     if (stripUrlParams) {
         t = t.replace(/https?:\/\/[^\s)]+/g, m => {
             const idx = m.indexOf('?');
@@ -138,7 +144,7 @@ function sanitizeString(text) {
         });
     }
     if (collapseWhitespace) {
-        t = t.replace(/[ \t\u00A0]{2,}/g, ' ').replace(/\n{3,}/g, '\n\n');
+        t = t.replace(/[\u200B-\u200D\u2060\s]{2,}/g, ' ').replace(/\n{3,}/g, '\n\n');
     }
     return t;
 }
@@ -157,12 +163,26 @@ function collectText(part, bodyParts, attachments) {
         attachments.push(`${name} (${ct}, ${part.size || byteSize(body)} bytes)`);
     } else if (ct.startsWith("text/html")) {
         const doc = new DOMParser().parseFromString(body, 'text/html');
-        if (altTextImages) {
-            doc.querySelectorAll('img').forEach(img => {
-                const alt = img.getAttribute('alt') || '';
-                img.replaceWith(doc.createTextNode(alt));
+        if (tokenReduction) {
+            doc.querySelectorAll('script,style').forEach(el => el.remove());
+            const walker = doc.createTreeWalker(doc, NodeFilter.SHOW_COMMENT);
+            let node;
+            while ((node = walker.nextNode())) {
+                node.parentNode.removeChild(node);
+            }
+            doc.querySelectorAll('*').forEach(el => {
+                for (const attr of Array.from(el.attributes)) {
+                    if (!['href','src','alt'].includes(attr.name)) {
+                        el.removeAttribute(attr.name);
+                    }
+                }
             });
         }
+        doc.querySelectorAll('img').forEach(img => {
+            const alt = img.getAttribute('alt') || '';
+            const text = altTextImages ? alt : '__IMG__';
+            img.replaceWith(doc.createTextNode(text));
+        });
         if (stripUrlParams) {
             doc.querySelectorAll('[href]').forEach(a => {
                 const href = a.getAttribute('href');
@@ -198,7 +218,15 @@ function buildEmailText(full) {
         .join('\n');
     const attachInfo = `Attachments: ${attachments.length}` +
         (attachments.length ? "\n" + attachments.map(a => ` - ${a}`).join('\n') : "");
-    const combined = `${headers}\n${attachInfo}\n\n${bodyParts.join('\n')}`.trim();
+    let combined = `${headers}\n${attachInfo}\n\n${bodyParts.join('\n')}`.trim();
+    if (tokenReduction) {
+        const seen = new Set();
+        combined = combined.split('\n').filter(l => {
+            if (seen.has(l)) return false;
+            seen.add(l);
+            return true;
+        }).join('\n');
+    }
     return sanitizeString(combined);
 }
 
@@ -233,7 +261,13 @@ async function processMessage(id) {
     updateActionIcon();
     try {
         const full = await messenger.messages.getFull(id);
-        const text = buildEmailText(full);
+        let text = buildEmailText(full);
+        if (tokenReduction && contextLength > 0) {
+            const limit = Math.floor(contextLength * 0.9);
+            if (text.length > limit) {
+                text = text.slice(0, limit);
+            }
+        }
         let hdr;
         let currentTags = [];
         let alreadyRead = false;
@@ -391,7 +425,7 @@ async function clearCacheForMessages(idsInput) {
     }
 
     try {
-        const store = await storage.local.get(["endpoint", "templateName", "customTemplate", "customSystemPrompt", "aiParams", "debugLogging", "htmlToMarkdown", "stripUrlParams", "altTextImages", "collapseWhitespace", "aiRules", "theme", "errorPending"]);
+        const store = await storage.local.get(["endpoint", "templateName", "customTemplate", "customSystemPrompt", "aiParams", "debugLogging", "htmlToMarkdown", "stripUrlParams", "altTextImages", "collapseWhitespace", "tokenReduction", "contextLength", "aiRules", "theme", "errorPending"]);
         logger.setDebug(store.debugLogging);
         await AiClassifier.setConfig(store);
         userTheme = store.theme || 'auto';
@@ -401,6 +435,8 @@ async function clearCacheForMessages(idsInput) {
         stripUrlParams = store.stripUrlParams === true;
         altTextImages = store.altTextImages === true;
         collapseWhitespace = store.collapseWhitespace === true;
+        tokenReduction = store.tokenReduction === true;
+        contextLength = parseInt(store.contextLength) || contextLength;
         errorPending = store.errorPending === true;
         const savedStats = await storage.local.get('classifyStats');
         if (savedStats.classifyStats && typeof savedStats.classifyStats === 'object') {
@@ -446,6 +482,14 @@ async function clearCacheForMessages(idsInput) {
             if (changes.collapseWhitespace) {
                 collapseWhitespace = changes.collapseWhitespace.newValue === true;
                 logger.aiLog("collapseWhitespace updated from storage change", { debug: true }, collapseWhitespace);
+            }
+            if (changes.tokenReduction) {
+                tokenReduction = changes.tokenReduction.newValue === true;
+                logger.aiLog("tokenReduction updated from storage change", { debug: true }, tokenReduction);
+            }
+            if (changes.contextLength) {
+                contextLength = parseInt(changes.contextLength.newValue) || contextLength;
+                logger.aiLog("contextLength updated from storage change", { debug: true }, contextLength);
             }
             if (changes.errorPending) {
                 errorPending = changes.errorPending.newValue === true;

@@ -16,6 +16,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         'stripUrlParams',
         'altTextImages',
         'collapseWhitespace',
+        'tokenReduction',
+        'contextLength',
         'aiRules',
         'aiCache',
         'theme'
@@ -114,6 +116,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const collapseWhitespaceToggle = document.getElementById('collapse-whitespace');
     collapseWhitespaceToggle.checked = defaults.collapseWhitespace === true;
+
+    const tokenReductionToggle = document.getElementById('token-reduction');
+    tokenReductionToggle.checked = defaults.tokenReduction === true;
+
+    const contextLengthInput = document.getElementById('context-length');
+    contextLengthInput.value = defaults.contextLength || 16384;
 
     const aiParams = Object.assign({}, DEFAULT_AI_PARAMS, defaults.aiParams || {});
     for (const [key, val] of Object.entries(aiParams)) {
@@ -791,8 +799,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         const stripUrlParams = stripUrlToggle.checked;
         const altTextImages = altTextToggle.checked;
         const collapseWhitespace = collapseWhitespaceToggle.checked;
+        const tokenReduction = tokenReductionToggle.checked;
+        const contextLength = parseInt(contextLengthInput.value) || 0;
         const theme = themeSelect.value;
-        await storage.local.set({ endpoint, templateName, customTemplate: customTemplateText, customSystemPrompt, aiParams: aiParamsSave, debugLogging, htmlToMarkdown, stripUrlParams, altTextImages, collapseWhitespace, aiRules: rules, theme });
+        await storage.local.set({ endpoint, templateName, customTemplate: customTemplateText, customSystemPrompt, aiParams: aiParamsSave, debugLogging, htmlToMarkdown, stripUrlParams, altTextImages, collapseWhitespace, tokenReduction, contextLength, aiRules: rules, theme });
         await applyTheme(theme);
         try {
             await AiClassifier.setConfig({ endpoint, templateName, customTemplate: customTemplateText, customSystemPrompt, aiParams: aiParamsSave, debugLogging });
