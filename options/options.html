@@ -31,6 +31,10 @@
         .tag {
             --bulma-tag-h: 318;
         }
+        #diff-display {
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
     </style>
 </head>
 <body>
@@ -286,9 +290,11 @@
                     <span>Debug</span>
                 </h2>
                 <pre id="payload-display"></pre>
+                <div id="diff-display" class="mt-4"></div>
             </div>
         </div>
     </section>
+    <script src="../resources/js/diff_match_patch_uncompressed.js"></script>
     <script src="options.js"></script>
 </body>
 </html>
