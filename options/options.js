@@ -70,6 +70,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     await applyTheme(themeSelect.value);
     const payloadDisplay = document.getElementById('payload-display');
     const diffDisplay = document.getElementById('diff-display');
+    const diffContainer = document.getElementById('diff-container');
 
     let lastFullText = defaults.lastFullText || '';
     let lastPromptText = defaults.lastPromptText || '';
@@ -83,7 +84,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         dmp.Diff_EditCost = 4;
         const diffs = dmp.diff_main(lastFullText, lastPromptText);
         dmp.diff_cleanupEfficiency(diffs);
-        diffDisplay.innerHTML = dmp.diff_prettyHtml(diffs);
+        const hasDiff = diffs.some(d => d[0] !== 0);
+        if (hasDiff) {
+            diffDisplay.innerHTML = dmp.diff_prettyHtml(diffs);
+            diffContainer.classList.remove('is-hidden');
+        } else {
+            diffDisplay.innerHTML = '';
+            diffContainer.classList.add('is-hidden');
+        }
+    } else {
+        diffContainer.classList.add('is-hidden');
     }
     themeSelect.addEventListener('change', async () => {
         markDirty();
@@ -751,9 +761,17 @@ document.addEventListener('DOMContentLoaded', async () => {
                         dmp.Diff_EditCost = 4;
                         const diffs = dmp.diff_main(lastFullText, lastPromptText);
                         dmp.diff_cleanupEfficiency(diffs);
-                        diffDisplay.innerHTML = dmp.diff_prettyHtml(diffs);
+                        const hasDiff = diffs.some(d => d[0] !== 0);
+                        if (hasDiff) {
+                            diffDisplay.innerHTML = dmp.diff_prettyHtml(diffs);
+                            diffContainer.classList.remove('is-hidden');
+                        } else {
+                            diffDisplay.innerHTML = '';
+                            diffContainer.classList.add('is-hidden');
+                        }
                     } else {
                         diffDisplay.innerHTML = '';
+                        diffContainer.classList.add('is-hidden');
                     }
                 }
             }

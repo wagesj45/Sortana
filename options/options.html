@@ -155,6 +155,11 @@
                         </label>
                     </div>
                     <div class="field">
+                        <label class="checkbox">
+                            <input type="checkbox" id="show-debug-tab"> Show debug information
+                        </label>
+                    </div>
+                    <div class="field">
                         <label class="label" for="max_tokens">Max tokens</label>
                         <div class="control">
                             <input class="input" type="number" id="max_tokens">
@@ -219,11 +224,6 @@
                         <div class="control">
                             <input class="input" type="number" step="0.01" id="tfs">
                         </div>
-                    </div>
-                    <div class="field">
-                        <label class="checkbox">
-                            <input type="checkbox" id="show-debug-tab"> Advanced Options
-                        </label>
                     </div>
                 </div>
             </div>
@@ -290,7 +290,10 @@
                     <span>Debug</span>
                 </h2>
                 <pre id="payload-display"></pre>
-                <div id="diff-display" class="mt-4"></div>
+                <div id="diff-container" class="mt-4 is-hidden">
+                    <label class="label">Prompt diff</label>
+                    <div id="diff-display" class="box content is-family-monospace"></div>
+                </div>
             </div>
         </div>
     </section>
