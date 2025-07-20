@@ -70,13 +70,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     await applyTheme(themeSelect.value);
     const payloadDisplay = document.getElementById('payload-display');
     const diffDisplay = document.getElementById('diff-display');
-    if (defaults.lastPayload) {
-        payloadDisplay.textContent = JSON.stringify(defaults.lastPayload, null, 2);
+
+    let lastFullText = defaults.lastFullText || '';
+    let lastPromptText = defaults.lastPromptText || '';
+    let lastPayload = defaults.lastPayload ? JSON.stringify(defaults.lastPayload, null, 2) : '';
+
+    if (lastPayload) {
+        payloadDisplay.textContent = lastPayload;
     }
-    if (defaults.lastFullText && defaults.lastPromptText && diff_match_patch) {
+    if (lastFullText && lastPromptText && diff_match_patch) {
         const dmp = new diff_match_patch();
         dmp.Diff_EditCost = 4;
-        const diffs = dmp.diff_main(defaults.lastFullText, defaults.lastPromptText);
+        const diffs = dmp.diff_main(lastFullText, lastPromptText);
         dmp.diff_cleanupEfficiency(diffs);
         diffDisplay.innerHTML = dmp.diff_prettyHtml(diffs);
     }
@@ -729,6 +734,30 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch {
             cacheCountEl.textContent = '?';
         }
+
+        try {
+            if (debugTabToggle.checked) {
+                const latest = await storage.local.get(['lastPayload', 'lastFullText', 'lastPromptText']);
+                const payloadStr = latest.lastPayload ? JSON.stringify(latest.lastPayload, null, 2) : '';
+                if (payloadStr !== lastPayload) {
+                    lastPayload = payloadStr;
+                    payloadDisplay.textContent = payloadStr;
+                }
+                if (latest.lastFullText !== lastFullText || latest.lastPromptText !== lastPromptText) {
+                    lastFullText = latest.lastFullText || '';
+                    lastPromptText = latest.lastPromptText || '';
+                    if (lastFullText && lastPromptText && diff_match_patch) {
+                        const dmp = new diff_match_patch();
+                        dmp.Diff_EditCost = 4;
+                        const diffs = dmp.diff_main(lastFullText, lastPromptText);
+                        dmp.diff_cleanupEfficiency(diffs);
+                        diffDisplay.innerHTML = dmp.diff_prettyHtml(diffs);
+                    } else {
+                        diffDisplay.innerHTML = '';
+                    }
+                }
+            }
+        } catch {}
     }
 
     refreshMaintenance();
