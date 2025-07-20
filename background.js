@@ -210,17 +210,38 @@ function collectText(part, bodyParts, attachments) {
     }
 }
 
-function buildEmailText(full) {
+function collectRawText(part, bodyParts, attachments) {
+    if (part.parts && part.parts.length) {
+        for (const p of part.parts) collectRawText(p, bodyParts, attachments);
+        return;
+    }
+    const ct = (part.contentType || "text/plain").toLowerCase();
+    const cd = (part.headers?.["content-disposition"]?.[0] || "").toLowerCase();
+    const body = String(part.body || "");
+    if (cd.includes("attachment") || !ct.startsWith("text/")) {
+        const nameMatch = /filename\s*=\s*"?([^";]+)/i.exec(cd) || /name\s*=\s*"?([^";]+)/i.exec(part.headers?.["content-type"]?.[0] || "");
+        const name = nameMatch ? nameMatch[1] : "";
+        attachments.push(`${name} (${ct}, ${part.size || byteSize(body)} bytes)`);
+    } else if (ct.startsWith("text/html")) {
+        const doc = new DOMParser().parseFromString(body, 'text/html');
+        bodyParts.push(doc.body.textContent || "");
+    } else {
+        bodyParts.push(body);
+    }
+}
+
+function buildEmailText(full, applyTransforms = true) {
     const bodyParts = [];
     const attachments = [];
-    collectText(full, bodyParts, attachments);
+    const collect = applyTransforms ? collectText : collectRawText;
+    collect(full, bodyParts, attachments);
     const headers = Object.entries(full.headers || {})
         .map(([k, v]) => `${k}: ${v.join(' ')}`)
         .join('\n');
     const attachInfo = `Attachments: ${attachments.length}` +
         (attachments.length ? "\n" + attachments.map(a => ` - ${a}`).join('\n') : "");
     let combined = `${headers}\n${attachInfo}\n\n${bodyParts.join('\n')}`.trim();
-    if (tokenReduction) {
+    if (applyTransforms && tokenReduction) {
         const seen = new Set();
         combined = combined.split('\n').filter(l => {
             if (seen.has(l)) return false;
@@ -228,7 +249,7 @@ function buildEmailText(full) {
             return true;
         }).join('\n');
     }
-    return sanitizeString(combined);
+    return applyTransforms ? sanitizeString(combined) : combined;
 }
 
 function updateTimingStats(elapsed) {
@@ -262,8 +283,8 @@ async function processMessage(id) {
     updateActionIcon();
     try {
         const full = await messenger.messages.getFull(id);
+        const originalText = buildEmailText(full, false);
         let text = buildEmailText(full);
-        const originalText = text;
         if (tokenReduction && maxTokens > 0) {
             const limit = Math.floor(maxTokens * 0.9);
             if (text.length > limit) {
