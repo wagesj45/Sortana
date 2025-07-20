@@ -141,6 +141,8 @@ uses the following third party libraries:
   - MIT License
 - [turndown v7.2.0](https://github.com/mixmark-io/turndown/tree/v7.2.0)
   - MIT License
+- [diff](https://github.com/google/diff-match-patch/blob/62f2e689f498f9c92dbc588c58750addec9b1654/javascript/diff_match_patch_uncompressed.js)
+  -  Apache-2.0 license
 
 ## License
 

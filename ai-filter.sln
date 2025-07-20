@@ -108,6 +108,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "img", "img", "{F266602F-175
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "js", "js", "{21D2A42C-3F85-465C-9141-C106AFD92B68}"
 	ProjectSection(SolutionItems) = preProject
+		resources\js\diff_match_patch_uncompressed.js = resources\js\diff_match_patch_uncompressed.js
 		resources\js\turndown.js = resources\js\turndown.js
 	EndProjectSection
 EndProject
