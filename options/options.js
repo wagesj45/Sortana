@@ -19,7 +19,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         'tokenReduction',
         'aiRules',
         'aiCache',
-        'theme'
+        'theme',
+        'showDebugTab',
+        'lastPayload'
     ]);
     const tabButtons = document.querySelectorAll('#main-tabs li');
     const tabs = document.querySelectorAll('.tab-content');
@@ -64,6 +66,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     await applyTheme(themeSelect.value);
+    const payloadDisplay = document.getElementById('payload-display');
+    if (defaults.lastPayload) {
+        payloadDisplay.textContent = JSON.stringify(defaults.lastPayload, null, 2);
+    }
     themeSelect.addEventListener('change', async () => {
         markDirty();
         await applyTheme(themeSelect.value);
@@ -118,6 +124,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const tokenReductionToggle = document.getElementById('token-reduction');
     tokenReductionToggle.checked = defaults.tokenReduction === true;
+
+    const debugTabToggle = document.getElementById('show-debug-tab');
+    const debugTabBtn = document.getElementById('debug-tab-button');
+    function updateDebugTab() {
+        const visible = debugTabToggle.checked;
+        debugTabBtn.classList.toggle('is-hidden', !visible);
+    }
+    debugTabToggle.checked = defaults.showDebugTab === true;
+    debugTabToggle.addEventListener('change', () => { updateDebugTab(); markDirty(); });
+    updateDebugTab();
 
 
     const aiParams = Object.assign({}, DEFAULT_AI_PARAMS, defaults.aiParams || {});
@@ -797,8 +813,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const altTextImages = altTextToggle.checked;
         const collapseWhitespace = collapseWhitespaceToggle.checked;
         const tokenReduction = tokenReductionToggle.checked;
+        const showDebugTab = debugTabToggle.checked;
         const theme = themeSelect.value;
-        await storage.local.set({ endpoint, templateName, customTemplate: customTemplateText, customSystemPrompt, aiParams: aiParamsSave, debugLogging, htmlToMarkdown, stripUrlParams, altTextImages, collapseWhitespace, tokenReduction, aiRules: rules, theme });
+        await storage.local.set({ endpoint, templateName, customTemplate: customTemplateText, customSystemPrompt, aiParams: aiParamsSave, debugLogging, htmlToMarkdown, stripUrlParams, altTextImages, collapseWhitespace, tokenReduction, aiRules: rules, theme, showDebugTab });
         await applyTheme(theme);
         try {
             await AiClassifier.setConfig({ endpoint, templateName, customTemplate: customTemplateText, customSystemPrompt, aiParams: aiParamsSave, debugLogging });

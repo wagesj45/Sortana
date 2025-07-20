@@ -308,6 +308,11 @@ async function classifyText(text, criterion, cacheKey = null) {
   }
 
   const payload = buildPayload(text, criterion);
+  try {
+    await storage.local.set({ lastPayload: JSON.parse(payload) });
+  } catch (e) {
+    aiLog('failed to save last payload', { level: 'warn' }, e);
+  }
 
   aiLog(`[AiClassifier] Sending classification request to ${gEndpoint}`, {debug: true});
   aiLog(`[AiClassifier] Classification request payload:`, { debug: true }, payload);
