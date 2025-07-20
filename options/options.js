@@ -21,7 +21,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         'aiCache',
         'theme',
         'showDebugTab',
-        'lastPayload'
+        'lastPayload',
+        'lastFullText',
+        'lastPromptText'
     ]);
     const tabButtons = document.querySelectorAll('#main-tabs li');
     const tabs = document.querySelectorAll('.tab-content');
@@ -67,8 +69,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     await applyTheme(themeSelect.value);
     const payloadDisplay = document.getElementById('payload-display');
+    const diffDisplay = document.getElementById('diff-display');
     if (defaults.lastPayload) {
         payloadDisplay.textContent = JSON.stringify(defaults.lastPayload, null, 2);
+    }
+    if (defaults.lastFullText && defaults.lastPromptText && diff_match_patch) {
+        const dmp = new diff_match_patch();
+        dmp.Diff_EditCost = 4;
+        const diffs = dmp.diff_main(defaults.lastFullText, defaults.lastPromptText);
+        dmp.diff_cleanupEfficiency(diffs);
+        diffDisplay.innerHTML = dmp.diff_prettyHtml(diffs);
     }
     themeSelect.addEventListener('change', async () => {
         markDirty();

@@ -33,6 +33,7 @@ let userTheme = 'auto';
 let currentTheme = 'light';
 let detectSystemTheme;
 let errorPending = false;
+let showDebugTab = false;
 const ERROR_NOTIFICATION_ID = 'sortana-error';
 
 function normalizeRules(rules) {
@@ -262,11 +263,15 @@ async function processMessage(id) {
     try {
         const full = await messenger.messages.getFull(id);
         let text = buildEmailText(full);
+        const originalText = text;
         if (tokenReduction && maxTokens > 0) {
             const limit = Math.floor(maxTokens * 0.9);
             if (text.length > limit) {
                 text = text.slice(0, limit);
             }
+        }
+        if (showDebugTab) {
+            await storage.local.set({ lastFullText: originalText, lastPromptText: text });
         }
         let hdr;
         let currentTags = [];
@@ -425,7 +430,7 @@ async function clearCacheForMessages(idsInput) {
     }
 
     try {
-        const store = await storage.local.get(["endpoint", "templateName", "customTemplate", "customSystemPrompt", "aiParams", "debugLogging", "htmlToMarkdown", "stripUrlParams", "altTextImages", "collapseWhitespace", "tokenReduction", "aiRules", "theme", "errorPending"]);
+        const store = await storage.local.get(["endpoint", "templateName", "customTemplate", "customSystemPrompt", "aiParams", "debugLogging", "htmlToMarkdown", "stripUrlParams", "altTextImages", "collapseWhitespace", "tokenReduction", "aiRules", "theme", "errorPending", "showDebugTab"]);
         logger.setDebug(store.debugLogging);
         await AiClassifier.setConfig(store);
         userTheme = store.theme || 'auto';
@@ -440,6 +445,7 @@ async function clearCacheForMessages(idsInput) {
             maxTokens = parseInt(store.aiParams.max_tokens) || maxTokens;
         }
         errorPending = store.errorPending === true;
+        showDebugTab = store.showDebugTab === true;
         const savedStats = await storage.local.get('classifyStats');
         if (savedStats.classifyStats && typeof savedStats.classifyStats === 'object') {
             Object.assign(timingStats, savedStats.classifyStats);
@@ -493,6 +499,9 @@ async function clearCacheForMessages(idsInput) {
             if (changes.tokenReduction) {
                 tokenReduction = changes.tokenReduction.newValue === true;
                 logger.aiLog("tokenReduction updated from storage change", { debug: true }, tokenReduction);
+            }
+            if (changes.showDebugTab) {
+                showDebugTab = changes.showDebugTab.newValue === true;
             }
             if (changes.errorPending) {
                 errorPending = changes.errorPending.newValue === true;
