@@ -1,13 +1,13 @@
 {
   "manifest_version": 2,
   "name": "Sortana",
-  "version": "2.1.2",
+  "version": "2.2.0",
   "default_locale": "en-US",
   "applications": {
     "gecko": {
       "id": "ai-filter@jordanwages",
       "strict_min_version": "128.0",
-      "strict_max_version": "139.*"
+      "strict_max_version": "140.*"
     }
   },
   "icons": {
